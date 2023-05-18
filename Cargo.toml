@@ -7,4 +7,6 @@ edition = "2021"
 
 [dependencies]
 procfs = "0.15.1"
+tabled = { version = "0.12.0", features = ["color"] } 
 termimad = "0.20"
+terminal_size = "0.2.6"
