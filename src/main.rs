@@ -1,13 +1,14 @@
 use termimad::crossterm::style::{Color::*};
 use termimad::*;
+use reqwest;
 
+use std::error::Error;
 
 mod connections;
 mod processes;
 mod address_checkers;
 mod string_utils;
 mod interface;
-mod second_interface;
 
 
 fn main() {
@@ -24,8 +25,7 @@ fn main() {
     // get running processes
     let all_connections: Vec<connections::Connection> = connections::get_all_connections(&filter_options);
     
-    interface::cli_interface(&all_connections);
+    // let _ = address_checkers::get_ip_audit();
 
-    //second_interface::cli_interface(&all_connections);
-
+    interface::cli(&all_connections);
 }

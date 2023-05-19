@@ -7,7 +7,6 @@ use std::collections::HashMap;
 
 use crate::string_utils;
 
-use tabled::{Table, Tabled};
 
 
 pub struct FilterOptions {
@@ -20,7 +19,6 @@ pub struct FilterOptions {
 }
 
 
-#[derive(Tabled)]
 #[derive(Debug)]
 pub struct Connection {
     pub conn_type: String,

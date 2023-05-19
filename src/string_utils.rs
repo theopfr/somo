@@ -1,5 +1,5 @@
 
-
+/// splits remote address and port at ":"
 pub fn split_address(address: &str) -> Option<(&str, &str)> {
     static DELIMITER: &str = ":";
 
@@ -11,8 +11,8 @@ pub fn split_address(address: &str) -> Option<(&str, &str)> {
 }
 
 
+/// gets remote address and port from a composite string: "<remote-address>:<port>" if possible
 pub fn get_address_parts(address: &str) -> (String, String) {
-    // split remote address and port
     let remote_address: String;
     let remote_port: String;
     if let Some((part1, part2)) = split_address(&address) {
@@ -27,7 +27,26 @@ pub fn get_address_parts(address: &str) -> (String, String) {
 }
 
 
+/// converts utf-8 to char
 pub fn str_from_bytes(char_bytes: &[u8]) -> String {
     let s = std::str::from_utf8(&char_bytes).expect("Invalid UTF-8 sequence");
     return s.chars().next().expect("Empty string").to_string();
+}
+
+
+/// creates a row which consists of empty characters to fill out the terminal width 
+/// with respect to how much space each column should receive based on the content length
+pub fn fill_terminal_width(terminal_width: u16, max_column_spaces: [u16; 6]) -> String {
+    let total_column_spaces: u16 = max_column_spaces.iter().sum();
+
+    let calculate_column_width = |column_space: u16| ((column_space as f64 / total_column_spaces as f64) * (terminal_width as f64));
+    let empty_character: String = str_from_bytes(&[0xE2, 0xA0, 0x80]);
+
+    let mut row: String = format!("");
+    for &max_column_space in &max_column_spaces {
+        row.push_str(&format!("| {} ", empty_character.repeat(calculate_column_width(max_column_space) as usize)));
+    }
+    row.push_str("|\n");
+
+    return row;
 }
