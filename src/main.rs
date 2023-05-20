@@ -8,18 +8,25 @@ mod connections;
 mod processes;
 mod address_checkers;
 mod string_utils;
-mod interface;
+mod table;
+mod interactive;
+mod cli;
 
 
 fn main() {
+
+    
+
+    let args: cli::FlagValues = cli::cli();
+
     // example filter option: Some("tcp".to_string())
     let filter_options: connections::FilterOptions = connections::FilterOptions { 
-        by_conn_type: None,
-        by_program: None,
-        by_pid: None,
-        by_remote_address: None, 
-        by_remote_port: None, 
-        exclude_ipv6: false
+        by_proto: args.proto,
+        by_remote_address: args.ip,
+        by_remote_port: args.port, 
+        by_program: args.program,
+        by_pid: args.pid,
+        exclude_ipv6: args.exclude_ipv6
     };
 
     // get running processes
@@ -27,5 +34,8 @@ fn main() {
     
     // let _ = address_checkers::get_ip_audit();
 
-    interface::cli(&all_connections);
+    table::get_connections_table(&all_connections, args.check);
+
+    //interactive::interactive_mode();
+
 }

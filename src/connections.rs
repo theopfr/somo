@@ -10,7 +10,7 @@ use crate::string_utils;
 
 
 pub struct FilterOptions {
-    pub by_conn_type: Option<String>,
+    pub by_proto: Option<String>,
     pub by_program: Option<String>,
     pub by_pid: Option<String>,
     pub by_remote_address: Option<String>,
@@ -21,7 +21,7 @@ pub struct FilterOptions {
 
 #[derive(Debug)]
 pub struct Connection {
-    pub conn_type: String,
+    pub proto: String,
     pub local_port: String,
     pub remote_address: String,
     pub remote_port: String,
@@ -104,7 +104,7 @@ fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
         }
 
         let connection: Connection = Connection {
-            conn_type: "tcp".to_string(),
+            proto: "tcp".to_string(),
             local_port: local_port,
             remote_address: remote_address,
             remote_port: remote_port,
@@ -151,7 +151,7 @@ fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
         }
 
         let connection: Connection = Connection {
-            conn_type: "udp".to_string(),
+            proto: "udp".to_string(),
             local_port: local_port,
             remote_address: remote_address,
             remote_port: remote_port,
@@ -178,9 +178,9 @@ pub fn get_all_connections(filter_options: &FilterOptions) -> Vec<Connection> {
 
     let all_processes: HashMap<u64, Stat> = get_processes();
 
-    match &filter_options.by_conn_type {
-        Some(filter_conn_type) if filter_conn_type == "tcp" => return get_tcp_connections(&all_processes, filter_options),
-        Some(filter_conn_type) if filter_conn_type == "udp" => return get_udp_connections(&all_processes, filter_options),
+    match &filter_options.by_proto {
+        Some(filter_proto) if filter_proto == "tcp" => return get_tcp_connections(&all_processes, filter_options),
+        Some(filter_proto) if filter_proto == "udp" => return get_udp_connections(&all_processes, filter_options),
         _ => { }
     }
 

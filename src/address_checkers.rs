@@ -60,6 +60,9 @@ pub fn check_if_malicious(remote_address: &str) -> (String, i16) {
     let mut marked_remote_address: String = remote_address.to_owned();
     let mut checked_ip_status: i16 = 0;
 
+    // 0: nothing checked
+    // 1: succesfully checked
+
     if remote_address == "185.230.162.220" {
         marked_remote_address = format!("{} ~~malicious~~", remote_address);
         checked_ip_status = 1;

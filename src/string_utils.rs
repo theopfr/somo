@@ -36,7 +36,7 @@ pub fn str_from_bytes(char_bytes: &[u8]) -> String {
 
 /// creates a row which consists of empty characters to fill out the terminal width 
 /// with respect to how much space each column should receive based on the content length
-pub fn fill_terminal_width(terminal_width: u16, max_column_spaces: [u16; 6]) -> String {
+pub fn fill_terminal_width(terminal_width: u16, max_column_spaces: [u16; 7]) -> String {
     let total_column_spaces: u16 = max_column_spaces.iter().sum();
 
     let calculate_column_width = |column_space: u16| ((column_space as f64 / total_column_spaces as f64) * (terminal_width as f64));
