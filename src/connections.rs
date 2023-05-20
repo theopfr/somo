@@ -15,6 +15,8 @@ pub struct FilterOptions {
     pub by_pid: Option<String>,
     pub by_remote_address: Option<String>,
     pub by_remote_port: Option<String>,
+    pub by_local_port: Option<String>,
+    pub by_open: bool,
     pub exclude_ipv6: bool
 }
 
@@ -53,11 +55,14 @@ fn get_processes() -> HashMap<u64, Stat> {
 
 
 
-fn filter_connection(connection_details: &Connection, filter_options: &FilterOptions) -> bool {
-    /* filter connections by remote-port, remote-address, program-name or pid */
-
+/// filter connections by remote-port, loca-port, remote-address, program-name, pid or connection-state
+fn filter_out_connection(connection_details: &Connection, filter_options: &FilterOptions) -> bool {
     match &filter_options.by_remote_port {
         Some(filter_remote_port) if &connection_details.remote_port != filter_remote_port => return true,
+        _ => { }
+    }
+    match &filter_options.by_local_port {
+        Some(filter_local_port) if &connection_details.local_port != filter_local_port => return true,
         _ => { }
     }
     match &filter_options.by_remote_address {
@@ -72,12 +77,15 @@ fn filter_connection(connection_details: &Connection, filter_options: &FilterOpt
         Some(filter_pid) if &connection_details.pid != filter_pid => return true,
         _ => { }
     }
+    if filter_options.by_open && connection_details.state == "close" {
+        return true;
+    }
 
     return false;
 }
 
 
-
+/// gets all open tcp connectections
 fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions) -> Vec<Connection> {
     let mut tcp = procfs::net::tcp().unwrap();
     if !filter_options.exclude_ipv6 {
@@ -113,7 +121,7 @@ fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
             state: state,
         };
 
-        let filter_connection: bool = filter_connection(&connection, filter_options);
+        let filter_connection: bool = filter_out_connection(&connection, filter_options);
         if filter_connection {
             continue;
         }
@@ -125,6 +133,7 @@ fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
 }
 
 
+/// gets all open udp connectections
 fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions) -> Vec<Connection> {
     let mut udp = procfs::net::udp().unwrap();
     if !filter_options.exclude_ipv6 {
@@ -160,7 +169,7 @@ fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
             state: state,
         };
 
-        let filter_connection: bool = filter_connection(&connection, filter_options);
+        let filter_connection: bool = filter_out_connection(&connection, filter_options);
         if filter_connection {
             continue;
         }
@@ -173,9 +182,8 @@ fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
 
 
 
-
+// gets all tcp and udp connections
 pub fn get_all_connections(filter_options: &FilterOptions) -> Vec<Connection> {
-
     let all_processes: HashMap<u64, Stat> = get_processes();
 
     match &filter_options.by_proto {
