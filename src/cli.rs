@@ -62,8 +62,6 @@ struct Args {
 pub fn cli() -> FlagValues {
     let args = Args::parse();
 
-    println!("{:?}", args.kill);
-
     let flag_values = FlagValues {
         check: args.check,
         kill: args.kill,
@@ -81,22 +79,28 @@ pub fn cli() -> FlagValues {
 }
 
 
-// 
+// kills aprocess by PID
+pub fn kill_process(pid: &String) {
+    let output = process::Command::new("kill")
+        .arg(pid)
+        .output()
+        .expect(&format!("Failed to kill process with PID {}", pid));
+
+    if output.status.success() {
+        println!("Killed process with PID {}.", pid);
+    }
+}
+
+
+// select option for choosing a process to kill
 pub fn interactve_process_kill(connections: &Vec<connections::Connection>) {
     let selection: Result<u32, InquireError> = Select::new("Which process to kill (search or type index)?", (1..=connections.len() as u32).collect()).prompt();
 
     match selection {
         Ok(choice) => {
-            let output = process::Command::new("kill")
-                .arg(&connections[choice as usize - 1].pid)
-                .output()
-                .expect(&format!("Failed to kill process with PID {}", choice));
-
-            if output.status.success() {
-                println!("Killed process with PID {}.", choice);
-            }
+            let pid: &String = &connections[choice as usize - 1].pid;
+            kill_process(&pid);
         },
         Err(_) => println!("Couldn't find process."),
     }
-
 }

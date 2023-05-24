@@ -35,17 +35,21 @@ pub fn get_connections_table(all_connections: &Vec<connections::Connection>, che
         // check if the remote IP is a DNS server
         let remote_address = &connection.remote_address;
         let remote_address_new = &address_checkers::check_if_known(remote_address);
-        
-        /*if check_malicious_adresses {
-            // check if the remote IP is malicious using the AbuseIpDb API
-            let (marked_remote_addess, checked) = address_checkers::check_if_malicious(&remote_address_new);
-            remote_address_new = &marked_remote_addess;
-            checked_ip_status = checked;
-        }*/
+
+        let checked_remote_address: String;
+        if connection.abuse_score >= Some(50) {
+            checked_remote_address = format!("{} ~~malicious~~", &remote_address_new);
+        }
+        else if connection.abuse_score == Some(0) {
+            checked_remote_address = format!("{} **✓**", &remote_address_new);
+        }
+        else {
+            checked_remote_address = (&remote_address_new).to_string();
+        }
 
         // add row with connection information
         markdown.push_str(&format!("| *{}* | {} | {} | {} | {} | {}*/{}* | {} |\n",
-            idx + 1, connection.proto, connection.local_port, &remote_address_new, connection.remote_port, connection.program, connection.pid, connection.state
+            idx + 1, connection.proto, connection.local_port,  &checked_remote_address, connection.remote_port, connection.program, connection.pid, connection.state
         ));
     }
     
@@ -56,19 +60,21 @@ pub fn get_connections_table(all_connections: &Vec<connections::Connection>, che
     markdown.push_str(&terminal_filling_row);
     markdown.push_str(CENTER_MARKDOWN_ROW);
 
-    // print information about checking malicious IPs
-    markdown.push_str("\n*Info:*");
-    if checked_ip_status == 1 {
-        markdown.push_str("\n*Successfully checked remote IPs with the AbuseIpDB API.*\n");
-    }
-    else if checked_ip_status == 0 {
-        markdown.push_str("\n*If you want somo to automatically check for malicious IP addresses in your connections, make an account at `www.abuseipdb.com` and add your API key as an env variable: `ABUSEIPDB_API_KEY={your-api-key}`.*\n");
-    }
-    else if checked_ip_status == -1 {
-        markdown.push_str("\n~~A~~ *Couldn't reach the AbuseIpDB API to check for malicious IP address in your connections.*\n");
-        markdown.push_str("*Possible problems:*\n");
-        markdown.push_str("*1. API down or new non-backward compatible changes -> check if there is a new version of somo avaialble *\n");
-        markdown.push_str("*2. wrong or expired API key stored in the `ABUSEIPDB_API_KEY` env variable *\n");
+    if check_malicious_adresses {
+        // print information about checking malicious IPs
+        markdown.push_str("\n*Info:*");
+        if checked_ip_status == 1 {
+            markdown.push_str("\n*Successfully checked remote IPs with the AbuseIpDB API.*\n");
+        }
+        else if checked_ip_status == 0 {
+            markdown.push_str("\n*If you want somo to automatically check for malicious IP addresses in your connections, make an account at `www.abuseipdb.com` and add your API key as an env variable: `ABUSEIPDB_API_KEY={your-api-key}`.*\n");
+        }
+        else if checked_ip_status == -1 {
+            markdown.push_str("\n~~A~~ *Couldn't reach the AbuseIpDB API to check for malicious IP address in your connections.*\n");
+            markdown.push_str("*Possible problems:*\n");
+            markdown.push_str("*1. API down or new non-backward compatible changes -> check if there is a new version of somo avaialble *\n");
+            markdown.push_str("*2. wrong or expired API key stored in the `ABUSEIPDB_API_KEY` env variable *\n");
+        }
     }
 
     println!("{}\n", skin.term_text(&markdown));

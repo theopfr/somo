@@ -1,14 +1,12 @@
-
 use procfs;
 use procfs::process::Stat;
 use procfs::process::FDTarget;
-
 use std::collections::HashMap;
 
 use crate::string_utils;
+use crate::address_checkers;
 
-
-
+#[derive(Debug)]
 pub struct FilterOptions {
     pub by_proto: Option<String>,
     pub by_program: Option<String>,
@@ -30,13 +28,12 @@ pub struct Connection {
     pub program: String,
     pub pid: String,
     pub state: String,
+    pub abuse_score: Option<i64>
 }
 
 
-
+/// gets all running processes on the system
 fn get_processes() -> HashMap<u64, Stat> {
-    /* gets all running processes on the system */
-
     let all_procs = procfs::process::all_processes().unwrap();
 
     let mut map: HashMap<u64, Stat> = HashMap::new();
@@ -86,7 +83,7 @@ fn filter_out_connection(connection_details: &Connection, filter_options: &Filte
 
 
 /// gets all open tcp connectections
-fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions) -> Vec<Connection> {
+fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions, check_malicious: bool) -> Vec<Connection> {
     let mut tcp = procfs::net::tcp().unwrap();
     if !filter_options.exclude_ipv6 {
         tcp.extend(procfs::net::tcp6().unwrap());
@@ -111,19 +108,26 @@ fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
             pid = "-".to_string();
         }
 
-        let connection: Connection = Connection {
+        let mut connection: Connection = Connection {
             proto: "tcp".to_string(),
             local_port: local_port,
-            remote_address: remote_address,
+            remote_address: (&remote_address).to_string(),
             remote_port: remote_port,
             program: program,
             pid: pid,
             state: state,
+            abuse_score: None
         };
 
+        // check if connection should be filtered out
         let filter_connection: bool = filter_out_connection(&connection, filter_options);
         if filter_connection {
             continue;
+        }
+        
+        // if malicious-check is activated, get an abuse score from AbuseIPDB.com
+        if check_malicious {
+            connection.abuse_score = address_checkers::get_ip_audit(&remote_address, false).unwrap_or(Some(-1i64));
         }
 
         all_tcp_connections.push(connection);
@@ -134,7 +138,7 @@ fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
 
 
 /// gets all open udp connectections
-fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions) -> Vec<Connection> {
+fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions, check_malicious: bool) -> Vec<Connection> {
     let mut udp = procfs::net::udp().unwrap();
     if !filter_options.exclude_ipv6 {
         udp.extend(procfs::net::udp6().unwrap());
@@ -159,19 +163,26 @@ fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
             pid = "-".to_string();
         }
 
-        let connection: Connection = Connection {
+        let mut connection: Connection = Connection {
             proto: "udp".to_string(),
             local_port: local_port,
-            remote_address: remote_address,
+            remote_address: (&remote_address).to_string(),
             remote_port: remote_port,
             program: program,
             pid: pid,
             state: state,
+            abuse_score: None
         };
 
+        // check if connection should be filtered out
         let filter_connection: bool = filter_out_connection(&connection, filter_options);
         if filter_connection {
             continue;
+        }
+        
+        // if malicious-check is activated, get an abuse score from AbuseIPDB.com
+        if check_malicious {
+            connection.abuse_score = address_checkers::get_ip_audit(&remote_address, false).unwrap_or(Some(-1i64));
         }
 
         all_udp_connections.push(connection);
@@ -183,17 +194,17 @@ fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
 
 
 // gets all tcp and udp connections
-pub fn get_all_connections(filter_options: &FilterOptions) -> Vec<Connection> {
+pub fn get_all_connections(filter_options: &FilterOptions, check_malicious: bool) -> Vec<Connection> {
     let all_processes: HashMap<u64, Stat> = get_processes();
 
     match &filter_options.by_proto {
-        Some(filter_proto) if filter_proto == "tcp" => return get_tcp_connections(&all_processes, filter_options),
-        Some(filter_proto) if filter_proto == "udp" => return get_udp_connections(&all_processes, filter_options),
+        Some(filter_proto) if filter_proto == "tcp" => return get_tcp_connections(&all_processes, filter_options, check_malicious),
+        Some(filter_proto) if filter_proto == "udp" => return get_udp_connections(&all_processes, filter_options, check_malicious),
         _ => { }
     }
 
-    let mut all_connections = get_tcp_connections(&all_processes, filter_options);
-    let all_udp_connections = get_udp_connections(&all_processes, filter_options);
+    let mut all_connections = get_tcp_connections(&all_processes, filter_options, check_malicious);
+    let all_udp_connections = get_udp_connections(&all_processes, filter_options, check_malicious);
     all_connections.extend(all_udp_connections);
 
     return all_connections;

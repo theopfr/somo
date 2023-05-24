@@ -1,23 +1,13 @@
-use termimad::crossterm::style::{Color::*};
-use termimad::*;
-use reqwest;
-
-use std::error::Error;
-
 mod connections;
-mod processes;
 mod address_checkers;
 mod string_utils;
 mod table;
-mod interactive;
 mod cli;
 
 
 fn main() {
 
-    
-
-    let args: cli::FlagValues = cli::cli();
+    let mut args: cli::FlagValues = cli::cli();
 
     // example filter option: Some("tcp".to_string())
     let filter_options: connections::FilterOptions = connections::FilterOptions { 
@@ -31,8 +21,20 @@ fn main() {
         exclude_ipv6: args.exclude_ipv6
     };
 
+    if args.check {
+        println!("Checking IPs using AbuseIPDB.com...");
+        let abuse_result = address_checkers::get_ip_audit(&("127.0.0.1cc".to_string()), true).unwrap();
+        match abuse_result {
+            Some(_) => { }
+            None => {
+                println!("Cancelling IP abuse check.");
+                args.check = false;
+            }
+        } 
+    }
+
     // get running processes
-    let all_connections: Vec<connections::Connection> = connections::get_all_connections(&filter_options);
+    let all_connections: Vec<connections::Connection> = connections::get_all_connections(&filter_options, args.check);
     
     table::get_connections_table(&all_connections, args.check);
 
