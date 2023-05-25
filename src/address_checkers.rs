@@ -12,7 +12,6 @@ pub fn get_ip_audit(remote_ip: &String, verbose: bool) -> Result<Option<i64>, Bo
         Ok(val) => val,
         Err(_e) => {
             if verbose {
-                //println!("Couldn't find AbuseIPDB API key. If you want to use this feature make sure to put the API key into the environment variable 'ABUSEIPDB_API_KEY'.");
                 string_utils::pretty_print_warning(
                     "Couldn't find AbuseIPDB API key. If you want to use this feature make sure to put the API key into the environment variable `ABUSEIPDB_API_KEY`.*"
                 );

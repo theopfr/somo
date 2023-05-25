@@ -27,7 +27,7 @@ Adding the ``-k`` flag will then check for malicious IPs and notify you in the t
 
 ## 🚩 Flags:
 | flag | description | value |
-| :------------- |:------------- | ----- |
+| :------------- |:------------- | :----- |
 | ```--proto``` | filter by either TCP or UDP  | ``tcp`` or ``udp`` | 
 | ```--ip``` | filter by a remote IP | the IP addressm e.g ``0.0.0.0`` |
 | ```--port, -p``` | filter by a remote port | the port number, e.g ``443`` |
@@ -38,3 +38,10 @@ Adding the ``-k`` flag will then check for malicious IPs and notify you in the t
 | ```--exclude-ipv6, -e``` | don't list IPv6 connections | - |
 | ```--kill, -k``` | interactive process killing | - |
 | ```--check, -c``` | check remote IPs using AbuseIPDB (make sure the environment variable ``ABUSEIPDB_API_KEY`` is set) | - |
+
+---
+
+#### Todos:
+- [ ] find a way to make the API key persistent (env. variable only stays with current shell session)
+- [ ] implement tests
+- [ ] make it a crate
