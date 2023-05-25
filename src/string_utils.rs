@@ -1,3 +1,5 @@
+use termimad::crossterm::style::{Color::*, Attribute::*};
+use termimad::*;
 
 /// splits remote address and port at ":"
 pub fn split_address(address: &str) -> Option<(&str, &str)> {
@@ -49,4 +51,50 @@ pub fn fill_terminal_width(terminal_width: u16, max_column_spaces: [u16; 7]) -> 
     row.push_str("|\n");
 
     return row;
+}
+
+
+/// prints text with a green "Info" prefix
+/// a new style is given to common Markdown syntax:
+/// **bold** text -> bold and white
+/// *italic* text -> gray and not italic
+/// ~~strikeout~~ text -> green and not striked out
+pub fn pretty_print_info(text: &str) {
+    let mut skin = MadSkin::default();
+    skin.bold.set_fg(White);
+    skin.italic = CompoundStyle::new(Some(gray(11)), None, Encircled.into());
+    skin.strikeout = CompoundStyle::new(Some(DarkGreen), None, Encircled.into());
+
+    let markdown: String = format!("~~Info~~: *{}*", text);
+    print!("{}", skin.term_text(&markdown));
+}
+
+/// prints text with a red "Error" prefix
+/// a new style is given to common Markdown syntax:
+/// **bold** text -> bold and white
+/// *italic* text -> gray and not italic
+/// ~~strikeout~~ text -> red and not striked out
+pub fn pretty_print_error(text: &str) {
+    let mut skin = MadSkin::default();
+    skin.bold.set_fg(White);
+    skin.italic = CompoundStyle::new(Some(gray(11)), None, Encircled.into());
+    skin.strikeout = CompoundStyle::new(Some(Red), None, Encircled.into());
+
+    let markdown: String = format!("~~Error~~: *{}*", text);
+    print!("{}", skin.term_text(&markdown));
+}
+
+/// prints text with a yellow "Warning" prefix
+/// a new style is given to common Markdown syntax:
+/// **bold** text -> bold and white
+/// *italic* text -> gray and not italic
+/// ~~strikeout~~ text -> yellow and not striked out
+pub fn pretty_print_warning(text: &str) {
+    let mut skin = MadSkin::default();
+    skin.bold.set_fg(White);
+    skin.italic = CompoundStyle::new(Some(gray(11)), None, Encircled.into());
+    skin.strikeout = CompoundStyle::new(Some(Yellow), None, Encircled.into());
+
+    let markdown: String = format!("~~Warning~~: *{}*", text);
+    print!("{}", skin.term_text(&markdown));
 }

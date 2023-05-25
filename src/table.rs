@@ -7,7 +7,7 @@ use crate::string_utils;
 
 
 /// prints all connections in a pretty table
-pub fn get_connections_table(all_connections: &Vec<connections::Connection>, check_malicious_adresses: bool) {
+pub fn get_connections_table(all_connections: &Vec<connections::Connection>) {
 
     // create layout and styles for the table
     let mut skin = MadSkin::default();
@@ -16,17 +16,16 @@ pub fn get_connections_table(all_connections: &Vec<connections::Connection>, che
     skin.strikeout = CompoundStyle::new(Some(Red), None, RapidBlink.into());
     skin.paragraph.align = Alignment::Left;
     skin.table.align = Alignment::Center;
-    skin.inline_code = CompoundStyle::new(None, None, Encircled.into());
+    skin.inline_code = CompoundStyle::new(Some(Yellow), None, Encircled.into());
     let (terminal_width, _) = terminal_size();
+
+    // print amount of connections (after filter)
+    string_utils::pretty_print_info(&format!("Connections: **{}**", all_connections.len()));
 
     // add table headers
     static CENTER_MARKDOWN_ROW: &str = "| :-: | :-: | :-: | :-: | :-: | :-: | :-: |\n";
-    let mut markdown = format!("\nConnections: **{}**\n", all_connections.len());
-    markdown.push_str(CENTER_MARKDOWN_ROW);
+    let mut markdown = CENTER_MARKDOWN_ROW.to_string();
     markdown.push_str("| **#** | **proto** | **local port** | **remote address** | **remote port** | **program***/pid* | **state** |\n");
-
-    // track if IPs were checked in order to print out information
-    let mut checked_ip_status: i16 = 0;
 
     // iterate over all connections to build the table
     for (idx, connection) in all_connections.into_iter().enumerate() {
@@ -38,7 +37,13 @@ pub fn get_connections_table(all_connections: &Vec<connections::Connection>, che
 
         let checked_remote_address: String;
         if connection.abuse_score >= Some(50) {
-            checked_remote_address = format!("{} ~~malicious~~", &remote_address_new);
+            checked_remote_address = format!("{} ~~high abuse score: {}~~", &remote_address_new, &connection.abuse_score.unwrap());
+        }
+        else if connection.abuse_score > Some(1) {
+            checked_remote_address = format!("{} `moderate abuse score: {}`", &remote_address_new, &connection.abuse_score.unwrap());
+        }
+        else if connection.abuse_score >= Some(1) {
+            checked_remote_address = format!("{} *low abuse score: {}*", &remote_address_new, &connection.abuse_score.unwrap());
         }
         else if connection.abuse_score == Some(0) {
             checked_remote_address = format!("{} **✓**", &remote_address_new);
@@ -59,23 +64,6 @@ pub fn get_connections_table(all_connections: &Vec<connections::Connection>, che
     let terminal_filling_row: String = string_utils::fill_terminal_width(terminal_width, max_column_spaces);
     markdown.push_str(&terminal_filling_row);
     markdown.push_str(CENTER_MARKDOWN_ROW);
-
-    if check_malicious_adresses {
-        // print information about checking malicious IPs
-        markdown.push_str("\n*Info:*");
-        if checked_ip_status == 1 {
-            markdown.push_str("\n*Successfully checked remote IPs with the AbuseIpDB API.*\n");
-        }
-        else if checked_ip_status == 0 {
-            markdown.push_str("\n*If you want somo to automatically check for malicious IP addresses in your connections, make an account at `www.abuseipdb.com` and add your API key as an env variable: `ABUSEIPDB_API_KEY={your-api-key}`.*\n");
-        }
-        else if checked_ip_status == -1 {
-            markdown.push_str("\n~~A~~ *Couldn't reach the AbuseIpDB API to check for malicious IP address in your connections.*\n");
-            markdown.push_str("*Possible problems:*\n");
-            markdown.push_str("*1. API down or new non-backward compatible changes -> check if there is a new version of somo avaialble *\n");
-            markdown.push_str("*2. wrong or expired API key stored in the `ABUSEIPDB_API_KEY` env variable *\n");
-        }
-    }
 
     println!("{}\n", skin.term_text(&markdown));
 }

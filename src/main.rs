@@ -21,13 +21,14 @@ fn main() {
         exclude_ipv6: args.exclude_ipv6
     };
 
+    // sanity-check if the AbuseIPDB is usable, if not: don't check remote addresses and print an error
     if args.check {
-        println!("Checking IPs using AbuseIPDB.com...");
-        let abuse_result = address_checkers::get_ip_audit(&("127.0.0.1cc".to_string()), true).unwrap();
+        string_utils::pretty_print_info("Checking IPs using AbuseIPDB.com...");
+        let abuse_result = address_checkers::get_ip_audit(&("127.0.0.1".to_string()), true).unwrap();
         match abuse_result {
             Some(_) => { }
             None => {
-                println!("Cancelling IP abuse check.");
+                string_utils::pretty_print_error("Cancelling check for malicious IPs.");
                 args.check = false;
             }
         } 
@@ -36,7 +37,7 @@ fn main() {
     // get running processes
     let all_connections: Vec<connections::Connection> = connections::get_all_connections(&filter_options, args.check);
     
-    table::get_connections_table(&all_connections, args.check);
+    table::get_connections_table(&all_connections);
 
     if args.kill {
         cli::interactve_process_kill(&all_connections);
