@@ -1,4 +1,4 @@
-# 🌏:man_technologist: somo
+# 🌏 ⬅ somo ⬅ :man_technologist: 
 ### A prettier alternative to netstat or ss for socket monitoring.
 
 ---
