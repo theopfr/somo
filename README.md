@@ -1,21 +1,21 @@
 # 🌏:man_technologist: somo
-##### Prettier alternative to netstat or ss
+### A prettier alternative to netstat or ss for socket monitoring.
 
 ---
 
 ## ⚙️ Features:
-#### 1. Pretty and easy readable table:
-All connections are displayed in a pretty and easily readable table:
+### 1. Pretty and easy readable table:
 ![example](./images/somo-example.png)
-#### 2. Filtering:
+
+### 2. Filtering:
 You can filter by **remote-port**, **IP**, **protocol**, **client program**, **PID** and **connection status**.
 Check the flag descriptions below.
 
-#### 3. Process killing:
+### 3. Process killing:
 After inspecting your connections you can decide to kill a process using an interactive selection option.
 ![example](./images/kill-example.png)
 
-#### 4. Checking for malicious IPs using [AbuseIPDB.com](https://www.abuseipdb.com/):
+### 4. Checking for malicious IPs using [AbuseIPDB.com](https://www.abuseipdb.com/):
 To automatically check if any of the remote IPs you are connected to are malicious you can specify an API key for the AbuseIPDB API as an environment variable:
 ```bash
 export ABUSEIPDB_API_KEY={your-api-key}
