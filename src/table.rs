@@ -39,7 +39,7 @@ pub fn get_connections_table(all_connections: &Vec<connections::Connection>) {
         if connection.abuse_score >= Some(50) {
             checked_remote_address = format!("{} ~~high abuse score: {}~~", &remote_address_new, &connection.abuse_score.unwrap());
         }
-        else if connection.abuse_score > Some(1) {
+        else if connection.abuse_score > Some(25) {
             checked_remote_address = format!("{} `moderate abuse score: {}`", &remote_address_new, &connection.abuse_score.unwrap());
         }
         else if connection.abuse_score >= Some(1) {
