@@ -4,7 +4,7 @@
 ---
 
 ## ⚙️ Features:
-### 1. Pretty and easy readable table:
+### 1. Pretty and easily readable table:
 ![somo-example](./images/somo-example.png)
 
 ### 2. Filtering:
@@ -18,7 +18,7 @@ With the ``-k`` flag you can choose to kill a process after inspecting the conne
 ### 4. Checking for malicious IPs using [AbuseIPDB.com](https://www.abuseipdb.com/):
 To automatically check if any of the remote IPs you are connected to are malicious you can specify an API key for the AbuseIPDB API as an environment variable:
 ```bash
-export ABUSEIPDB_API_KEY={your-api-key}
+export ABUSEIPDB_API_KEY={your-api-key} # not persistent
 ```
 Adding the ``-c`` flag will then check for malicious IPs and notify you in the table:
 ![check-example](./images/check-example.png)
@@ -29,7 +29,7 @@ Adding the ``-c`` flag will then check for malicious IPs and notify you in the t
 | flag | description | value |
 | :------------- |:------------- | :----- |
 | ```--proto``` | filter by either TCP or UDP  | ``tcp`` or ``udp`` | 
-| ```--ip``` | filter by a remote IP | the IP addressm e.g ``0.0.0.0`` |
+| ```--ip``` | filter by a remote IP | the IP address e.g ``0.0.0.0`` |
 | ```--port, -p``` | filter by a remote port | the port number, e.g ``443`` |
 | ```--local-port``` | filter by a local port | the port number, e.g ``5433`` |
 | ```--program``` | filter by a client program | the program name e.g ``chrome`` |

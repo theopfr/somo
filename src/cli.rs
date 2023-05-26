@@ -3,9 +3,8 @@ use inquire::Select;
 use inquire::InquireError;
 use std::{process};
 use std::string::String;
-
-use crate::string_utils;
 use crate::connections;
+
 
 #[derive(Debug)]
 pub struct FlagValues {

@@ -1,11 +1,11 @@
 
-use reqwest::{self, Response};
-use serde_json::{json, Value};
+use reqwest::{self};
+use serde_json::{Value};
 use std::{error::Error, env};
 use crate::string_utils;
 
 
-/// this doesnt work yet
+/// returns an abuse-score (0-100) for a given IP address using the AbuseIPDB /check endpoint
 pub fn get_ip_audit(remote_ip: &String, verbose: bool) -> Result<Option<i64>, Box<dyn Error>> {
 
     let abuseipdb_api_key: String = match env::var("ABUSEIPDB_API_KEY") {
@@ -51,32 +51,14 @@ pub fn get_ip_audit(remote_ip: &String, verbose: bool) -> Result<Option<i64>, Bo
 }
 
 
-pub fn check_if_known(remote_ip: &str) -> String {
-    /* check if an IP corresponds to a DNS server */
-
+/// checks if a given IP address is either "unspecified" or localhost
+pub fn check_for_known_ip(remote_ip: &str) -> u8 {
     if remote_ip == "0.0.0.0" || remote_ip == "[::]" {
-        return format!("*{}*", remote_ip.to_string());
+        return 1u8;
     }
     else if remote_ip == "127.0.0.1" || remote_ip == "[::1]" {
-        return format!("*{} localhost*", remote_ip.to_string());
+        return 2u8;
     }
-    return remote_ip.to_string();
-}
-
-
-pub fn check_if_malicious(remote_address: &str) -> (String, i16) {
-    /* check if an IP corresponds to a DNS server */
-    let mut marked_remote_address: String = remote_address.to_owned();
-    let mut checked_ip_status: i16 = 0;
-
-    // 0: nothing checked
-    // 1: succesfully checked
-
-    if remote_address == "185.230.162.220" {
-        marked_remote_address = format!("{} ~~malicious~~", remote_address);
-        checked_ip_status = 1;
-    }
-    
-    return (marked_remote_address, checked_ip_status);
+    return 0u8;
 }
 

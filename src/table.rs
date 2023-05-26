@@ -33,23 +33,38 @@ pub fn get_connections_table(all_connections: &Vec<connections::Connection>) {
  
         // check if the remote IP is a DNS server
         let remote_address = &connection.remote_address;
-        let remote_address_new = &address_checkers::check_if_known(remote_address);
 
-        let checked_remote_address: String;
-        if connection.abuse_score >= Some(50) {
-            checked_remote_address = format!("{} ~~high abuse score: {}~~", &remote_address_new, &connection.abuse_score.unwrap());
+        let ip_code: u8 = address_checkers::check_for_known_ip(remote_address);
+        let remote_address_known: String;
+        
+        // gray out 0.0.0.0 and localhost IP addresses since they are less important
+        // ip_code = 1 represents "unspecified"/0.0.0.0, ip_code = 2 represents localhost
+        if ip_code == 1 {
+            remote_address_known = format!("*{}*", &remote_address);
         }
-        else if connection.abuse_score > Some(25) {
-            checked_remote_address = format!("{} `moderate abuse score: {}`", &remote_address_new, &connection.abuse_score.unwrap());
-        }
-        else if connection.abuse_score >= Some(1) {
-            checked_remote_address = format!("{} *low abuse score: {}*", &remote_address_new, &connection.abuse_score.unwrap());
-        }
-        else if connection.abuse_score == Some(0) {
-            checked_remote_address = format!("{} **✓**", &remote_address_new);
+        else if ip_code == 2 {
+            remote_address_known = format!("*{} localhost*", &remote_address);
         }
         else {
-            checked_remote_address = (&remote_address_new).to_string();
+            remote_address_known = remote_address.to_string();
+        }
+
+        // add abusiveness information to remote address
+        let checked_remote_address: String;
+        if connection.abuse_score >= Some(50) {
+            checked_remote_address = format!("{} ~~high abuse score: {}~~", &remote_address_known, &connection.abuse_score.unwrap());
+        }
+        else if connection.abuse_score > Some(25) {
+            checked_remote_address = format!("{} `moderate abuse score: {}`", &remote_address_known, &connection.abuse_score.unwrap());
+        }
+        else if connection.abuse_score >= Some(1) {
+            checked_remote_address = format!("{} *low abuse score: {}*", &remote_address_known, &connection.abuse_score.unwrap());
+        }
+        else if connection.abuse_score == Some(0) {
+            checked_remote_address = format!("{} **✓**", &remote_address_known);
+        }
+        else {
+            checked_remote_address = (&remote_address_known).to_string();
         }
 
         // add row with connection information
