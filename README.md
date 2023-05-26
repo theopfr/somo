@@ -5,23 +5,23 @@
 
 ## ⚙️ Features:
 ### 1. Pretty and easy readable table:
-![example](./images/somo-example.png)
+![somo-example](./images/somo-example.png)
 
 ### 2. Filtering:
-You can filter by **remote-port**, **IP**, **protocol**, **client program**, **PID** and **connection status**.
+You can filter by **remote port**, **local port**, **IP**, **protocol**, **client program**, **PID** and **connection status**.
 Check the flag descriptions below.
 
 ### 3. Process killing:
-After inspecting your connections you can decide to kill a process using an interactive selection option.
-![example](./images/kill-example.png)
+With the ``-k`` flag you can choose to kill a process after inspecting the connections using an interactive selection option.
+![kill-example](./images/kill-example.png)
 
 ### 4. Checking for malicious IPs using [AbuseIPDB.com](https://www.abuseipdb.com/):
 To automatically check if any of the remote IPs you are connected to are malicious you can specify an API key for the AbuseIPDB API as an environment variable:
 ```bash
 export ABUSEIPDB_API_KEY={your-api-key}
 ```
-Adding the ``-k`` flag will then check for malicious IPs and notify you in the table:
-###### TODO: add image
+Adding the ``-c`` flag will then check for malicious IPs and notify you in the table:
+![check-example](./images/check-example.png)
 
 ---
 
