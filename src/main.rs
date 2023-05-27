@@ -24,7 +24,7 @@ fn main() {
     // sanity-check if the AbuseIPDB is usable, if not: don't check remote addresses and print an error
     if args.check {
         string_utils::pretty_print_info("Checking IPs using AbuseIPDB.com...");
-        let abuse_result = address_checkers::get_ip_audit(&("127.0.0.1".to_string()), true).unwrap();
+        let abuse_result = address_checkers::check_address_for_abuse(&("127.0.0.1".to_string()), true).unwrap();
         match abuse_result {
             Some(_) => { }
             None => {

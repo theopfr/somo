@@ -5,9 +5,16 @@ use std::{error::Error, env};
 use crate::string_utils;
 
 
-/// returns an abuse-score (0-100) for a given IP address using the AbuseIPDB /check endpoint
-pub fn get_ip_audit(remote_ip: &String, verbose: bool) -> Result<Option<i64>, Box<dyn Error>> {
-
+/// Requests an abuse score from the AbuseIPDB.com /check endpoint given an IP address.
+/// The function expects that the environment variable `ABUSEIPDB_API_KEY` is set with an AbuseIPDB.com API key.
+/// 
+/// # Arguments
+/// * `remote_address`: The address to be checked.
+/// * `verbose`: Print information about the API request if set to `true`.
+/// 
+/// # Returns
+/// If the request is successful the abuse sore is returned, if not `Some(None)` is returned.
+pub fn check_address_for_abuse(remote_address: &String, verbose: bool) -> Result<Option<i64>, Box<dyn Error>> {
     let abuseipdb_api_key: String = match env::var("ABUSEIPDB_API_KEY") {
         Ok(val) => val,
         Err(_e) => {
@@ -23,7 +30,7 @@ pub fn get_ip_audit(remote_ip: &String, verbose: bool) -> Result<Option<i64>, Bo
     let client = reqwest::blocking::Client::new();
     let url = "https://api.abuseipdb.com/api/v2/check";
     let params = [
-        ("ipAddress", remote_ip),
+        ("ipAddress", remote_address),
         ("maxAgeInDays", &("40".to_string())),
     ];
     let response: reqwest::blocking::Response = client
@@ -51,14 +58,38 @@ pub fn get_ip_audit(remote_ip: &String, verbose: bool) -> Result<Option<i64>, Bo
 }
 
 
-/// checks if a given IP address is either "unspecified" or localhost
-pub fn check_for_known_ip(remote_ip: &str) -> u8 {
-    if remote_ip == "0.0.0.0" || remote_ip == "[::]" {
-        return 1u8;
+/// Represents the type of an IP address.
+///
+/// # Variants
+/// * `Localhost`: Represents the localhost/127.0.0.1 address.
+/// * `Unspecified`: Represents an unspecified or wildcard address.
+/// * `Extern`: Represents an external address.
+#[derive(Debug)]
+pub enum IPType {
+    Localhost,
+    Unspecified,
+    Extern
+}
+
+
+/// Checks if a given IP address is either "unspecified", localhost or an extern address.
+/// 
+/// * `0.0.0.0` or `[::]` -> unspecified
+/// * `127.0.0.1` or `[::1]` -> localhost
+/// * else -> extern address
+/// 
+/// # Arguments
+/// * `remote_address`: The address to be checked.
+/// 
+/// # Returns
+/// The address-type as an IPType enum.
+pub fn check_address_type(remote_address: &str) -> IPType {
+    if remote_address == "127.0.0.1" || remote_address == "[::1]" {
+        return IPType::Localhost;
     }
-    else if remote_ip == "127.0.0.1" || remote_ip == "[::1]" {
-        return 2u8;
+    else if remote_address == "0.0.0.0" || remote_address == "[::]" {
+        return IPType::Unspecified;
     }
-    return 0u8;
+    return IPType::Extern;
 }
 

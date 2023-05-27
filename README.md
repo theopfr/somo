@@ -43,5 +43,6 @@ Adding the ``-c`` flag will then check for malicious IPs and notify you in the t
 
 #### Todos:
 - [ ] find a way to make the API key persistent (env. variable only stays with current shell session)
+- [x] improve code documentation
 - [ ] implement tests
-- [ ] make it a crate
+- [ ] publish on crates.io

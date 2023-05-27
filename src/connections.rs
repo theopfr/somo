@@ -6,6 +6,8 @@ use std::collections::HashMap;
 use crate::string_utils;
 use crate::address_checkers;
 
+
+/// Contains options for filtering a `Conntection`.
 #[derive(Debug)]
 pub struct FilterOptions {
     pub by_proto: Option<String>,
@@ -18,7 +20,7 @@ pub struct FilterOptions {
     pub exclude_ipv6: bool
 }
 
-
+/// Represents a processed socket connection with all its attributes.
 #[derive(Debug)]
 pub struct Connection {
     pub proto: String,
@@ -28,11 +30,19 @@ pub struct Connection {
     pub program: String,
     pub pid: String,
     pub state: String,
+    pub address_type: address_checkers::IPType,
     pub abuse_score: Option<i64>
 }
 
 
-/// gets all running processes on the system
+/// Gets all running processes on the system using the "procfs" crate.
+/// This code is taken from the "procfs" crate documentation.
+/// 
+/// # Arguments
+/// None
+/// 
+/// # Returns
+/// A map of all current processes.
 fn get_processes() -> HashMap<u64, Stat> {
     let all_procs = procfs::process::all_processes().unwrap();
 
@@ -51,8 +61,14 @@ fn get_processes() -> HashMap<u64, Stat> {
 }
 
 
-
-/// filter connections by remote-port, loca-port, remote-address, program-name, pid or connection-state
+/// Checks if a connection should be filtered out based on options provided by the user.
+/// 
+/// # Arguments
+/// * `connection_details`: The connection to check for filtering.
+/// * `filter_options`: The filter options provided by the user.
+/// 
+/// # Returns
+/// `true` if the connection should be filtered out, `false` if not.
 fn filter_out_connection(connection_details: &Connection, filter_options: &FilterOptions) -> bool {
     match &filter_options.by_remote_port {
         Some(filter_remote_port) if &connection_details.remote_port != filter_remote_port => return true,
@@ -82,7 +98,15 @@ fn filter_out_connection(connection_details: &Connection, filter_options: &Filte
 }
 
 
-/// gets all open tcp connectections
+/// Gets all currently open TCP connections using the "procfs" crate and processes them.
+/// 
+/// # Arguments
+/// * `all_processes`: A map of all running processes on the system.
+/// * `filter_options`: The filter options provided by the user.
+/// * `check_malicious`: If `true` the remote address is checked for abusiveness using the AbuseIPDB.com API.
+/// 
+/// # Returns
+/// All processed and filtered TCP connections as a `Connection` struct in a vector.
 fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions, check_malicious: bool) -> Vec<Connection> {
     let mut tcp = procfs::net::tcp().unwrap();
     if !filter_options.exclude_ipv6 {
@@ -108,6 +132,8 @@ fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
             pid = "-".to_string();
         }
 
+        let address_type: address_checkers::IPType = address_checkers::check_address_type(&remote_address);
+
         let mut connection: Connection = Connection {
             proto: "tcp".to_string(),
             local_port: local_port,
@@ -116,6 +142,7 @@ fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
             program: program,
             pid: pid,
             state: state,
+            address_type: address_type,
             abuse_score: None
         };
 
@@ -127,7 +154,7 @@ fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
         
         // if malicious-check is activated, get an abuse score from AbuseIPDB.com
         if check_malicious {
-            connection.abuse_score = address_checkers::get_ip_audit(&remote_address, false).unwrap_or(Some(-1i64));
+            connection.abuse_score = address_checkers::check_address_for_abuse(&remote_address, false).unwrap_or(Some(-1i64));
         }
 
         all_tcp_connections.push(connection);
@@ -137,7 +164,16 @@ fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
 }
 
 
-/// gets all open udp connectections
+/// Gets all currently open UDP connections using the "procfs" crate and processes them.
+/// ###### TODO: combine with the `get_tcp_connections` function if possible.
+/// 
+/// # Arguments
+/// * `all_processes`: A map of all running processes on the system.
+/// * `filter_options`: The filter options provided by the user.
+/// * `check_malicious`: If `true` the remote address is checked for abusiveness using the AbuseIPDB.com API.
+/// 
+/// # Returns
+/// All processed and filtered UDP connections as a `Connection` struct in a vector.
 fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions, check_malicious: bool) -> Vec<Connection> {
     let mut udp = procfs::net::udp().unwrap();
     if !filter_options.exclude_ipv6 {
@@ -163,6 +199,8 @@ fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
             pid = "-".to_string();
         }
 
+        let address_type: address_checkers::IPType = address_checkers::check_address_type(&remote_address);
+
         let mut connection: Connection = Connection {
             proto: "udp".to_string(),
             local_port: local_port,
@@ -171,6 +209,7 @@ fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
             program: program,
             pid: pid,
             state: state,
+            address_type: address_type,
             abuse_score: None
         };
 
@@ -182,7 +221,7 @@ fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
         
         // if malicious-check is activated, get an abuse score from AbuseIPDB.com
         if check_malicious {
-            connection.abuse_score = address_checkers::get_ip_audit(&remote_address, false).unwrap_or(Some(-1i64));
+            connection.abuse_score = address_checkers::check_address_for_abuse(&remote_address, false).unwrap_or(Some(-1i64));
         }
 
         all_udp_connections.push(connection);
@@ -193,7 +232,14 @@ fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
 
 
 
-// gets all tcp and udp connections
+/// Gets both TCP and UDP connections and combines them based on the `proto` filter option.
+/// 
+/// # Arguments
+/// * `filter_options`: The filter options provided by the user.
+/// * `check_malicious`: If `true` the remote address is checked for abusiveness using the AbuseIPDB.com API.
+/// 
+/// # Returns
+/// All processed and filtered TCP/UDP connections as a `Connection` struct in a vector.
 pub fn get_all_connections(filter_options: &FilterOptions, check_malicious: bool) -> Vec<Connection> {
     let all_processes: HashMap<u64, Stat> = get_processes();
 

@@ -1,9 +1,13 @@
 [package]
-name = "port-checker"
+name = "somo"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["theopfr"]
+readme = "./README.md"
+repository = "https://github.com/theopfr/somo/"
+license = "MIT"
+keywords = ["netstat", "socket-monitoring"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 clap = { version = "4.3.0", features = ["derive"] }

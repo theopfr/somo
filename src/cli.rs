@@ -6,6 +6,7 @@ use std::string::String;
 use crate::connections;
 
 
+/// Used for parsing all the flags values provided by the user in the CLI.
 #[derive(Debug)]
 pub struct FlagValues {
     pub check: bool,
@@ -21,7 +22,7 @@ pub struct FlagValues {
 }
 
 
-/// get flags
+/// Represents all possible flags which can be provided by the user in the CLI.
 #[derive(Parser, Debug)] 
 #[command(author, version, about, long_about = None)]
 struct Args {
@@ -57,7 +58,13 @@ struct Args {
 }
 
 
-// handle command line flags
+/// Gets all flag values provided by the user in the CLI using the "clap" crate.
+/// 
+/// # Arguments
+/// None
+/// 
+/// # Returns
+/// A struct containing all the flag values.
 pub fn cli() -> FlagValues {
     let args = Args::parse();
 
@@ -78,7 +85,13 @@ pub fn cli() -> FlagValues {
 }
 
 
-// kills aprocess by PID
+/// Kills a process by its PID.
+/// 
+/// # Argument
+/// * `pid`: The PID value as a string.
+/// 
+/// # Returns
+/// None
 pub fn kill_process(pid: &String) {
     let output = process::Command::new("kill")
         .arg(pid)
@@ -91,7 +104,13 @@ pub fn kill_process(pid: &String) {
 }
 
 
-// select option for choosing a process to kill
+/// Starts an interactive selection process in the console for choosing a process to kill using the "inquire" crate.
+/// 
+/// # Argument
+/// * `connections`: A vector containing all connections which themselves contain a PID value.
+/// 
+/// # Returns
+/// None
 pub fn interactve_process_kill(connections: &Vec<connections::Connection>) {
     let selection: Result<u32, InquireError> = Select::new("Which process to kill (search or type index)?", (1..=connections.len() as u32).collect()).prompt();
 
