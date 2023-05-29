@@ -3,9 +3,10 @@ name = "somo"
 version = "0.1.0"
 edition = "2021"
 authors = ["theopfr"]
+description = "A prettier and easier alternative to netstat or ss for socket monitoring."
+license = "MIT"
 readme = "./README.md"
 repository = "https://github.com/theopfr/somo/"
-license = "MIT"
 keywords = ["netstat", "socket-monitoring"]
 categories = ["command-line-utilities"]
 
