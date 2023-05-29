@@ -1,7 +1,15 @@
-# 🌏 ⬅ somo ⬅ :man_technologist: 
+# 🌏 Somo
 ### A prettier alternative to netstat or ss for socket monitoring.
 
 ---
+
+## ⬇️ Installation:
+### 1. Install cargo:
+From [crates.io](https://crates.io/).
+### 2. Install the somo crate:
+```
+cargo install somo
+```
 
 ## ⚙️ Features:
 ### 1. Pretty and easily readable table:
@@ -18,7 +26,7 @@ With the ``-k`` flag you can choose to kill a process after inspecting the conne
 ### 4. Checking for malicious IPs using [AbuseIPDB.com](https://www.abuseipdb.com/):
 To automatically check if any of the remote IPs you are connected to are malicious you can specify an API key for the AbuseIPDB API as an environment variable:
 ```bash
-export ABUSEIPDB_API_KEY={your-api-key} # not persistent
+export ABUSEIPDB_API_KEY={your-api-key} # not session persistent
 ```
 Adding the ``-c`` flag will then check for malicious IPs and notify you in the table:
 ![check-example](./images/check-example.png)
@@ -38,11 +46,3 @@ Adding the ``-c`` flag will then check for malicious IPs and notify you in the t
 | ```--exclude-ipv6, -e``` | don't list IPv6 connections | - |
 | ```--kill, -k``` | interactive process killing | - |
 | ```--check, -c``` | check remote IPs using AbuseIPDB (make sure the environment variable ``ABUSEIPDB_API_KEY`` is set) | - |
-
----
-
-#### Todos:
-- [ ] find a way to make the API key persistent (env. variable only stays with current shell session)
-- [x] improve code documentation
-- [ ] implement tests
-- [ ] publish on crates.io
