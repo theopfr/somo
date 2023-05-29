@@ -1,4 +1,3 @@
-use reqwest::blocking::get;
 use termimad::crossterm::style::{Color::*, Attribute::*};
 use termimad::*;
 
@@ -29,7 +28,7 @@ fn create_table_style() -> MadSkin {
     skin.table.align = Alignment::Center;
     skin.inline_code = CompoundStyle::new(Some(Yellow), None, Encircled.into());
 
-    return skin;
+    skin
 }
 
 
@@ -73,7 +72,7 @@ fn format_abuse_checked_address(remote_address: &String, abuse_score: Option<i64
         checked_remote_address = (&remote_address).to_string();
     }
 
-    return checked_remote_address;
+    checked_remote_address
 }
 
 
@@ -100,13 +99,13 @@ fn format_abuse_checked_address(remote_address: &String, abuse_score: Option<i64
 fn format_known_address(remote_address: &String, address_type: &address_checkers::IPType) -> String {
     match address_type {
         address_checkers::IPType::Unspecified => {
-            return format!("*{}*", remote_address);
+            format!("*{}*", remote_address)
         }
         address_checkers::IPType::Localhost => {
-            return format!("*{} localhost*", remote_address);
+            format!("*{} localhost*", remote_address)
         }
         address_checkers::IPType::Extern => {
-            return remote_address.to_string();
+            remote_address.to_string()
         }
     }
 }
@@ -131,14 +130,14 @@ pub fn get_connections_table(all_connections: &Vec<connections::Connection>) {
     markdown.push_str("| **#** | **proto** | **local port** | **remote address** | **remote port** | **program***/pid* | **state** |\n");
 
     // iterate over all connections to build the table
-    for (idx, connection) in all_connections.into_iter().enumerate() {
+    for (idx, connection) in all_connections.iter().enumerate() {
         markdown.push_str(CENTER_MARKDOWN_ROW);
  
         // check if the remote IP is a DNS server
         let remote_address = &connection.remote_address;
 
         // add abusiveness information to remote address
-        let mut formatted_remote_address: String = format_known_address(&remote_address, &connection.address_type);
+        let mut formatted_remote_address: String = format_known_address(remote_address, &connection.address_type);
         formatted_remote_address = format_abuse_checked_address(&formatted_remote_address, connection.abuse_score);
 
         // add row with connection information
@@ -146,7 +145,7 @@ pub fn get_connections_table(all_connections: &Vec<connections::Connection>) {
             idx + 1, connection.proto, connection.local_port,  &formatted_remote_address, connection.remote_port, connection.program, connection.pid, connection.state
         ));
     }
-    
+
     // create an empty row that forces the table to fit the terminal with respect to how much space
     // each column should receive based on the max length of each column (in the array below)
     let max_column_spaces: [u16; 7] = [5, 5, 7, 32, 7, 24, 13];

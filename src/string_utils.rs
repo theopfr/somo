@@ -49,7 +49,7 @@ pub fn split_address(address: &str) -> Option<(&str, &str)> {
 pub fn get_address_parts(address: &str) -> (String, String) {
     let remote_address: String;
     let remote_port: String;
-    if let Some((part1, part2)) = split_address(&address) {
+    if let Some((part1, part2)) = split_address(address) {
         remote_address = String::from(part1);
         remote_port = String::from(part2);
     } else {
@@ -57,7 +57,7 @@ pub fn get_address_parts(address: &str) -> (String, String) {
         remote_port = "-".to_string();
     }
 
-    return (remote_address, remote_port);
+    (remote_address, remote_port)
 }
 
 
@@ -69,7 +69,7 @@ pub fn get_address_parts(address: &str) -> (String, String) {
 /// # Returns
 /// The string decoded from the UTF-8 byte sequence.
 pub fn str_from_bytes(char_bytes: &[u8]) -> String {
-    let s = std::str::from_utf8(&char_bytes).expect("Invalid UTF-8 sequence");
+    let s = std::str::from_utf8(char_bytes).expect("Invalid UTF-8 sequence");
     return s.chars().next().expect("Empty string").to_string();
 }
 
@@ -93,13 +93,13 @@ pub fn fill_terminal_width(terminal_width: u16, max_column_spaces: [u16; 7]) -> 
     let calculate_column_width = |column_space: u16| ((column_space as f64 / total_column_spaces as f64) * (terminal_width as f64));
     let empty_character: String = str_from_bytes(&[0xE2, 0xA0, 0x80]);
 
-    let mut row: String = format!("");
+    let mut row: String = String::new();
     for &max_column_space in &max_column_spaces {
         row.push_str(&format!("| {} ", empty_character.repeat(calculate_column_width(max_column_space) as usize)));
     }
     row.push_str("|\n");
 
-    return row;
+    row
 }
 
 

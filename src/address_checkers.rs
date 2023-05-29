@@ -45,7 +45,7 @@ pub fn check_address_for_abuse(remote_address: &String, verbose: bool) -> Result
         let json_response: Value = response.json()?;
         let abuse_confidence_score: Option<i64> = json_response["data"]["abuseConfidenceScore"].as_i64();
 
-        return Ok(abuse_confidence_score);
+        Ok(abuse_confidence_score)
     }
     else {
         if verbose {
@@ -53,7 +53,7 @@ pub fn check_address_for_abuse(remote_address: &String, verbose: bool) -> Result
                 &format!("AbuseIPDB Request failed with status code: {}", response.status())
             );
         }
-        return Ok(None);
+        Ok(None)
     }
 }
 
@@ -90,6 +90,6 @@ pub fn check_address_type(remote_address: &str) -> IPType {
     else if remote_address == "0.0.0.0" || remote_address == "[::]" {
         return IPType::Unspecified;
     }
-    return IPType::Extern;
+    IPType::Extern
 }
 

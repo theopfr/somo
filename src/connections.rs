@@ -1,4 +1,3 @@
-use procfs;
 use procfs::process::Stat;
 use procfs::process::FDTarget;
 use std::collections::HashMap;
@@ -57,7 +56,7 @@ fn get_processes() -> HashMap<u64, Stat> {
             }
         }
     }
-    return map;
+    map
 }
 
 
@@ -94,7 +93,7 @@ fn filter_out_connection(connection_details: &Connection, filter_options: &Filte
         return true;
     }
 
-    return false;
+    false
 }
 
 
@@ -136,13 +135,13 @@ fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
 
         let mut connection: Connection = Connection {
             proto: "tcp".to_string(),
-            local_port: local_port,
-            remote_address: (&remote_address).to_string(),
-            remote_port: remote_port,
-            program: program,
-            pid: pid,
-            state: state,
-            address_type: address_type,
+            local_port,
+            remote_address: remote_address.to_string(),
+            remote_port,
+            program,
+            pid,
+            state,
+            address_type,
             abuse_score: None
         };
 
@@ -160,7 +159,7 @@ fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
         all_tcp_connections.push(connection);
     }
 
-    return all_tcp_connections;
+    all_tcp_connections
 }
 
 
@@ -203,13 +202,13 @@ fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
 
         let mut connection: Connection = Connection {
             proto: "udp".to_string(),
-            local_port: local_port,
-            remote_address: (&remote_address).to_string(),
-            remote_port: remote_port,
-            program: program,
-            pid: pid,
-            state: state,
-            address_type: address_type,
+            local_port,
+            remote_address: remote_address.to_string(),
+            remote_port,
+            program,
+            pid,
+            state,
+            address_type,
             abuse_score: None
         };
 
@@ -227,10 +226,10 @@ fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
         all_udp_connections.push(connection);
     }
 
-    return all_udp_connections;
+    all_udp_connections
 }
 
-
+ 
 
 /// Gets both TCP and UDP connections and combines them based on the `proto` filter option.
 /// 
@@ -253,6 +252,6 @@ pub fn get_all_connections(filter_options: &FilterOptions, check_malicious: bool
     let all_udp_connections = get_udp_connections(&all_processes, filter_options, check_malicious);
     all_connections.extend(all_udp_connections);
 
-    return all_connections;
+    all_connections
 }
 
