@@ -15,14 +15,15 @@ To run somo just type:
 ```
 somo
 ```
-It can often be beneficial to run it in ``sudo`` mode since many PIDs will remain hidden otherwise. To do so, either run it using the full path (a little unconvenient):
+It can often be beneficial to run it in ``sudo`` mode since many PIDs will remain hidden otherwise. To do so, you can run it using the full path:
 ```bash
 # you can find out the path by running: "where somo"
 sudo /path/to/somo
 # or run it like this:
 sudo $(where somo)
 ```
-... or add it to the $PATH variable (like [this](https://opensource.com/article/17/6/set-path-linux)).
+Problems with this: it's unconvenient and ENV variables can't be accessed!
+Better solution: Add it to the ``$PATH`` variable (like [this](https://opensource.com/article/17/6/set-path-linux)).
 
 ## ⚙️ Features:
 ### 1. Pretty and easily readable table:
