@@ -4,7 +4,7 @@ use inquire::InquireError;
 use std::{process};
 use std::string::String;
 use crate::connections;
-
+use crate::string_utils;
 
 /// Used for parsing all the flags values provided by the user in the CLI.
 #[derive(Debug)]
@@ -97,7 +97,12 @@ pub fn kill_process(pid: &String) {
         .unwrap_or_else(|_| panic!("Failed to kill process with PID {}", pid));
 
     if output.status.success() {
-        println!("Killed process with PID {}.", pid);
+        //println!("Killed process with PID {}.", pid);
+        string_utils::pretty_print_info(&format!("Killed process with PID {}.", pid));
+    }
+    else {
+        println!("Failed to kill process, try running");
+        string_utils::pretty_print_error("Couldn't kill process! Try again using sudo: 'sudo $(where somo)'.");
     }
 }
 
