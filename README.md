@@ -1,5 +1,5 @@
 # 🌏 Somo
-### A prettier alternative to netstat or ss for socket monitoring.
+### A prettier and simpler alternative to netstat or ss for socket monitoring with the ability to scan for malicious IP addresses.
 
 ---
 
@@ -19,7 +19,7 @@ It can often be beneficial to run it in ``sudo`` mode since many PIDs will remai
 ```bash
 # you can find out the path by running: "where somo"
 sudo /path/to/somo
-# or run it like this:
+# or directly like this:
 sudo $(where somo)
 ```
 Problems with this: it's unconvenient and ENV variables can't be accessed!

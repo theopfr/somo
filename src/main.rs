@@ -5,7 +5,8 @@ mod table;
 mod cli;
 
 
-fn main() {
+#[tokio::main]
+async fn main() {
 
     let mut args: cli::FlagValues = cli::cli();
 
@@ -24,7 +25,7 @@ fn main() {
     // sanity-check if the AbuseIPDB is usable, if not: don't check remote addresses and print an error
     if args.check {
         string_utils::pretty_print_info("Checking IPs using AbuseIPDB.com...");
-        let abuse_result = address_checkers::check_address_for_abuse(&("127.0.0.1".to_string()), true).unwrap();
+        let abuse_result = address_checkers::check_address_for_abuse(&("127.0.0.1".to_string()), true).await.unwrap();
         match abuse_result {
             Some(_) => { }
             None => {
@@ -35,7 +36,7 @@ fn main() {
     }
 
     // get running processes
-    let all_connections: Vec<connections::Connection> = connections::get_all_connections(&filter_options, args.check);
+    let all_connections: Vec<connections::Connection> = connections::get_all_connections(&filter_options, args.check).await;
     
     table::get_connections_table(&all_connections);
 

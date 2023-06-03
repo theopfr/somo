@@ -3,7 +3,7 @@ name = "somo"
 version = "0.1.2"
 edition = "2021"
 authors = ["theopfr"]
-description = "A prettier and easier alternative to netstat or ss for socket monitoring."
+description = "A prettier and simpler alternative to netstat or ss for socket monitoring with the ability to scan for malicious IP addresses."
 license = "MIT"
 readme = "./README.md"
 repository = "https://github.com/theopfr/somo/"
@@ -18,3 +18,4 @@ reqwest = { version = "0.11.18", features = ["blocking", "json"] }
 serde_json = "1.0.96"
 termimad = "0.20"
 terminal_size = "0.2.6"
+tokio = { version = "1", features = ["full"] }

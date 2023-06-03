@@ -14,7 +14,7 @@ use crate::string_utils;
 /// 
 /// # Returns
 /// If the request is successful the abuse sore is returned, if not `Some(None)` is returned.
-pub fn check_address_for_abuse(remote_address: &String, verbose: bool) -> Result<Option<i64>, Box<dyn Error>> {
+pub async fn check_address_for_abuse(remote_address: &String, verbose: bool) -> Result<Option<i64>, Box<dyn Error>> {
     let abuseipdb_api_key: String = match env::var("ABUSEIPDB_API_KEY") {
         Ok(val) => val,
         Err(_e) => {
@@ -27,22 +27,23 @@ pub fn check_address_for_abuse(remote_address: &String, verbose: bool) -> Result
         },
     };
 
-    let client = reqwest::blocking::Client::new();
+    let client = reqwest::Client::new();
     let url = "https://api.abuseipdb.com/api/v2/check";
     let params = [
         ("ipAddress", remote_address),
         ("maxAgeInDays", &("40".to_string())),
     ];
-    let response: reqwest::blocking::Response = client
+    let response = client
         .get(url)
         .header("Key", abuseipdb_api_key)
         .header("Accept", "application/json")
         .query(&params)
-        .send()?;
+        .send()
+        .await?;
 
     // check if the request was successful
     if response.status().is_success() {
-        let json_response: Value = response.json()?;
+        let json_response: Value = response.json().await?;
         let abuse_confidence_score: Option<i64> = json_response["data"]["abuseConfidenceScore"].as_i64();
 
         Ok(abuse_confidence_score)

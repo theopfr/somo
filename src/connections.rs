@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use crate::string_utils;
 use crate::address_checkers;
 
-
 /// Contains options for filtering a `Conntection`.
 #[derive(Debug)]
 pub struct FilterOptions {
@@ -106,7 +105,7 @@ fn filter_out_connection(connection_details: &Connection, filter_options: &Filte
 /// 
 /// # Returns
 /// All processed and filtered TCP connections as a `Connection` struct in a vector.
-fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions, check_malicious: bool) -> Vec<Connection> {
+async fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions, check_malicious: bool) -> Vec<Connection> {
     let mut tcp = procfs::net::tcp().unwrap();
     if !filter_options.exclude_ipv6 {
         tcp.extend(procfs::net::tcp6().unwrap());
@@ -153,7 +152,7 @@ fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
         
         // if malicious-check is activated, get an abuse score from AbuseIPDB.com
         if check_malicious {
-            connection.abuse_score = address_checkers::check_address_for_abuse(&remote_address, false).unwrap_or(Some(-1i64));
+            connection.abuse_score = address_checkers::check_address_for_abuse(&remote_address, false).await.unwrap_or(Some(-1i64));
         }
 
         all_tcp_connections.push(connection);
@@ -173,7 +172,7 @@ fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
 /// 
 /// # Returns
 /// All processed and filtered UDP connections as a `Connection` struct in a vector.
-fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions, check_malicious: bool) -> Vec<Connection> {
+async fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions, check_malicious: bool) -> Vec<Connection> {
     let mut udp = procfs::net::udp().unwrap();
     if !filter_options.exclude_ipv6 {
         udp.extend(procfs::net::udp6().unwrap());
@@ -220,7 +219,7 @@ fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
         
         // if malicious-check is activated, get an abuse score from AbuseIPDB.com
         if check_malicious {
-            connection.abuse_score = address_checkers::check_address_for_abuse(&remote_address, false).unwrap_or(Some(-1i64));
+            connection.abuse_score = address_checkers::check_address_for_abuse(&remote_address, false).await.unwrap_or(Some(-1i64));
         }
 
         all_udp_connections.push(connection);
@@ -239,17 +238,17 @@ fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
 /// 
 /// # Returns
 /// All processed and filtered TCP/UDP connections as a `Connection` struct in a vector.
-pub fn get_all_connections(filter_options: &FilterOptions, check_malicious: bool) -> Vec<Connection> {
+pub async fn get_all_connections(filter_options: &FilterOptions, check_malicious: bool) -> Vec<Connection> {
     let all_processes: HashMap<u64, Stat> = get_processes();
 
     match &filter_options.by_proto {
-        Some(filter_proto) if filter_proto == "tcp" => return get_tcp_connections(&all_processes, filter_options, check_malicious),
-        Some(filter_proto) if filter_proto == "udp" => return get_udp_connections(&all_processes, filter_options, check_malicious),
+        Some(filter_proto) if filter_proto == "tcp" => return get_tcp_connections(&all_processes, filter_options, check_malicious).await,
+        Some(filter_proto) if filter_proto == "udp" => return get_udp_connections(&all_processes, filter_options, check_malicious).await,
         _ => { }
     }
 
-    let mut all_connections = get_tcp_connections(&all_processes, filter_options, check_malicious);
-    let all_udp_connections = get_udp_connections(&all_processes, filter_options, check_malicious);
+    let mut all_connections = get_tcp_connections(&all_processes, filter_options, check_malicious).await;
+    let all_udp_connections = get_udp_connections(&all_processes, filter_options, check_malicious).await;
     all_connections.extend(all_udp_connections);
 
     all_connections
