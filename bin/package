@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+# from: https://github.com/casey/just/blob/master/bin/package
+
+set -euxo pipefail
+
+VERSION=${REF#"refs/tags/"}
+DIST=`pwd`/dist
+
+echo "Packaging somo $VERSION for $TARGET..."
+
+test -f Cargo.lock || cargo generate-lockfile
+
+echo "Building somo..."
+RUSTFLAGS="--deny warnings --codegen target-feature=+crt-static $TARGET_RUSTFLAGS" \
+  cargo build --bin somo --target $TARGET --release
+EXECUTABLE=target/$TARGET/release/somo
+
+if [[ $OS == windows-latest ]]; then
+  EXECUTABLE=$EXECUTABLE.exe
+fi
+
+echo "Copying release files..."
+mkdir dist
+cp \
+  $EXECUTABLE \
+  Cargo.lock \
+  Cargo.toml \
+  LICENSE \
+  README.md \
+  $DIST
+
+cd $DIST
+echo "Creating release archive..."
+case $OS in
+  ubuntu-latest | macos-latest)
+    ARCHIVE=$DIST/somo-$VERSION-$TARGET.tar.gz
+    tar czf $ARCHIVE *
+    echo "::set-output name=archive::$ARCHIVE"
+    ;;
+  windows-latest)
+    ARCHIVE=$DIST/somo-$VERSION-$TARGET.zip
+    7z a $ARCHIVE *
+    echo "::set-output name=archive::`pwd -W`/somo-$VERSION-$TARGET.zip"
+    ;;
+esac
