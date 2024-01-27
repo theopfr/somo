@@ -19,4 +19,3 @@ serde_json = "1.0.96"
 termimad = "0.20"
 terminal_size = "0.2.6"
 tokio = { version = "1", features = ["full"] }
-cargo-deb = "2.0.4"

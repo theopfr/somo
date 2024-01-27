@@ -39,6 +39,7 @@ jobs:
     - name: Build and package
       run: |
         cargo build --release
+        cargo install cargo-deb
         cargo deb
 
     - name: Upload release artifact
