@@ -42,13 +42,18 @@ jobs:
         cargo install cargo-deb
         cargo deb --output target/debian/somo-${{ steps.version.outputs.version }}.deb
 
-    - name: Upload release artifact
+    - name: Upload Artifact
       uses: actions/upload-artifact@v2
       with:
         name: somo-${{ steps.version.outputs.version }}-${{ github.run_number }}-${{ github.sha }}.deb
         path: target/debian/somo-${{ steps.version.outputs.version }}.deb
 
-    - name: Create and Upload Release
+    - name: Publish to Crates.io
+      run: cargo publish
+      env:
+        CARGO_AUTH_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+
+    - name: Create Release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
