@@ -40,13 +40,13 @@ jobs:
       run: |
         cargo build --release
         cargo install cargo-deb
-        cargo deb
+        cargo deb --output target/debian/somo-${{ steps.version.outputs.version }}.deb
 
     - name: Upload release artifact
       uses: actions/upload-artifact@v2
       with:
         name: somo-${{ steps.version.outputs.version }}-${{ github.run_number }}-${{ github.sha }}.deb
-        path: target/debian/*.deb
+        path: target/debian/somo-${{ steps.version.outputs.version }}.deb
 
     - name: Create and Upload Release
       uses: actions/create-release@v1
@@ -66,6 +66,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: target/debian/*.deb
+        asset_path: target/debian/somo-${{ steps.version.outputs.version }}.deb
         asset_name: somo-${{ steps.version.outputs.version }}-${{ github.run_number }}-${{ github.sha }}.deb
         asset_content_type: application/x-debian-package
+
