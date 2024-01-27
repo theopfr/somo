@@ -25,7 +25,7 @@ jobs:
     - name: Run tests
       run: cargo test
 
-  build:
+  build_and_release:
     runs-on: ubuntu-latest
     
     steps:
@@ -48,24 +48,19 @@ jobs:
         name: somo-${{ steps.version.outputs.version }}-${{ github.run_number }}-${{ github.sha }}.deb
         path: target/debian/*.deb
 
-  release:
-    needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    steps:
-    - name: Create Release
-      id: create_release
+    - name: Create and Upload Release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: v${{ steps.version.outputs.version }}
-        release_name: Release ${{ steps.version.outputs.version }}
+        release_name: 🎉 Somo Release ${{ steps.version.outputs.version }}
         draft: false
         prerelease: false
+      id: create_release
 
     - name: Upload Release Asset
-      id: upload-release-asset
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
