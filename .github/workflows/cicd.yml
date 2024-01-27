@@ -10,6 +10,10 @@ on:
     branches:
       - master
 
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -17,9 +21,6 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
-    - name: Set up Rust
-      uses: actions/setup-rust@v1
 
     - name: Run tests
       run: cargo test
@@ -30,9 +31,6 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
-    - name: Set up Rust
-      uses: actions/setup-rust@v1
 
     - name: Extract version from Cargo.toml
       id: version
