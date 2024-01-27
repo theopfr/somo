@@ -1,12 +1,17 @@
 # 🌏 Somo
-### A prettier and simpler alternative to netstat or ss for socket monitoring with the ability to scan for malicious IP addresses.
+### A human-friendly alternative to netstat or ss for socket monitoring with the ability to scan for malicious IP addresses.
 
 ---
 
 ## ⬇️ Installation:
-### 1. Install cargo:
-From [crates.io](https://crates.io/).
-### 2. Install the somo crate:
+
+### Debian:
+If you use a Debian OS go to [releases] and download somo using the latest .deb release.
+
+### From crates.io:
+#### 1. Install cargo:
+You can install cargo from the [crates.io](https://crates.io/) website.
+#### 2. Install the somo crate:
 ```
 cargo install somo
 ```
@@ -15,11 +20,13 @@ To run somo just type:
 ```
 somo
 ```
-It can often be beneficial to run it in ``sudo`` mode since many PIDs will remain hidden otherwise. To do so, you can run it using the full path:
+
+#### Using sudo:
+It can often be beneficial to run it in ``sudo`` mode since many PIDs will remain hidden otherwise. If ``sudo somo`` doesn't work, try running it using the full path:
 ```bash
 # you can find out the path by running: "where somo"
 sudo /path/to/somo
-# or directly like this:
+# or directly like this
 sudo $(where somo)
 ```
 Problems with this: it's unconvenient and ENV variables can't be accessed!

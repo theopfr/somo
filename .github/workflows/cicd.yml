@@ -1,0 +1,45 @@
+name: Build, Test and Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Rust
+      uses: actions/setup-rust@v1
+
+    - name: Run tests
+      run: cargo test
+
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Rust
+      uses: actions/setup-rust@v1
+
+    - name: Extract version from Cargo.toml
+      id: version
+      run: echo ::set-output name=version::$(grep -Po '^version = "\K[^"]+' Cargo.toml)
+
+    - name: Build and package
+      run: |
+        cargo build --release
+        cargo deb
+
+    - name: Upload release artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: somo-${{ steps.version.outputs.version }}-${{ github.run_number }}-${{ github.sha }}.deb
+        path: target/debian/*.deb

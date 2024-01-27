@@ -1,13 +1,13 @@
 [package]
 name = "somo"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2021"
 authors = ["theopfr"]
-description = "A prettier and simpler alternative to netstat or ss for socket monitoring with the ability to scan for malicious IP addresses."
+description = "A human-friendly alternative to netstat or ss for socket monitoring with the ability to scan for malicious IP addresses."
 license = "MIT"
 readme = "./README.md"
 repository = "https://github.com/theopfr/somo/"
-keywords = ["netstat", "socket-monitoring"]
+keywords = ["netstat", "socket-monitoring", "port-checker"]
 categories = ["command-line-utilities"]
 
 [dependencies]
@@ -19,3 +19,4 @@ serde_json = "1.0.96"
 termimad = "0.20"
 terminal_size = "0.2.6"
 tokio = { version = "1", features = ["full"] }
+cargo-deb = "2.0.4"
