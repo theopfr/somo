@@ -1,3 +1,5 @@
+[![Build, Test and Release](https://github.com/theopfr/somo/actions/workflows/cicd.yml/badge.svg?branch=master)](https://github.com/theopfr/somo/actions/workflows/cicd.yml)
+
 # 🌏 Somo
 ### A human-friendly alternative to netstat or ss for socket monitoring with the ability to scan for malicious IP addresses.
 
@@ -6,7 +8,7 @@
 ## ⬇️ Installation:
 
 ### Debian:
-If you use a Debian OS go to [releases] and download somo using the latest .deb release.
+If you use a Debian OS go to [releases](https://github.com/theopfr/somo/releases) and download the latest .deb release.
 
 ### From crates.io:
 #### 1. Install cargo:
