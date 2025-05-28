@@ -32,50 +32,6 @@ fn create_table_style() -> MadSkin {
 }
 
 
-/// Adds abusiveness information to the remote address based on the abuse score.
-/// 
-/// * `abuse_score` >= 50 -> high abuse confidence
-/// * `abuse_score` >= 25 -> moderate abuse confidence
-/// * `abuse_score` >=  1 -> low abuse confidence
-/// * `abuse_score` ==  0 -> no abuse danger
-/// 
-/// # Arguments
-/// * `remote_address`: The remote address checked for abusivness.
-/// * `abuse_score`: The abuse score delivered by AbuseIPDB.com
-/// 
-/// 
-/// # Example
-/// ```
-/// let address = "127.0.0.1".to_string();
-/// let score = Some(75);
-/// let formatted = format_abuse_checked_address(&address, score);
-/// assert_eq!(formatted, "127.0.0.1 ~~high abuse score: 75~~"); 
-/// ```
-/// 
-/// # Returns
-/// A Markdown formatted string containing the remote address and abusiveness information.
-fn format_abuse_checked_address(remote_address: &String, abuse_score: Option<i64>) -> String {
-    let checked_remote_address: String;
-    if abuse_score >= Some(50) {
-        checked_remote_address = format!("{} ~~high abuse score: {}~~", remote_address, abuse_score.unwrap());
-    }
-    else if abuse_score > Some(25) {
-        checked_remote_address = format!("{} `moderate abuse score: {}`", remote_address, abuse_score.unwrap());
-    }
-    else if abuse_score >= Some(1) {
-        checked_remote_address = format!("{} *low abuse score: {}*", remote_address, abuse_score.unwrap());
-    }
-    else if abuse_score == Some(0) {
-        checked_remote_address = format!("{} **✓**", remote_address);
-    }
-    else {
-        checked_remote_address = (&remote_address).to_string();
-    }
-
-    checked_remote_address
-}
-
-
 /// Marks localhost and unspecified IP addresses (ie. 0.0.0.0) using Markdown formatting.
 
 /// * `address_type` == Localhost -> *italic* + "localhost" 
@@ -137,8 +93,7 @@ pub fn get_connections_table(all_connections: &Vec<connections::Connection>) {
         let remote_address = &connection.remote_address;
 
         // add abusiveness information to remote address
-        let mut formatted_remote_address: String = format_known_address(remote_address, &connection.address_type);
-        formatted_remote_address = format_abuse_checked_address(&formatted_remote_address, connection.abuse_score);
+        let formatted_remote_address: String = format_known_address(remote_address, &connection.address_type);
 
         // add row with connection information
         markdown.push_str(&format!("| *{}* | {} | {} | {} | {} | {}*/{}* | {} |\n",

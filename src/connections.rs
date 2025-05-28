@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use crate::string_utils;
 use crate::address_checkers;
 
+
 /// Contains options for filtering a `Conntection`.
 #[derive(Debug)]
 pub struct FilterOptions {
@@ -29,7 +30,6 @@ pub struct Connection {
     pub pid: String,
     pub state: String,
     pub address_type: address_checkers::IPType,
-    pub abuse_score: Option<i64>
 }
 
 
@@ -101,11 +101,10 @@ fn filter_out_connection(connection_details: &Connection, filter_options: &Filte
 /// # Arguments
 /// * `all_processes`: A map of all running processes on the system.
 /// * `filter_options`: The filter options provided by the user.
-/// * `check_malicious`: If `true` the remote address is checked for abusiveness using the AbuseIPDB.com API.
 /// 
 /// # Returns
 /// All processed and filtered TCP connections as a `Connection` struct in a vector.
-async fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions, check_malicious: bool) -> Vec<Connection> {
+async fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions) -> Vec<Connection> {
     let mut tcp = procfs::net::tcp().unwrap();
     if !filter_options.exclude_ipv6 {
         tcp.extend(procfs::net::tcp6().unwrap());
@@ -132,7 +131,7 @@ async fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options:
 
         let address_type: address_checkers::IPType = address_checkers::check_address_type(&remote_address);
 
-        let mut connection: Connection = Connection {
+        let connection: Connection = Connection {
             proto: "tcp".to_string(),
             local_port,
             remote_address: remote_address.to_string(),
@@ -141,18 +140,12 @@ async fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options:
             pid,
             state,
             address_type,
-            abuse_score: None
         };
 
         // check if connection should be filtered out
         let filter_connection: bool = filter_out_connection(&connection, filter_options);
         if filter_connection {
             continue;
-        }
-        
-        // if malicious-check is activated, get an abuse score from AbuseIPDB.com
-        if check_malicious {
-            connection.abuse_score = address_checkers::check_address_for_abuse(&remote_address, false).await.unwrap_or(Some(-1i64));
         }
 
         all_tcp_connections.push(connection);
@@ -168,11 +161,10 @@ async fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options:
 /// # Arguments
 /// * `all_processes`: A map of all running processes on the system.
 /// * `filter_options`: The filter options provided by the user.
-/// * `check_malicious`: If `true` the remote address is checked for abusiveness using the AbuseIPDB.com API.
 /// 
 /// # Returns
 /// All processed and filtered UDP connections as a `Connection` struct in a vector.
-async fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions, check_malicious: bool) -> Vec<Connection> {
+async fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions) -> Vec<Connection> {
     let mut udp = procfs::net::udp().unwrap();
     if !filter_options.exclude_ipv6 {
         udp.extend(procfs::net::udp6().unwrap());
@@ -192,14 +184,15 @@ async fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options:
         if let Some(stat) = all_processes.get(&entry.inode) {
             program = stat.comm.to_string();
             pid = stat.pid.to_string();
-        } else {
+        }
+        else {
             program = "-".to_string();
             pid = "-".to_string();
         }
 
         let address_type: address_checkers::IPType = address_checkers::check_address_type(&remote_address);
 
-        let mut connection: Connection = Connection {
+        let connection: Connection = Connection {
             proto: "udp".to_string(),
             local_port,
             remote_address: remote_address.to_string(),
@@ -208,18 +201,12 @@ async fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options:
             pid,
             state,
             address_type,
-            abuse_score: None
         };
 
         // check if connection should be filtered out
         let filter_connection: bool = filter_out_connection(&connection, filter_options);
         if filter_connection {
             continue;
-        }
-        
-        // if malicious-check is activated, get an abuse score from AbuseIPDB.com
-        if check_malicious {
-            connection.abuse_score = address_checkers::check_address_for_abuse(&remote_address, false).await.unwrap_or(Some(-1i64));
         }
 
         all_udp_connections.push(connection);
@@ -234,21 +221,20 @@ async fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options:
 /// 
 /// # Arguments
 /// * `filter_options`: The filter options provided by the user.
-/// * `check_malicious`: If `true` the remote address is checked for abusiveness using the AbuseIPDB.com API.
 /// 
 /// # Returns
 /// All processed and filtered TCP/UDP connections as a `Connection` struct in a vector.
-pub async fn get_all_connections(filter_options: &FilterOptions, check_malicious: bool) -> Vec<Connection> {
+pub async fn get_all_connections(filter_options: &FilterOptions) -> Vec<Connection> {
     let all_processes: HashMap<u64, Stat> = get_processes();
 
     match &filter_options.by_proto {
-        Some(filter_proto) if filter_proto == "tcp" => return get_tcp_connections(&all_processes, filter_options, check_malicious).await,
-        Some(filter_proto) if filter_proto == "udp" => return get_udp_connections(&all_processes, filter_options, check_malicious).await,
+        Some(filter_proto) if filter_proto == "tcp" => return get_tcp_connections(&all_processes, filter_options).await,
+        Some(filter_proto) if filter_proto == "udp" => return get_udp_connections(&all_processes, filter_options).await,
         _ => { }
     }
 
-    let mut all_connections = get_tcp_connections(&all_processes, filter_options, check_malicious).await;
-    let all_udp_connections = get_udp_connections(&all_processes, filter_options, check_malicious).await;
+    let mut all_connections = get_tcp_connections(&all_processes, filter_options).await;
+    let all_udp_connections = get_udp_connections(&all_processes, filter_options).await;
     all_connections.extend(all_udp_connections);
 
     all_connections
