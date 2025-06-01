@@ -68,7 +68,7 @@ pub fn pretty_print_info(text: &str) {
     let mut skin = MadSkin::default();
     skin.bold.set_fg(White);
     skin.italic = CompoundStyle::new(Some(gray(11)), None, Encircled.into());
-    skin.strikeout = CompoundStyle::new(Some(DarkGreen), None, Encircled.into());
+    skin.strikeout = CompoundStyle::new(Some(Cyan), None, Encircled.into());
 
     let markdown: String = format!("~~Info~~: *{}*", text);
     print!("{}", skin.term_text(&markdown));

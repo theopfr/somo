@@ -99,7 +99,7 @@ pub fn kill_process(pid: &String) {
     } else {
         println!("Failed to kill process, try running");
         utils::pretty_print_error(
-            "Couldn't kill process! Try again using sudo: 'sudo $(where somo)'.",
+            "Couldn't kill process! Try again using sudo.",
         );
     }
 }
