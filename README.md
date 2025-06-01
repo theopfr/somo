@@ -1,5 +1,9 @@
-# 🌏 Somo
-### A human-friendly alternative to netstat for socket and port monitoring for Linux.
+
+<div style="text-align: center;">
+  <img src="./images/somo-logo.png" alt="Centered Image" />
+</div>
+
+### SOMO: A human-friendly alternative to netstat for socket and port monitoring for Linux.
 
 ## ✨ Features:
 - pleasing to the eye thanks to a nice table-view
