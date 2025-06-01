@@ -7,7 +7,7 @@ use std::net::SocketAddr;
 /// * `Localhost`: Represents the localhost/127.0.0.1 address.
 /// * `Unspecified`: Represents an unspecified or wildcard address.
 /// * `Extern`: Represents an external address.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum AddressType {
     Localhost,
     Unspecified,
@@ -40,7 +40,7 @@ pub struct NetEntry {
 
 
 /// Contains options for filtering a `Conntection`.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct FilterOptions {
     pub by_proto: Option<String>,
     pub by_program: Option<String>,

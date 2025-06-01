@@ -53,7 +53,7 @@ struct Args {
     #[arg(short = 'l', long, default_value_t = false)]
     listen: bool,
 
-    #[arg(short = 'e', long, default_value_t = false)]
+    #[arg(long, default_value_t = false)]
     exclude_ipv6: bool,
 }
 
@@ -124,5 +124,75 @@ pub fn interactve_process_kill(connections: &Vec<Connection>) {
             kill_process(pid);
         }
         Err(_) => println!("Couldn't find process."),
+    }
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::Args;
+    use clap::Parser;
+
+    #[test]
+    fn test_all_flags_parsing() {
+        let args = Args::parse_from(&[
+            "test-bin",
+            "-k",
+            "--proto", "udp",
+            "--ip", "192.168.0.1",
+            "--remote-port", "53",
+            "-p", "8080",
+            "--program", "nginx",
+            "--pid", "1234",
+            "-o",
+            "-l",
+            "--exclude-ipv6",
+        ]);
+
+        assert!(args.kill);
+        assert_eq!(args.proto.as_deref(), Some("udp"));
+        assert_eq!(args.ip.as_deref(), Some("192.168.0.1"));
+        assert_eq!(args.remote_port.as_deref(), Some("53"));
+        assert_eq!(args.port.as_deref(), Some("8080"));
+        assert_eq!(args.program.as_deref(), Some("nginx"));
+        assert_eq!(args.pid.as_deref(), Some("1234"));
+        assert!(args.open);
+        assert!(args.listen);
+        assert!(args.exclude_ipv6);
+    }
+
+    #[test]
+    fn test_default_values() {
+        let args = Args::parse_from(&["test-bin"]);
+
+        assert!(!args.kill);
+        assert!(args.proto.is_none());
+        assert!(args.ip.is_none());
+        assert!(args.remote_port.is_none());
+        assert!(args.port.is_none());
+        assert!(args.program.is_none());
+        assert!(args.pid.is_none());
+        assert!(!args.open);
+        assert!(!args.listen);
+        assert!(!args.exclude_ipv6);
+    }
+
+    #[test]
+    fn test_flag_short_and_long_equivalence() {
+        let short = Args::parse_from(&["test-bin", "-k", "-p", "80", "-o", "-l"]);
+        let long = Args::parse_from(&[
+            "test-bin",
+            "--kill",
+            "--port", "80",
+            "--open",
+            "--listen",
+        ]);
+
+        assert_eq!(short.kill, long.kill);
+        assert_eq!(short.port, long.port);
+        assert_eq!(short.open, long.open);
+        assert_eq!(short.listen, long.listen);
+        assert_eq!(short.exclude_ipv6, long.exclude_ipv6);
     }
 }

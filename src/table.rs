@@ -27,7 +27,7 @@ fn create_table_style() -> MadSkin {
     skin.table.align = Alignment::Center;
     skin.inline_code = CompoundStyle::new(Some(Yellow), None, Encircled.into());
 
-    skin
+    return skin;
 }
 
 
@@ -78,7 +78,7 @@ fn fill_terminal_width(terminal_width: u16, max_column_spaces: [u16; 7]) -> Stri
     let total_column_spaces: u16 = max_column_spaces.iter().sum();
 
     let calculate_column_width = |column_space: u16| ((column_space as f64 / total_column_spaces as f64) * (terminal_width as f64));
-    let empty_character: String = utils::str_from_bytes(&[0xE2, 0xA0, 0x80]);
+    let empty_character = "\u{2800}";
 
     let mut row: String = String::new();
     for &max_column_space in &max_column_spaces {
@@ -101,9 +101,8 @@ pub fn print_connections_table(all_connections: &Vec<Connection>) {
     let skin: MadSkin = create_table_style();
     let (terminal_width, _) = terminal_size();
 
-    // add table headers
+    // Add table headers
     static CENTER_MARKDOWN_ROW: &str = "| :-: | :-: | :-: | :-: | :-: | :-: | :-: |\n";
-
     let mut markdown = CENTER_MARKDOWN_ROW.to_string();
     markdown.push_str("| **#** | **proto** | **local port** | **remote address** | **remote port** | **pid** *program* | **state** |\n");
 
@@ -111,20 +110,15 @@ pub fn print_connections_table(all_connections: &Vec<Connection>) {
     for (idx, connection) in all_connections.iter().enumerate() {
         markdown.push_str(CENTER_MARKDOWN_ROW);
  
-        // check if the remote IP is a DNS server
-        let remote_address = &connection.remote_address;
+        let formatted_remote_address: String = format_known_address(&connection.remote_address, &connection.address_type);
 
-        // add abusiveness information to remote address
-        let formatted_remote_address: String = format_known_address(remote_address, &connection.address_type);
-
-        // add row with connection information
         markdown.push_str(&format!("| *{}* | {} | {} | {} | {} | {} *{}* | {} |\n",
             idx + 1, connection.proto, connection.local_port,  &formatted_remote_address, connection.remote_port, connection.pid, connection.program, connection.state
         ));
     }
 
-    // create an empty row that forces the table to fit the terminal with respect to how much space
-    // each column should receive based on the max length of each column (in the array below)
+    // Create an empty row that forces the table to fit the terminal with respect to how much space ...
+    // ... each column should receive based on the max length of each column (in the array below)
     let max_column_spaces: [u16; 7] = [5, 8, 8, 28, 7, 24, 13];
     let terminal_filling_row: String = fill_terminal_width(terminal_width, max_column_spaces);
     markdown.push_str(&terminal_filling_row);
@@ -133,4 +127,39 @@ pub fn print_connections_table(all_connections: &Vec<Connection>) {
     println!("{}", skin.term_text(&markdown));
 
     utils::pretty_print_info(&format!("Connections: **{}**", all_connections.len()));
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_format_known_address_localhost() {
+        let addr = "127.0.0.1".to_string();
+        let result = format_known_address(&addr, &AddressType::Localhost);
+        assert_eq!(result, "*127.0.0.1 localhost*");
+    }
+
+    #[test]
+    fn test_format_known_address_unspecified() {
+        let addr = "0.0.0.0".to_string();
+        let result = format_known_address(&addr, &AddressType::Unspecified);
+        assert_eq!(result, "*0.0.0.0*");
+    }
+
+    #[test]
+    fn test_format_known_address_extern() {
+        let addr = "123.123.123".to_string();
+        let result = format_known_address(&addr, &AddressType::Extern);
+        assert_eq!(result, "123.123.123");
+    }
+
+    #[test]
+    fn test_fill_terminal_width() {
+        let row = fill_terminal_width(80, [5, 8, 8, 28, 7, 24, 13]);
+        let columns = row.matches('|').count();
+        assert_eq!(columns, 8); // 7 columns + final pipe
+    }
 }

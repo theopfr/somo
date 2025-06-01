@@ -47,32 +47,10 @@ pub fn split_address(address: &str) -> Option<(&str, &str)> {
 /// # Returns
 /// A tuple containing the address and port or just the address and a "-" if there wasn't a port.
 pub fn get_address_parts(address: &str) -> (String, String) {
-    let remote_address: String;
-    let remote_port: String;
-    if let Some((part1, part2)) = split_address(address) {
-        remote_address = String::from(part1);
-        remote_port = String::from(part2);
-    } else {
-        remote_address = String::from(address);
-        remote_port = "-".to_string();
-    }
-
-    return (remote_address, remote_port);
+    return split_address(address)
+        .map(|(a, p)| (a.to_string(), p.to_string()))
+        .unwrap_or((address.to_string(), "-".to_string()));
 }
-
-
-/// Converts an array of bytes in to string character.
-/// 
-/// # Arguments
-/// * `char_bytes`: The character encoding as an UTF-8 byte sequence.
-/// 
-/// # Returns
-/// The string decoded from the UTF-8 byte sequence.
-pub fn str_from_bytes(char_bytes: &[u8]) -> String {
-    let str = std::str::from_utf8(char_bytes).expect("Invalid UTF-8 sequence");
-    return str.chars().next().expect("Empty string").to_string();
-}
-
 
 /// Prints out Markdown formatted text using a custom appearence / termimad "skin".
 /// 
@@ -116,4 +94,43 @@ pub fn pretty_print_error(text: &str) {
 
     let markdown: String = format!("~~Error~~: *{}*", text);
     print!("{}", skin.term_text(&markdown));
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_split_address_valid() {
+        let addr = "127.0.0.1:5432";
+        assert_eq!(split_address(addr), Some(("127.0.0.1", "5432")));
+
+        let addr = "[::1]:8080";
+        assert_eq!(split_address(addr), Some(("[::1]", "8080")));
+    }
+
+    #[test]
+    fn test_split_address_invalid() {
+        let addr = "localhost";
+        assert_eq!(split_address(addr), None);
+        let addr = "192.168.0.1";
+        assert_eq!(split_address(addr), None);
+    }
+
+    #[test]
+    fn test_get_address_parts_valid() {
+        let addr = "192.168.0.1:80";
+        let (address, port) = get_address_parts(addr);
+        assert_eq!(address, "192.168.0.1");
+        assert_eq!(port, "80");
+    }
+
+    #[test]
+    fn test_get_address_parts_invalid() {
+        let addr = "example.com";
+        let (address, port) = get_address_parts(addr);
+        assert_eq!(address, "example.com");
+        assert_eq!(port, "-");
+    }
 }

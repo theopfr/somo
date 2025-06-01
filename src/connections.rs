@@ -72,12 +72,7 @@ fn filter_out_connection(connection_details: &Connection, filter_options: &Filte
         return true;
     }
     
-
-    
-
-    
-
-    false
+    return false;
 }
 
 
@@ -95,7 +90,8 @@ fn filter_out_connection(connection_details: &Connection, filter_options: &Filte
 fn get_address_type(remote_address: &str) -> AddressType {
     if remote_address == "127.0.0.1" || remote_address == "[::1]" {
         return AddressType::Localhost;
-    } else if remote_address == "0.0.0.0" || remote_address == "[::]" {
+    }
+    else if remote_address == "0.0.0.0" || remote_address == "[::]" {
         return AddressType::Unspecified;
     }
     AddressType::Extern
@@ -218,18 +214,139 @@ fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
 /// # Returns
 /// All processed and filtered TCP/UDP connections as a `Connection` struct in a vector.
 pub fn get_all_connections(filter_options: &FilterOptions) -> Vec<Connection> {
-    let all_processes: HashMap<u64, Stat> = get_processes();
+    let all_processes = get_processes();
 
-    match &filter_options.by_proto {
-        Some(filter_proto) if filter_proto == "tcp" => return get_tcp_connections(&all_processes, filter_options),
-        Some(filter_proto) if filter_proto == "udp" => return get_udp_connections(&all_processes, filter_options),
-        _ => { }
+    let mut connections = Vec::new();
+
+    match filter_options.by_proto.as_deref() {
+        Some("tcp") => connections.extend(get_tcp_connections(&all_processes, filter_options)),
+        Some("udp") => connections.extend(get_udp_connections(&all_processes, filter_options)),
+        _ => {
+            connections.extend(get_tcp_connections(&all_processes, filter_options));
+            connections.extend(get_udp_connections(&all_processes, filter_options));
+        }
     }
 
-    let mut all_connections = get_tcp_connections(&all_processes, filter_options);
-    let all_udp_connections = get_udp_connections(&all_processes, filter_options);
-    all_connections.extend(all_udp_connections);
+    return connections;
+}
 
-    all_connections
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_address_type() {
+        use crate::schemas::AddressType;
+
+        assert_eq!(get_address_type("127.0.0.1"), AddressType::Localhost);
+        assert_eq!(get_address_type("[::1]"), AddressType::Localhost);
+        assert_eq!(get_address_type("0.0.0.0"), AddressType::Unspecified);
+        assert_eq!(get_address_type("[::]"), AddressType::Unspecified);
+        assert_eq!(get_address_type("8.8.8.8"), AddressType::Extern);
+    }
+
+    #[test]
+    fn test_filter_out_connection_by_port() {
+        use crate::schemas::{Connection, FilterOptions, AddressType};
+
+        let conn = Connection {
+            proto: "tcp".to_string(),
+            local_port: "8080".to_string(),
+            remote_port: "443".to_string(),
+            remote_address: "8.8.8.8".to_string(),
+            program: "nginx".to_string(),
+            pid: "123".to_string(),
+            state: "established".to_string(),
+            address_type: AddressType::Extern,
+        };
+
+        let filter_by_matching_port = FilterOptions { by_local_port: Some("8080".to_string()), ..Default::default() };
+        assert_eq!(filter_out_connection(&conn, &filter_by_matching_port), false);
+
+        let filter_by_non_matching_port = FilterOptions { by_local_port: Some("8181".to_string()), ..Default::default() };
+        assert_eq!(filter_out_connection(&conn, &filter_by_non_matching_port), true);
+    }
+
+    #[test]
+    fn test_filter_out_connection_by_state() {
+        use crate::schemas::{Connection, FilterOptions, AddressType};
+
+        let mut conn = Connection {
+            proto: "udp".to_string(),
+            local_port: "8080".to_string(),
+            remote_port: "443".to_string(),
+            remote_address: "8.8.8.8".to_string(),
+            program: "nginx".to_string(),
+            pid: "123".to_string(),
+            state: "close".to_string(),
+            address_type: AddressType::Extern,
+        };
+
+        let filter_by_open_state = FilterOptions { by_open: true, ..Default::default() };
+        assert_eq!(filter_out_connection(&conn, &filter_by_open_state), true);
+
+        let no_active_open_filter = FilterOptions { by_open: false, ..Default::default() };
+        assert_eq!(filter_out_connection(&conn, &no_active_open_filter), false);
+
+        conn.state = "listen".to_string();
+
+        let filter_by_listen_state = FilterOptions { by_listen: true, ..Default::default() };
+        assert_eq!(filter_out_connection(&conn, &filter_by_listen_state), false);
+
+        let no_active_listen_filter = FilterOptions { by_listen: false, ..Default::default() };
+        assert_eq!(filter_out_connection(&conn, &no_active_listen_filter), false);
+    }
+
+    #[test]
+    fn test_filter_out_connection_by_pid_and_program() {
+        use crate::schemas::{Connection, FilterOptions, AddressType};
+
+        let conn = Connection {
+            proto: "tcp".to_string(),
+            local_port: "8080".to_string(),
+            remote_port: "443".to_string(),
+            remote_address: "8.8.8.8".to_string(),
+            program: "nginx".to_string(),
+            pid: "123".to_string(),
+            state: "close".to_string(),
+            address_type: AddressType::Extern,
+        };
+
+        let filter_by_open_state = FilterOptions { by_pid: Some("123".to_string()), ..Default::default() };
+        assert_eq!(filter_out_connection(&conn, &filter_by_open_state), false);
+
+        let no_active_open_filter = FilterOptions { by_program: Some("postgres".to_string()), ..Default::default() };
+        assert_eq!(filter_out_connection(&conn, &no_active_open_filter), true);
+    }
+
+    #[test]
+    fn test_filter_out_connection_by_multiple_conditions() {
+        use crate::schemas::{Connection, FilterOptions, AddressType};
+
+        let mut conn = Connection {
+            proto: "tcp".to_string(),
+            local_port: "8080".to_string(),
+            remote_port: "443".to_string(),
+            remote_address: "8.8.8.8".to_string(),
+            program: "python".to_string(),
+            pid: "123".to_string(),
+            state: "listen".to_string(),
+            address_type: AddressType::Extern,
+        };
+
+        let filter_by_multiple_conditions = FilterOptions {
+            by_local_port: Some("8080".to_string()),
+            by_pid: Some("123".to_string()),
+            by_program: Some("python".to_string()),
+            by_listen: true,
+            ..Default::default() 
+        };
+        assert_eq!(filter_out_connection(&conn, &filter_by_multiple_conditions), false);
+
+        conn.state = "close".to_string();
+        assert_eq!(filter_out_connection(&conn, &filter_by_multiple_conditions), true);
+    }
 }
 
