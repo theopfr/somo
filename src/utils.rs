@@ -57,7 +57,7 @@ pub fn get_address_parts(address: &str) -> (String, String) {
         remote_port = "-".to_string();
     }
 
-    (remote_address, remote_port)
+    return (remote_address, remote_port);
 }
 
 
@@ -69,47 +69,10 @@ pub fn get_address_parts(address: &str) -> (String, String) {
 /// # Returns
 /// The string decoded from the UTF-8 byte sequence.
 pub fn str_from_bytes(char_bytes: &[u8]) -> String {
-    let s = std::str::from_utf8(char_bytes).expect("Invalid UTF-8 sequence");
-    return s.chars().next().expect("Empty string").to_string();
+    let str = std::str::from_utf8(char_bytes).expect("Invalid UTF-8 sequence");
+    return str.chars().next().expect("Empty string").to_string();
 }
 
-
-/// creates a row which consists of empty characters to fill out the terminal width 
-/// with respect to how much space each column should receive based on the content length
-/// 
-
-
-/// Creates a Markdown table row with just empty characters with the width of the terminal window.
-/// 
-/// # Argument
-/// * `terminal_width`: The current width of the terminal.
-/// * `max_column_spaces`: An array in which the values represent the max-width of each of the 7 Markdown table rows.
-/// 
-/// # Returns
-/// A Markdown table row string in which each column is filled with as much empty characters needed to fit in content and as well fill out the terminal width.
-pub fn fill_terminal_width(terminal_width: u16, max_column_spaces: [u16; 7]) -> String {
-    let total_column_spaces: u16 = max_column_spaces.iter().sum();
-
-    let calculate_column_width = |column_space: u16| ((column_space as f64 / total_column_spaces as f64) * (terminal_width as f64));
-    let empty_character: String = str_from_bytes(&[0xE2, 0xA0, 0x80]);
-
-    let mut row: String = String::new();
-    for &max_column_space in &max_column_spaces {
-        row.push_str(&format!("| {} ", empty_character.repeat(calculate_column_width(max_column_space) as usize)));
-    }
-    row.push_str("|\n");
-
-    row
-}
-
-
-/// prints text with a green "Info" prefix
-/// a new style is given to common Markdown syntax:
-/// **bold** text -> bold and white
-/// *italic* text -> gray and not italic
-/// ~~strikeout~~ text -> green and not striked out
-/// 
-/// 
 
 /// Prints out Markdown formatted text using a custom appearence / termimad "skin".
 /// 

@@ -1,15 +1,17 @@
-mod address_checkers;
 mod cli;
+mod schemas;
 mod connections;
-mod string_utils;
+mod utils;
 mod table;
 
-#[tokio::main]
-async fn main() {
-    let args: cli::FlagValues = cli::cli();
+use schemas::FilterOptions;
+use schemas::Connection;
 
-    // example filter option: Some("tcp".to_string())
-    let filter_options: connections::FilterOptions = connections::FilterOptions {
+
+fn main() {
+    let args: cli::Flags = cli::cli();
+
+    let filter_options: FilterOptions = FilterOptions {
         by_proto: args.proto,
         by_remote_address: args.ip,
         by_remote_port: args.remote_port,
@@ -17,14 +19,13 @@ async fn main() {
         by_program: args.program,
         by_pid: args.pid,
         by_open: args.open,
+        by_listen: args.listen,
         exclude_ipv6: args.exclude_ipv6,
     };
 
-    // get running processes
-    let all_connections: Vec<connections::Connection> =
-        connections::get_all_connections(&filter_options).await;
+    let all_connections: Vec<Connection> = connections::get_all_connections(&filter_options);
 
-    table::get_connections_table(&all_connections);
+    table::print_connections_table(&all_connections);
 
     if args.kill {
         cli::interactve_process_kill(&all_connections);

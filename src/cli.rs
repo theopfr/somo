@@ -1,14 +1,15 @@
-use crate::connections;
-use crate::string_utils;
 use clap::Parser;
 use inquire::InquireError;
 use inquire::Select;
 use std::process;
 use std::string::String;
 
+use crate::utils;
+use crate::schemas::Connection;
+
 /// Used for parsing all the flags values provided by the user in the CLI.
 #[derive(Debug)]
-pub struct FlagValues {
+pub struct Flags {
     pub kill: bool,
     pub proto: Option<String>,
     pub ip: Option<String>,
@@ -17,6 +18,7 @@ pub struct FlagValues {
     pub program: Option<String>,
     pub pid: Option<String>,
     pub open: bool,
+    pub listen: bool,
     pub exclude_ipv6: bool,
 }
 
@@ -48,6 +50,9 @@ struct Args {
     #[arg(short = 'o', long, default_value_t = false)]
     open: bool,
 
+    #[arg(short = 'l', long, default_value_t = false)]
+    listen: bool,
+
     #[arg(short = 'e', long, default_value_t = false)]
     exclude_ipv6: bool,
 }
@@ -59,10 +64,10 @@ struct Args {
 ///
 /// # Returns
 /// A struct containing all the flag values.
-pub fn cli() -> FlagValues {
+pub fn cli() -> Flags {
     let args = Args::parse();
 
-    FlagValues {
+    return Flags {
         kill: args.kill,
         proto: args.proto,
         ip: args.ip,
@@ -71,6 +76,7 @@ pub fn cli() -> FlagValues {
         port: args.port,
         pid: args.pid,
         open: args.open,
+        listen: args.listen,
         exclude_ipv6: args.exclude_ipv6,
     }
 }
@@ -89,10 +95,10 @@ pub fn kill_process(pid: &String) {
         .unwrap_or_else(|_| panic!("Failed to kill process with PID {}", pid));
 
     if output.status.success() {
-        string_utils::pretty_print_info(&format!("Killed process with PID {}.", pid));
+        utils::pretty_print_info(&format!("Killed process with PID {}.", pid));
     } else {
         println!("Failed to kill process, try running");
-        string_utils::pretty_print_error(
+        utils::pretty_print_error(
             "Couldn't kill process! Try again using sudo: 'sudo $(where somo)'.",
         );
     }
@@ -105,7 +111,7 @@ pub fn kill_process(pid: &String) {
 ///
 /// # Returns
 /// None
-pub fn interactve_process_kill(connections: &Vec<connections::Connection>) {
+pub fn interactve_process_kill(connections: &Vec<Connection>) {
     let selection: Result<u32, InquireError> = Select::new(
         "Which process to kill (search or type index)?",
         (1..=connections.len() as u32).collect(),

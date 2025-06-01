@@ -2,35 +2,12 @@ use procfs::process::Stat;
 use procfs::process::FDTarget;
 use std::collections::HashMap;
 
-use crate::string_utils;
-use crate::address_checkers;
+use crate::schemas::Connection;
+use crate::schemas::FilterOptions;
+use crate::schemas::NetEntry;
+use crate::utils;
+use crate::schemas::AddressType;
 
-
-/// Contains options for filtering a `Conntection`.
-#[derive(Debug)]
-pub struct FilterOptions {
-    pub by_proto: Option<String>,
-    pub by_program: Option<String>,
-    pub by_pid: Option<String>,
-    pub by_remote_address: Option<String>,
-    pub by_remote_port: Option<String>,
-    pub by_local_port: Option<String>,
-    pub by_open: bool,
-    pub exclude_ipv6: bool
-}
-
-/// Represents a processed socket connection with all its attributes.
-#[derive(Debug)]
-pub struct Connection {
-    pub proto: String,
-    pub local_port: String,
-    pub remote_address: String,
-    pub remote_port: String,
-    pub program: String,
-    pub pid: String,
-    pub state: String,
-    pub address_type: address_checkers::IPType,
-}
 
 
 /// Gets all running processes on the system using the "procfs" crate.
@@ -88,11 +65,70 @@ fn filter_out_connection(connection_details: &Connection, filter_options: &Filte
         Some(filter_pid) if &connection_details.pid != filter_pid => return true,
         _ => { }
     }
+    if filter_options.by_listen && connection_details.state != "listen" {
+        return true;
+    }
     if filter_options.by_open && connection_details.state == "close" {
         return true;
     }
+    
+
+    
+
+    
 
     false
+}
+
+
+/// Checks if a given IP address is either "unspecified", localhost or an extern address.
+///
+/// * `0.0.0.0` or `[::]` -> unspecified
+/// * `127.0.0.1` or `[::1]` -> localhost
+/// * else -> extern address
+///
+/// # Arguments
+/// * `remote_address`: The address to be checked.
+///
+/// # Returns
+/// The address-type as an AddressType enum.
+fn get_address_type(remote_address: &str) -> AddressType {
+    if remote_address == "127.0.0.1" || remote_address == "[::1]" {
+        return AddressType::Localhost;
+    } else if remote_address == "0.0.0.0" || remote_address == "[::]" {
+        return AddressType::Unspecified;
+    }
+    AddressType::Extern
+}
+
+
+
+fn get_connection_data(net_entry: NetEntry, all_processes: &HashMap<u64, Stat>) -> Connection {
+    // process the remote-address and remote-port by spliting them at ":"
+    let (_, local_port) = utils::get_address_parts(&format!("{}", net_entry.local_address));
+    let (remote_address, remote_port) = utils::get_address_parts(&format!("{}", net_entry.remote_address));
+    let state = net_entry.state;
+    
+    // check if there is no program/pid information
+    let (program, pid) = all_processes
+        .get(&net_entry.inode)
+        .map(|stat| (stat.comm.to_string(), stat.pid.to_string()))
+        .unwrap_or(("-".to_string(), "-".to_string()));
+
+    let address_type: AddressType = get_address_type(&remote_address);
+
+    let connection: Connection = Connection {
+        proto: net_entry.protocol,
+        local_port,
+        remote_address: remote_address.to_string(),
+        remote_port,
+        program,
+        pid,
+        state,
+        address_type,
+    };
+
+    return connection;
 }
 
 
@@ -104,54 +140,33 @@ fn filter_out_connection(connection_details: &Connection, filter_options: &Filte
 /// 
 /// # Returns
 /// All processed and filtered TCP connections as a `Connection` struct in a vector.
-async fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions) -> Vec<Connection> {
-    let mut tcp = procfs::net::tcp().unwrap();
+fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions) -> Vec<Connection> {
+    let mut tcp_entries = procfs::net::tcp().unwrap();
     if !filter_options.exclude_ipv6 {
-        tcp.extend(procfs::net::tcp6().unwrap());
+        tcp_entries.extend(procfs::net::tcp6().unwrap());
     }
 
-    let mut all_tcp_connections: Vec<Connection> = Vec::new();
-    for entry in tcp {
+    return tcp_entries
+        .iter()
+        .filter_map(|entry| {
+            let tcp_entry: NetEntry = NetEntry {
+                protocol: "tcp".to_string(),
+                local_address: entry.local_address,
+                remote_address: entry.remote_address,
+                state: format!("{:?}", entry.state).to_ascii_lowercase(),
+                inode: entry.inode 
+            };
+            let connection = get_connection_data(tcp_entry, all_processes);
 
-        // process the remote-address and remote-port by spliting them at ":"
-        let (_, local_port) = string_utils::get_address_parts(&format!("{}", entry.local_address));
-        let (remote_address, remote_port) = string_utils::get_address_parts(&format!("{}", entry.remote_address));
-        let state = format!("{:?}", entry.state).to_ascii_lowercase();
-        
-        // check if there is no program/pid information
-        let program: String;
-        let pid: String;
-        if let Some(stat) = all_processes.get(&entry.inode) {
-            program = stat.comm.to_string();
-            pid = stat.pid.to_string();
-        } else {
-            program = "-".to_string();
-            pid = "-".to_string();
-        }
-
-        let address_type: address_checkers::IPType = address_checkers::check_address_type(&remote_address);
-
-        let connection: Connection = Connection {
-            proto: "tcp".to_string(),
-            local_port,
-            remote_address: remote_address.to_string(),
-            remote_port,
-            program,
-            pid,
-            state,
-            address_type,
-        };
-
-        // check if connection should be filtered out
-        let filter_connection: bool = filter_out_connection(&connection, filter_options);
-        if filter_connection {
-            continue;
-        }
-
-        all_tcp_connections.push(connection);
-    }
-
-    all_tcp_connections
+            let filter_connection: bool = filter_out_connection(&connection, filter_options);
+            if !filter_connection {
+                Some(connection)
+            }
+            else {
+                None
+            }
+        })
+        .collect();
 }
 
 
@@ -164,55 +179,33 @@ async fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options:
 /// 
 /// # Returns
 /// All processed and filtered UDP connections as a `Connection` struct in a vector.
-async fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions) -> Vec<Connection> {
-    let mut udp = procfs::net::udp().unwrap();
+fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions) -> Vec<Connection> {
+    let mut udp_entries = procfs::net::udp().unwrap();
     if !filter_options.exclude_ipv6 {
-        udp.extend(procfs::net::udp6().unwrap());
+        udp_entries.extend(procfs::net::udp6().unwrap());
     }
 
-    let mut all_udp_connections: Vec<Connection> = Vec::new();
-    for entry in udp {
+    return udp_entries
+        .iter()
+        .filter_map(|entry| {
+            let udp_entry: NetEntry = NetEntry {
+                protocol: "udp".to_string(),
+                local_address: entry.local_address,
+                remote_address: entry.remote_address,
+                state: format!("{:?}", entry.state).to_ascii_lowercase(),
+                inode: entry.inode 
+            };
+            let connection: Connection = get_connection_data(udp_entry, all_processes);
 
-        // process the remote-address and remote-port by spliting them at ":"
-        let (_, local_port) = string_utils::get_address_parts(&format!("{}", entry.local_address));
-        let (remote_address, remote_port) = string_utils::get_address_parts(&format!("{}", entry.remote_address));
-        let state = format!("{:?}", entry.state).to_ascii_lowercase();
-        
-        // check if there is no program/pid information
-        let program: String;
-        let pid: String;
-        if let Some(stat) = all_processes.get(&entry.inode) {
-            program = stat.comm.to_string();
-            pid = stat.pid.to_string();
-        }
-        else {
-            program = "-".to_string();
-            pid = "-".to_string();
-        }
-
-        let address_type: address_checkers::IPType = address_checkers::check_address_type(&remote_address);
-
-        let connection: Connection = Connection {
-            proto: "udp".to_string(),
-            local_port,
-            remote_address: remote_address.to_string(),
-            remote_port,
-            program,
-            pid,
-            state,
-            address_type,
-        };
-
-        // check if connection should be filtered out
-        let filter_connection: bool = filter_out_connection(&connection, filter_options);
-        if filter_connection {
-            continue;
-        }
-
-        all_udp_connections.push(connection);
-    }
-
-    all_udp_connections
+            let filter_connection: bool = filter_out_connection(&connection, filter_options);
+            if !filter_connection {
+                Some(connection)
+            }
+            else {
+                None
+            }
+        })
+        .collect();
 }
 
  
@@ -224,17 +217,17 @@ async fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options:
 /// 
 /// # Returns
 /// All processed and filtered TCP/UDP connections as a `Connection` struct in a vector.
-pub async fn get_all_connections(filter_options: &FilterOptions) -> Vec<Connection> {
+pub fn get_all_connections(filter_options: &FilterOptions) -> Vec<Connection> {
     let all_processes: HashMap<u64, Stat> = get_processes();
 
     match &filter_options.by_proto {
-        Some(filter_proto) if filter_proto == "tcp" => return get_tcp_connections(&all_processes, filter_options).await,
-        Some(filter_proto) if filter_proto == "udp" => return get_udp_connections(&all_processes, filter_options).await,
+        Some(filter_proto) if filter_proto == "tcp" => return get_tcp_connections(&all_processes, filter_options),
+        Some(filter_proto) if filter_proto == "udp" => return get_udp_connections(&all_processes, filter_options),
         _ => { }
     }
 
-    let mut all_connections = get_tcp_connections(&all_processes, filter_options).await;
-    let all_udp_connections = get_udp_connections(&all_processes, filter_options).await;
+    let mut all_connections = get_tcp_connections(&all_processes, filter_options);
+    let all_udp_connections = get_udp_connections(&all_processes, filter_options);
     all_connections.extend(all_udp_connections);
 
     all_connections
