@@ -3,7 +3,7 @@
 </p>
 
 
-### A human-friendly alternative to netstat for socket and port monitoring for Linux.
+### A human-friendly alternative to netstat for socket and port monitoring on Linux.
 
 ## ✨ Features:
 - pleasing to the eye thanks to a nice table-view

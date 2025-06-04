@@ -1,9 +1,9 @@
 [package]
 name = "somo"
-version = "0.3.0"
+version = "1.0.0"
 edition = "2021"
 authors = ["theopfr"]
-description = "A human-friendly alternative to netstat or ss for socket monitorin."
+description = "A human-friendly alternative to netstat for socket and port monitoring on Linux."
 license = "MIT"
 readme = "./README.md"
 repository = "https://github.com/theopfr/somo/"
