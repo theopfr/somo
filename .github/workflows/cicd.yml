@@ -1,12 +1,10 @@
-name: Build, Test, Release
+name: Test, Build and Release
 
 on:
   push:
     branches:
       - master
   pull_request:
-    types:
-      - closed
     branches:
       - master
 
@@ -17,7 +15,6 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -26,15 +23,15 @@ jobs:
       run: cargo test
 
   build_and_release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
     - name: Extract version from Cargo.toml
       id: version
-      run: echo ::set-output name=version::$(grep -Po '^version = "\K[^"]+' Cargo.toml)
+      run: echo "version=$(grep -Po '^version = \"\K[^\"]+' Cargo.toml)" >> "$GITHUB_OUTPUT"
 
     - name: Build and package
       run: |
@@ -65,7 +62,6 @@ jobs:
       id: create_release
 
     - name: Upload Release Asset
-      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -74,4 +70,3 @@ jobs:
         asset_path: target/debian/somo-${{ steps.version.outputs.version }}.deb
         asset_name: somo-${{ steps.version.outputs.version }}-${{ github.run_number }}-${{ github.sha }}.deb
         asset_content_type: application/x-debian-package
-
