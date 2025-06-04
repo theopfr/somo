@@ -9,7 +9,7 @@
 - pleasing to the eye thanks to a nice table-view
 - filterable (see filter-options below)
 - interactive killing of processes
-- from ``nestat -tulpn`` to ``somo -l`` (almost half the characters, can you believe it?)
+- from ``netstat -tulpn`` to ``somo -l`` (almost half the characters, can you believe it?)
 
 <br />
 
@@ -28,7 +28,7 @@ If you use a Debian OS go to [releases](https://github.com/theopfr/somo/releases
 ```sh
 cargo install somo
 ```
-Most of the time you will want to run this in ``sudo`` mode to see all processes and ports. By default, this is not possible when install via carg. But you can create a symlink so the binary can be run as root:
+Most of the time you will want to run this in ``sudo`` mode to see all processes and ports. By default, this is not possible when installed via cargo. But you can create a symlink so the binary can be run as root:
 ```sh
 sudo ln -s ~/.cargo/bin/somo /usr/local/bin/somo
 sudo somo   # this works now
@@ -46,7 +46,7 @@ sudo somo
 
 ### Filtering:
 
-You can use the following flags to filter based on diffferent attributes:
+You can use the following flags to filter based on different attributes:
 | filter flag | description | value |
 | :------------- |:------------- | :----- |
 | ```--proto``` | filter by either TCP or UDP  | ``tcp`` or ``udp`` | 
