@@ -1,47 +1,33 @@
-mod connections;
-mod address_checkers;
-mod string_utils;
-mod table;
 mod cli;
+mod schemas;
+mod connections;
+mod utils;
+mod table;
+
+use schemas::FilterOptions;
+use schemas::Connection;
 
 
-#[tokio::main]
-async fn main() {
+fn main() {
+    let args: cli::Flags = cli::cli();
 
-    let mut args: cli::FlagValues = cli::cli();
-
-    // example filter option: Some("tcp".to_string())
-    let filter_options: connections::FilterOptions = connections::FilterOptions { 
+    let filter_options: FilterOptions = FilterOptions {
         by_proto: args.proto,
         by_remote_address: args.ip,
-        by_remote_port: args.port, 
-        by_local_port: args.local_port,
+        by_remote_port: args.remote_port,
+        by_local_port: args.port,
         by_program: args.program,
         by_pid: args.pid,
         by_open: args.open,
-        exclude_ipv6: args.exclude_ipv6
+        by_listen: args.listen,
+        exclude_ipv6: args.exclude_ipv6,
     };
 
-    // sanity-check if the AbuseIPDB is usable, if not: don't check remote addresses and print an error
-    if args.check {
-        string_utils::pretty_print_info("Checking IPs using AbuseIPDB.com...");
-        let abuse_result = address_checkers::check_address_for_abuse(&("127.0.0.1".to_string()), true).await.unwrap();
-        match abuse_result {
-            Some(_) => { }
-            None => {
-                string_utils::pretty_print_error("Cancelling check for malicious IPs.");
-                args.check = false;
-            }
-        } 
-    }
+    let all_connections: Vec<Connection> = connections::get_all_connections(&filter_options);
 
-    // get running processes
-    let all_connections: Vec<connections::Connection> = connections::get_all_connections(&filter_options, args.check).await;
-    
-    table::get_connections_table(&all_connections);
+    table::print_connections_table(&all_connections);
 
     if args.kill {
         cli::interactve_process_kill(&all_connections);
     }
-
 }

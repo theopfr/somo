@@ -1,9 +1,8 @@
 use termimad::crossterm::style::{Color::*, Attribute::*};
 use termimad::*;
 
-use crate::connections;
-use crate::address_checkers;
-use crate::string_utils;
+use crate::utils;
+use crate::schemas::{AddressType, Connection};
 
 
 /// Uses the termimad crate to create a custom appearence for Mardown text in the console.
@@ -28,51 +27,7 @@ fn create_table_style() -> MadSkin {
     skin.table.align = Alignment::Center;
     skin.inline_code = CompoundStyle::new(Some(Yellow), None, Encircled.into());
 
-    skin
-}
-
-
-/// Adds abusiveness information to the remote address based on the abuse score.
-/// 
-/// * `abuse_score` >= 50 -> high abuse confidence
-/// * `abuse_score` >= 25 -> moderate abuse confidence
-/// * `abuse_score` >=  1 -> low abuse confidence
-/// * `abuse_score` ==  0 -> no abuse danger
-/// 
-/// # Arguments
-/// * `remote_address`: The remote address checked for abusivness.
-/// * `abuse_score`: The abuse score delivered by AbuseIPDB.com
-/// 
-/// 
-/// # Example
-/// ```
-/// let address = "127.0.0.1".to_string();
-/// let score = Some(75);
-/// let formatted = format_abuse_checked_address(&address, score);
-/// assert_eq!(formatted, "127.0.0.1 ~~high abuse score: 75~~"); 
-/// ```
-/// 
-/// # Returns
-/// A Markdown formatted string containing the remote address and abusiveness information.
-fn format_abuse_checked_address(remote_address: &String, abuse_score: Option<i64>) -> String {
-    let checked_remote_address: String;
-    if abuse_score >= Some(50) {
-        checked_remote_address = format!("{} ~~high abuse score: {}~~", remote_address, abuse_score.unwrap());
-    }
-    else if abuse_score > Some(25) {
-        checked_remote_address = format!("{} `moderate abuse score: {}`", remote_address, abuse_score.unwrap());
-    }
-    else if abuse_score >= Some(1) {
-        checked_remote_address = format!("{} *low abuse score: {}*", remote_address, abuse_score.unwrap());
-    }
-    else if abuse_score == Some(0) {
-        checked_remote_address = format!("{} **✓**", remote_address);
-    }
-    else {
-        checked_remote_address = (&remote_address).to_string();
-    }
-
-    checked_remote_address
+    return skin;
 }
 
 
@@ -84,31 +39,56 @@ fn format_abuse_checked_address(remote_address: &String, abuse_score: Option<i64
 /// 
 /// # Arguments
 /// * `remote_address`: The remote address.
-/// * `address_type`: The address type as an IPType enum.
+/// * `address_type`: The address type as an AddressType enum.
 /// 
 /// # Example
 /// ```
 /// let address = "127.0.0.1".to_string();
-/// let address_type = address_checkers::IPType::Localhost;
+/// let address_type = AddressType::Localhost;
 /// let formatted = format_known_address(&address, &address_type);
 /// assert_eq!(formatted, "*127.0.0.1 localhost*"); 
 /// ```
 /// 
 /// # Returns
 /// A Markdown formatted string based on the address-type.
-fn format_known_address(remote_address: &String, address_type: &address_checkers::IPType) -> String {
+fn format_known_address(remote_address: &String, address_type: &AddressType) -> String {
     match address_type {
-        address_checkers::IPType::Unspecified => {
+        AddressType::Unspecified => {
             format!("*{}*", remote_address)
         }
-        address_checkers::IPType::Localhost => {
+        AddressType::Localhost => {
             format!("*{} localhost*", remote_address)
         }
-        address_checkers::IPType::Extern => {
+        AddressType::Extern => {
             remote_address.to_string()
         }
     }
 }
+
+
+/// Creates a Markdown table row with just empty characters with the width of the terminal window.
+/// 
+/// # Argument
+/// * `terminal_width`: The current width of the terminal.
+/// * `max_column_spaces`: An array in which the values represent the max-width of each of the 7 Markdown table rows.
+/// 
+/// # Returns
+/// A Markdown table row string in which each column is filled with as much empty characters needed to fit in content and as well fill out the terminal width.
+fn fill_terminal_width(terminal_width: u16, max_column_spaces: [u16; 7]) -> String {
+    let total_column_spaces: u16 = max_column_spaces.iter().sum();
+
+    let calculate_column_width = |column_space: u16| ((column_space as f64 / total_column_spaces as f64) * (terminal_width as f64));
+    let empty_character = "\u{2800}";
+
+    let mut row: String = String::new();
+    for &max_column_space in &max_column_spaces {
+        row.push_str(&format!("| {} ", empty_character.repeat(calculate_column_width(max_column_space) as usize)));
+    }
+    row.push_str("|\n");
+
+    return row;
+}
+
 
 /// Prints all current connections in a pretty Markdown table.
 /// 
@@ -117,41 +97,69 @@ fn format_known_address(remote_address: &String, address_type: &address_checkers
 /// 
 /// # Returns
 /// None
-pub fn get_connections_table(all_connections: &Vec<connections::Connection>) {
+pub fn print_connections_table(all_connections: &Vec<Connection>) {
     let skin: MadSkin = create_table_style();
     let (terminal_width, _) = terminal_size();
 
-    // print amount of connections (after filter)
-    string_utils::pretty_print_info(&format!("Connections: **{}**", all_connections.len()));
-
-    // add table headers
+    // Add table headers
     static CENTER_MARKDOWN_ROW: &str = "| :-: | :-: | :-: | :-: | :-: | :-: | :-: |\n";
     let mut markdown = CENTER_MARKDOWN_ROW.to_string();
-    markdown.push_str("| **#** | **proto** | **local port** | **remote address** | **remote port** | **program***/pid* | **state** |\n");
+    markdown.push_str("| **#** | **proto** | **local port** | **remote address** | **remote port** | **pid** *program* | **state** |\n");
 
     // iterate over all connections to build the table
     for (idx, connection) in all_connections.iter().enumerate() {
         markdown.push_str(CENTER_MARKDOWN_ROW);
  
-        // check if the remote IP is a DNS server
-        let remote_address = &connection.remote_address;
+        let formatted_remote_address: String = format_known_address(&connection.remote_address, &connection.address_type);
 
-        // add abusiveness information to remote address
-        let mut formatted_remote_address: String = format_known_address(remote_address, &connection.address_type);
-        formatted_remote_address = format_abuse_checked_address(&formatted_remote_address, connection.abuse_score);
-
-        // add row with connection information
-        markdown.push_str(&format!("| *{}* | {} | {} | {} | {} | {}*/{}* | {} |\n",
-            idx + 1, connection.proto, connection.local_port,  &formatted_remote_address, connection.remote_port, connection.program, connection.pid, connection.state
+        markdown.push_str(&format!("| *{}* | {} | {} | {} | {} | {} *{}* | {} |\n",
+            idx + 1, connection.proto, connection.local_port,  &formatted_remote_address, connection.remote_port, connection.pid, connection.program, connection.state
         ));
     }
 
-    // create an empty row that forces the table to fit the terminal with respect to how much space
-    // each column should receive based on the max length of each column (in the array below)
-    let max_column_spaces: [u16; 7] = [5, 5, 7, 32, 7, 24, 13];
-    let terminal_filling_row: String = string_utils::fill_terminal_width(terminal_width, max_column_spaces);
+    // Create an empty row that forces the table to fit the terminal with respect to how much space ...
+    // ... each column should receive based on the max length of each column (in the array below)
+    let max_column_spaces: [u16; 7] = [5, 8, 8, 28, 7, 24, 13];
+    let terminal_filling_row: String = fill_terminal_width(terminal_width, max_column_spaces);
     markdown.push_str(&terminal_filling_row);
     markdown.push_str(CENTER_MARKDOWN_ROW);
 
-    println!("{}\n", skin.term_text(&markdown));
+    println!("{}", skin.term_text(&markdown));
+
+    utils::pretty_print_info(&format!("**{} Connections**", all_connections.len()));
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_format_known_address_localhost() {
+        let addr = "127.0.0.1".to_string();
+        let result = format_known_address(&addr, &AddressType::Localhost);
+        assert_eq!(result, "*127.0.0.1 localhost*");
+    }
+
+    #[test]
+    fn test_format_known_address_unspecified() {
+        let addr = "0.0.0.0".to_string();
+        let result = format_known_address(&addr, &AddressType::Unspecified);
+        assert_eq!(result, "*0.0.0.0*");
+    }
+
+    #[test]
+    fn test_format_known_address_extern() {
+        let addr = "123.123.123".to_string();
+        let result = format_known_address(&addr, &AddressType::Extern);
+        assert_eq!(result, "123.123.123");
+    }
+
+    #[test]
+    fn test_fill_terminal_width() {
+        let row = fill_terminal_width(80, [5, 8, 8, 28, 7, 24, 13]);
+        let columns = row.matches('|').count();
+        assert_eq!(columns, 8); // 7 columns + final pipe
+    }
 }

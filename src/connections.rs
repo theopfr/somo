@@ -2,35 +2,12 @@ use procfs::process::Stat;
 use procfs::process::FDTarget;
 use std::collections::HashMap;
 
-use crate::string_utils;
-use crate::address_checkers;
+use crate::schemas::Connection;
+use crate::schemas::FilterOptions;
+use crate::schemas::NetEntry;
+use crate::utils;
+use crate::schemas::AddressType;
 
-/// Contains options for filtering a `Conntection`.
-#[derive(Debug)]
-pub struct FilterOptions {
-    pub by_proto: Option<String>,
-    pub by_program: Option<String>,
-    pub by_pid: Option<String>,
-    pub by_remote_address: Option<String>,
-    pub by_remote_port: Option<String>,
-    pub by_local_port: Option<String>,
-    pub by_open: bool,
-    pub exclude_ipv6: bool
-}
-
-/// Represents a processed socket connection with all its attributes.
-#[derive(Debug)]
-pub struct Connection {
-    pub proto: String,
-    pub local_port: String,
-    pub remote_address: String,
-    pub remote_port: String,
-    pub program: String,
-    pub pid: String,
-    pub state: String,
-    pub address_type: address_checkers::IPType,
-    pub abuse_score: Option<i64>
-}
 
 
 /// Gets all running processes on the system using the "procfs" crate.
@@ -88,11 +65,66 @@ fn filter_out_connection(connection_details: &Connection, filter_options: &Filte
         Some(filter_pid) if &connection_details.pid != filter_pid => return true,
         _ => { }
     }
+    if filter_options.by_listen && connection_details.state != "listen" {
+        return true;
+    }
     if filter_options.by_open && connection_details.state == "close" {
         return true;
     }
+    
+    return false;
+}
 
-    false
+
+/// Checks if a given IP address is either "unspecified", localhost or an extern address.
+///
+/// * `0.0.0.0` or `[::]` -> unspecified
+/// * `127.0.0.1` or `[::1]` -> localhost
+/// * else -> extern address
+///
+/// # Arguments
+/// * `remote_address`: The address to be checked.
+///
+/// # Returns
+/// The address-type as an AddressType enum.
+fn get_address_type(remote_address: &str) -> AddressType {
+    if remote_address == "127.0.0.1" || remote_address == "[::1]" {
+        return AddressType::Localhost;
+    }
+    else if remote_address == "0.0.0.0" || remote_address == "[::]" {
+        return AddressType::Unspecified;
+    }
+    AddressType::Extern
+}
+
+
+
+fn get_connection_data(net_entry: NetEntry, all_processes: &HashMap<u64, Stat>) -> Connection {
+    // process the remote-address and remote-port by spliting them at ":"
+    let (_, local_port) = utils::get_address_parts(&format!("{}", net_entry.local_address));
+    let (remote_address, remote_port) = utils::get_address_parts(&format!("{}", net_entry.remote_address));
+    let state = net_entry.state;
+    
+    // check if there is no program/pid information
+    let (program, pid) = all_processes
+        .get(&net_entry.inode)
+        .map(|stat| (stat.comm.to_string(), stat.pid.to_string()))
+        .unwrap_or(("-".to_string(), "-".to_string()));
+
+    let address_type: AddressType = get_address_type(&remote_address);
+
+    let connection: Connection = Connection {
+        proto: net_entry.protocol,
+        local_port,
+        remote_address: remote_address.to_string(),
+        remote_port,
+        program,
+        pid,
+        state,
+        address_type,
+    };
+
+    return connection;
 }
 
 
@@ -101,64 +133,36 @@ fn filter_out_connection(connection_details: &Connection, filter_options: &Filte
 /// # Arguments
 /// * `all_processes`: A map of all running processes on the system.
 /// * `filter_options`: The filter options provided by the user.
-/// * `check_malicious`: If `true` the remote address is checked for abusiveness using the AbuseIPDB.com API.
 /// 
 /// # Returns
 /// All processed and filtered TCP connections as a `Connection` struct in a vector.
-async fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions, check_malicious: bool) -> Vec<Connection> {
-    let mut tcp = procfs::net::tcp().unwrap();
+fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions) -> Vec<Connection> {
+    let mut tcp_entries = procfs::net::tcp().unwrap();
     if !filter_options.exclude_ipv6 {
-        tcp.extend(procfs::net::tcp6().unwrap());
+        tcp_entries.extend(procfs::net::tcp6().unwrap());
     }
 
-    let mut all_tcp_connections: Vec<Connection> = Vec::new();
-    for entry in tcp {
+    return tcp_entries
+        .iter()
+        .filter_map(|entry| {
+            let tcp_entry: NetEntry = NetEntry {
+                protocol: "tcp".to_string(),
+                local_address: entry.local_address,
+                remote_address: entry.remote_address,
+                state: format!("{:?}", entry.state).to_ascii_lowercase(),
+                inode: entry.inode 
+            };
+            let connection = get_connection_data(tcp_entry, all_processes);
 
-        // process the remote-address and remote-port by spliting them at ":"
-        let (_, local_port) = string_utils::get_address_parts(&format!("{}", entry.local_address));
-        let (remote_address, remote_port) = string_utils::get_address_parts(&format!("{}", entry.remote_address));
-        let state = format!("{:?}", entry.state).to_ascii_lowercase();
-        
-        // check if there is no program/pid information
-        let program: String;
-        let pid: String;
-        if let Some(stat) = all_processes.get(&entry.inode) {
-            program = stat.comm.to_string();
-            pid = stat.pid.to_string();
-        } else {
-            program = "-".to_string();
-            pid = "-".to_string();
-        }
-
-        let address_type: address_checkers::IPType = address_checkers::check_address_type(&remote_address);
-
-        let mut connection: Connection = Connection {
-            proto: "tcp".to_string(),
-            local_port,
-            remote_address: remote_address.to_string(),
-            remote_port,
-            program,
-            pid,
-            state,
-            address_type,
-            abuse_score: None
-        };
-
-        // check if connection should be filtered out
-        let filter_connection: bool = filter_out_connection(&connection, filter_options);
-        if filter_connection {
-            continue;
-        }
-        
-        // if malicious-check is activated, get an abuse score from AbuseIPDB.com
-        if check_malicious {
-            connection.abuse_score = address_checkers::check_address_for_abuse(&remote_address, false).await.unwrap_or(Some(-1i64));
-        }
-
-        all_tcp_connections.push(connection);
-    }
-
-    all_tcp_connections
+            let filter_connection: bool = filter_out_connection(&connection, filter_options);
+            if !filter_connection {
+                Some(connection)
+            }
+            else {
+                None
+            }
+        })
+        .collect();
 }
 
 
@@ -168,64 +172,36 @@ async fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options:
 /// # Arguments
 /// * `all_processes`: A map of all running processes on the system.
 /// * `filter_options`: The filter options provided by the user.
-/// * `check_malicious`: If `true` the remote address is checked for abusiveness using the AbuseIPDB.com API.
 /// 
 /// # Returns
 /// All processed and filtered UDP connections as a `Connection` struct in a vector.
-async fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions, check_malicious: bool) -> Vec<Connection> {
-    let mut udp = procfs::net::udp().unwrap();
+fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions) -> Vec<Connection> {
+    let mut udp_entries = procfs::net::udp().unwrap();
     if !filter_options.exclude_ipv6 {
-        udp.extend(procfs::net::udp6().unwrap());
+        udp_entries.extend(procfs::net::udp6().unwrap());
     }
 
-    let mut all_udp_connections: Vec<Connection> = Vec::new();
-    for entry in udp {
+    return udp_entries
+        .iter()
+        .filter_map(|entry| {
+            let udp_entry: NetEntry = NetEntry {
+                protocol: "udp".to_string(),
+                local_address: entry.local_address,
+                remote_address: entry.remote_address,
+                state: format!("{:?}", entry.state).to_ascii_lowercase(),
+                inode: entry.inode 
+            };
+            let connection: Connection = get_connection_data(udp_entry, all_processes);
 
-        // process the remote-address and remote-port by spliting them at ":"
-        let (_, local_port) = string_utils::get_address_parts(&format!("{}", entry.local_address));
-        let (remote_address, remote_port) = string_utils::get_address_parts(&format!("{}", entry.remote_address));
-        let state = format!("{:?}", entry.state).to_ascii_lowercase();
-        
-        // check if there is no program/pid information
-        let program: String;
-        let pid: String;
-        if let Some(stat) = all_processes.get(&entry.inode) {
-            program = stat.comm.to_string();
-            pid = stat.pid.to_string();
-        } else {
-            program = "-".to_string();
-            pid = "-".to_string();
-        }
-
-        let address_type: address_checkers::IPType = address_checkers::check_address_type(&remote_address);
-
-        let mut connection: Connection = Connection {
-            proto: "udp".to_string(),
-            local_port,
-            remote_address: remote_address.to_string(),
-            remote_port,
-            program,
-            pid,
-            state,
-            address_type,
-            abuse_score: None
-        };
-
-        // check if connection should be filtered out
-        let filter_connection: bool = filter_out_connection(&connection, filter_options);
-        if filter_connection {
-            continue;
-        }
-        
-        // if malicious-check is activated, get an abuse score from AbuseIPDB.com
-        if check_malicious {
-            connection.abuse_score = address_checkers::check_address_for_abuse(&remote_address, false).await.unwrap_or(Some(-1i64));
-        }
-
-        all_udp_connections.push(connection);
-    }
-
-    all_udp_connections
+            let filter_connection: bool = filter_out_connection(&connection, filter_options);
+            if !filter_connection {
+                Some(connection)
+            }
+            else {
+                None
+            }
+        })
+        .collect();
 }
 
  
@@ -234,23 +210,143 @@ async fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options:
 /// 
 /// # Arguments
 /// * `filter_options`: The filter options provided by the user.
-/// * `check_malicious`: If `true` the remote address is checked for abusiveness using the AbuseIPDB.com API.
 /// 
 /// # Returns
 /// All processed and filtered TCP/UDP connections as a `Connection` struct in a vector.
-pub async fn get_all_connections(filter_options: &FilterOptions, check_malicious: bool) -> Vec<Connection> {
-    let all_processes: HashMap<u64, Stat> = get_processes();
+pub fn get_all_connections(filter_options: &FilterOptions) -> Vec<Connection> {
+    let all_processes = get_processes();
 
-    match &filter_options.by_proto {
-        Some(filter_proto) if filter_proto == "tcp" => return get_tcp_connections(&all_processes, filter_options, check_malicious).await,
-        Some(filter_proto) if filter_proto == "udp" => return get_udp_connections(&all_processes, filter_options, check_malicious).await,
-        _ => { }
+    let mut connections = Vec::new();
+
+    match filter_options.by_proto.as_deref() {
+        Some("tcp") => connections.extend(get_tcp_connections(&all_processes, filter_options)),
+        Some("udp") => connections.extend(get_udp_connections(&all_processes, filter_options)),
+        _ => {
+            connections.extend(get_tcp_connections(&all_processes, filter_options));
+            connections.extend(get_udp_connections(&all_processes, filter_options));
+        }
     }
 
-    let mut all_connections = get_tcp_connections(&all_processes, filter_options, check_malicious).await;
-    let all_udp_connections = get_udp_connections(&all_processes, filter_options, check_malicious).await;
-    all_connections.extend(all_udp_connections);
+    return connections;
+}
 
-    all_connections
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_address_type() {
+        use crate::schemas::AddressType;
+
+        assert_eq!(get_address_type("127.0.0.1"), AddressType::Localhost);
+        assert_eq!(get_address_type("[::1]"), AddressType::Localhost);
+        assert_eq!(get_address_type("0.0.0.0"), AddressType::Unspecified);
+        assert_eq!(get_address_type("[::]"), AddressType::Unspecified);
+        assert_eq!(get_address_type("8.8.8.8"), AddressType::Extern);
+    }
+
+    #[test]
+    fn test_filter_out_connection_by_port() {
+        use crate::schemas::{Connection, FilterOptions, AddressType};
+
+        let conn = Connection {
+            proto: "tcp".to_string(),
+            local_port: "8080".to_string(),
+            remote_port: "443".to_string(),
+            remote_address: "8.8.8.8".to_string(),
+            program: "nginx".to_string(),
+            pid: "123".to_string(),
+            state: "established".to_string(),
+            address_type: AddressType::Extern,
+        };
+
+        let filter_by_matching_port = FilterOptions { by_local_port: Some("8080".to_string()), ..Default::default() };
+        assert_eq!(filter_out_connection(&conn, &filter_by_matching_port), false);
+
+        let filter_by_non_matching_port = FilterOptions { by_local_port: Some("8181".to_string()), ..Default::default() };
+        assert_eq!(filter_out_connection(&conn, &filter_by_non_matching_port), true);
+    }
+
+    #[test]
+    fn test_filter_out_connection_by_state() {
+        use crate::schemas::{Connection, FilterOptions, AddressType};
+
+        let mut conn = Connection {
+            proto: "udp".to_string(),
+            local_port: "8080".to_string(),
+            remote_port: "443".to_string(),
+            remote_address: "8.8.8.8".to_string(),
+            program: "nginx".to_string(),
+            pid: "123".to_string(),
+            state: "close".to_string(),
+            address_type: AddressType::Extern,
+        };
+
+        let filter_by_open_state = FilterOptions { by_open: true, ..Default::default() };
+        assert_eq!(filter_out_connection(&conn, &filter_by_open_state), true);
+
+        let no_active_open_filter = FilterOptions { by_open: false, ..Default::default() };
+        assert_eq!(filter_out_connection(&conn, &no_active_open_filter), false);
+
+        conn.state = "listen".to_string();
+
+        let filter_by_listen_state = FilterOptions { by_listen: true, ..Default::default() };
+        assert_eq!(filter_out_connection(&conn, &filter_by_listen_state), false);
+
+        let no_active_listen_filter = FilterOptions { by_listen: false, ..Default::default() };
+        assert_eq!(filter_out_connection(&conn, &no_active_listen_filter), false);
+    }
+
+    #[test]
+    fn test_filter_out_connection_by_pid_and_program() {
+        use crate::schemas::{Connection, FilterOptions, AddressType};
+
+        let conn = Connection {
+            proto: "tcp".to_string(),
+            local_port: "8080".to_string(),
+            remote_port: "443".to_string(),
+            remote_address: "8.8.8.8".to_string(),
+            program: "nginx".to_string(),
+            pid: "123".to_string(),
+            state: "close".to_string(),
+            address_type: AddressType::Extern,
+        };
+
+        let filter_by_open_state = FilterOptions { by_pid: Some("123".to_string()), ..Default::default() };
+        assert_eq!(filter_out_connection(&conn, &filter_by_open_state), false);
+
+        let no_active_open_filter = FilterOptions { by_program: Some("postgres".to_string()), ..Default::default() };
+        assert_eq!(filter_out_connection(&conn, &no_active_open_filter), true);
+    }
+
+    #[test]
+    fn test_filter_out_connection_by_multiple_conditions() {
+        use crate::schemas::{Connection, FilterOptions, AddressType};
+
+        let mut conn = Connection {
+            proto: "tcp".to_string(),
+            local_port: "8080".to_string(),
+            remote_port: "443".to_string(),
+            remote_address: "8.8.8.8".to_string(),
+            program: "python".to_string(),
+            pid: "123".to_string(),
+            state: "listen".to_string(),
+            address_type: AddressType::Extern,
+        };
+
+        let filter_by_multiple_conditions = FilterOptions {
+            by_local_port: Some("8080".to_string()),
+            by_pid: Some("123".to_string()),
+            by_program: Some("python".to_string()),
+            by_listen: true,
+            ..Default::default() 
+        };
+        assert_eq!(filter_out_connection(&conn, &filter_by_multiple_conditions), false);
+
+        conn.state = "close".to_string();
+        assert_eq!(filter_out_connection(&conn, &filter_by_multiple_conditions), true);
+    }
 }
 
