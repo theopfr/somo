@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./images/somo-logo.png" />
+  <img src="./images/somo-logo.svg" />
 </p>
 
 
