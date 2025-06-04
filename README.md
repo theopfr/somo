@@ -21,19 +21,24 @@
 If you use a Debian OS go to [releases](https://github.com/theopfr/somo/releases) and download the latest .deb release.
 
 ### Option 2 - From crates.io:
-```
+```sh
 cargo install somo
+```
+Most of the time you will want to run this in ``sudo`` mode to see all processes and ports. By default, this is not possible when install via carg. But you can create a symlink so the binary can be run as root:
+```sh
+sudo ln -s ~/.cargo/bin/somo /usr/local/bin/somo
+sudo somo   # this works now
 ```
 
 ---
 
 ## 🏃‍♀️ Running somo:
 To run somo just type: 
-```
-somo
+```sh
+sudo somo
 ```
 
-Most of the time you will want to run this in ``sudo`` mode, since otherwise much information will be hidden (same game as with ``netstat``).
+
 
 ### Filtering:
 
@@ -56,6 +61,6 @@ With the ``--kill, -k`` flag you can choose to kill a process after inspecting t
 ![kill-example](./images/somo-kill-example.png)
 
 You can of course also apply filters and the kill-flag at the same time:
-```
+```sh
 somo --program postgres -k
 ```
