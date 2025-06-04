@@ -11,7 +11,11 @@
 - interactive killing of processes
 - from ``nestat -tulpn`` to ``somo -l`` (almost half the characters, can you believe it?)
 
-![somo-example](./images/somo-example.png)
+<br />
+
+<p align="center">
+  <img src="./images/somo-example.png" />
+</p>
 
 ---
 

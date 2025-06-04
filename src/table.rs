@@ -126,7 +126,7 @@ pub fn print_connections_table(all_connections: &Vec<Connection>) {
 
     println!("{}", skin.term_text(&markdown));
 
-    utils::pretty_print_info(&format!("Connections: **{}**", all_connections.len()));
+    utils::pretty_print_info(&format!("**{} Connections**", all_connections.len()));
 }
 
 

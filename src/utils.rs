@@ -65,7 +65,7 @@ pub fn get_address_parts(address: &str) -> (String, String) {
 /// # Returns
 /// None
 pub fn pretty_print_info(text: &str) {
-    let mut skin = MadSkin::default();
+    let mut skin: MadSkin = MadSkin::default();
     skin.bold.set_fg(White);
     skin.italic = CompoundStyle::new(Some(gray(11)), None, Encircled.into());
     skin.strikeout = CompoundStyle::new(Some(Cyan), None, Encircled.into());
