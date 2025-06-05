@@ -22,8 +22,38 @@ jobs:
     - name: Run tests
       run: cargo test
 
+  version-check:
+    needs: test
+    runs-on: ubuntu-latest
+
+    outputs:
+      bump_type: ${{ steps.check_version.outputs.bump_type }}
+      new_version: ${{ steps.new_version.outputs.version }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Get new version
+        id: new_version
+        run: echo ::set-output name=version::$(grep -Po '^version = \"\K[^\"]+' Cargo.toml)
+
+      - name: Get previous version
+        id: previous_version
+        run: echo ::set-output name=version::$(git describe --tags --abbrev=0 || echo '0.0.0')
+
+      - name: Check version
+        id: check_version
+        run: |
+          python .github/version_check.py ${{ steps.previous_version.outputs.version }} ${{ steps.new_version.outputs.version }}
+          echo "${{ github.event_name}} ${{ github.ref }}"
+
   build_and_release:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: version-check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && needs.version-check.outputs.bump_type != 'patch' 
+
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
