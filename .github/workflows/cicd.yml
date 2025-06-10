@@ -42,7 +42,10 @@ jobs:
 
       - name: Get previous version
         id: previous_version
-        run: echo ::set-output name=version::$(git describe --tags --abbrev=0 || echo '0.0.0')
+        run: |
+          git fetch origin master
+          git show origin/master:Cargo.toml > Cargo.master.toml
+          echo ::set-output name=version::$(grep -Po '^version = "\K[^"]+' Cargo.master.toml)
 
       - name: Check version
         id: check_version
