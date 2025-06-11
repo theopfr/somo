@@ -1,34 +1,27 @@
-name: Test, Build and Release
+name: Release
 
 on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
-
-env:
-  CARGO_TERM_COLOR: always
-  RUST_BACKTRACE: 1
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Type of release"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Run tests
-      run: cargo test
+  ci:
+    uses: ./.github/workflows/ci.yml
 
   version-check:
-    needs: test
+    needs: ci
     runs-on: ubuntu-latest
 
     outputs:
       bump_type: ${{ steps.check_version.outputs.bump_type }}
-      new_version: ${{ steps.new_version.outputs.version }}
 
     steps:
       - name: Checkout repository
@@ -42,16 +35,7 @@ jobs:
 
       - name: Get previous version
         id: previous_version
-        run: |
-          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/master" ]]; then
-            git fetch origin ${{ github.event.before }}
-            git show ${{ github.event.before }}:Cargo.toml > Cargo.master.toml
-          else
-            git fetch origin master
-            git show origin/master:Cargo.toml > Cargo.master.toml
-          fi
-
-          echo ::set-output name=version::$(grep -Po '^version = "\K[^"]+' Cargo.master.toml)
+        run: echo ::set-output name=version::$(git describe --tags --abbrev=0 || echo '0.0.0')
 
       - name: Check version
         id: check_version
@@ -59,9 +43,17 @@ jobs:
           python .github/version_check.py ${{ steps.previous_version.outputs.version }} ${{ steps.new_version.outputs.version }}
           echo "${{ github.event_name }} ${{ github.ref }}"
 
+      - name: Validate selected release type against version bump
+        run: |
+          echo "Expected release type: ${{ github.event.inputs.release_type }}"
+          echo "Actual release type: ${{ steps.check_version.outputs.bump_type }}"
+          if [ "${{ github.event.inputs.release_type }}" != "${{ steps.check_version.outputs.bump_type }}" ]; then
+            echo "Mismatch between selected release type and actual version bump. Aborting release."
+            exit 1
+          fi
+
   build_and_release:
     needs: version-check
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && needs.version-check.outputs.bump_type != 'patch' 
 
     runs-on: ubuntu-latest
     steps:
