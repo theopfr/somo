@@ -1,0 +1,23 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches: ["**"]
+  push:
+    branches:
+      - master
+  workflow_call:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run tests
+      run: cargo test
