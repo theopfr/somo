@@ -56,7 +56,7 @@ You can use the following flags to filter based on different attributes:
 | ```--program``` | filter by a client program | program name e.g ``chrome`` |
 | ```--pid, -p``` | filter by a PID | PID number, e.g ``10000`` |
 | ```--open, -o``` | filter by open connections | - |
-| ```--listen, -l``` | filter by open connections | - |
+| ```--listen, -l``` | filter by listening connections | - |
 | ```--exclude-ipv6``` | don't list IPv6 connections | - |
 
 
