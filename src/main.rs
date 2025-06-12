@@ -25,8 +25,14 @@ fn main() {
 
     let all_connections: Vec<Connection> = connections::get_all_connections(&filter_options);
 
-    table::print_connections_table(&all_connections);
-
+    if args.json {
+        table::get_connections_json(&all_connections);
+    } else if args.format.is_some() {
+        table::get_connections_formatted(&all_connections, &args.format.unwrap());
+    } else {
+        table::print_connections_table(&all_connections);
+    }
+    
     if args.kill {
         cli::interactve_process_kill(&all_connections);
     }

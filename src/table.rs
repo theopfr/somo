@@ -1,3 +1,4 @@
+use handlebars::Handlebars;
 use termimad::crossterm::style::{Color::*, Attribute::*};
 use termimad::*;
 
@@ -129,6 +130,41 @@ pub fn print_connections_table(all_connections: &Vec<Connection>) {
     utils::pretty_print_info(&format!("**{} Connections**", all_connections.len()));
 }
 
+/// Prints all current connections in a json format.
+///
+/// # Arguments
+/// * `all_connections`: A list containing all current connections as a `Connection` struct.
+///
+/// # Returns
+/// None
+pub fn get_connections_json(all_connections: &Vec<Connection>) {
+    let result_json = serde_json::to_string_pretty(all_connections);
+
+    println!("{}", result_json.unwrap());
+}
+
+/// Prints all current connections in a custom format.
+///
+/// # Arguments
+/// * `all_connections`: A list containing all current connections as a `Connection` struct.
+/// * `template_string`: A string template format for an output
+///
+/// # Returns
+/// None
+pub fn get_connections_formatted(all_connections: &Vec<Connection>, template_string: &String) {
+    let mut registry = Handlebars::new();
+    let _ = registry.register_template_string("connection_template", &template_string);
+
+    let mut rendered_lines = Vec::new();
+
+    for connection in all_connections {
+        let json_value = serde_json::to_value(connection).unwrap();
+        let rendered_line = registry.render("connection_template", &json_value);
+
+        rendered_lines.push(rendered_line.unwrap());
+    }
+    println!("{}", rendered_lines.join("\n"));
+}
 
 
 #[cfg(test)]
