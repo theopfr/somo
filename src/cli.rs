@@ -1,7 +1,8 @@
 use clap::Parser;
 use inquire::InquireError;
 use inquire::Select;
-use std::process;
+use nix::sys::signal;
+use nix::unistd::Pid;
 use std::string::String;
 
 use crate::schemas::Connection;
@@ -99,17 +100,11 @@ pub fn cli() -> Flags {
 /// # Returns
 /// None
 pub fn kill_process(pid: &String) {
-    let output = process::Command::new("kill")
-        .arg(pid)
-        .output()
-        .unwrap_or_else(|_| panic!("Failed to kill process with PID {}", pid));
+    let pid = Pid::from_raw(pid.parse().unwrap()); // Replace with actual PID
+    let _ = signal::kill(pid, signal::Signal::SIGTERM)
+        .map_err(|_| panic!("Failed to kill process with PID {}", pid));
 
-    if output.status.success() {
-        utils::pretty_print_info(&format!("Killed process with PID {}.", pid));
-    } else {
-        println!("Failed to kill process, try running");
-        utils::pretty_print_error("Couldn't kill process! Try again using sudo.");
-    }
+    utils::pretty_print_info(&format!("Killed process with PID {}.", pid));
 }
 
 /// Starts an interactive selection process in the console for choosing a process to kill using the "inquire" crate.
@@ -192,8 +187,8 @@ mod tests {
 
     #[test]
     fn test_flag_short_and_long_equivalence() {
-        let short = Args::parse_from(["test-bin", "-k", "-p", "80", "-o", "-l"]);
-        let long = Args::parse_from(["test-bin", "--kill", "--port", "80", "--open", "--listen"]);
+        let short = Args::parse_from(&["test-bin", "-k", "-p", "80", "-o", "-l"]);
+        let long = Args::parse_from(&["test-bin", "--kill", "--port", "80", "--open", "--listen"]);
 
         assert_eq!(short.kill, long.kill);
         assert_eq!(short.port, long.port);
