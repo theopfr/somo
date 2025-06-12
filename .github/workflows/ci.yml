@@ -76,3 +76,10 @@ jobs:
 
     - name: Test | Run
       run: cargo test
+
+  nix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3 # v17
+      - run: nix run
