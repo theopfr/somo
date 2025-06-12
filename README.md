@@ -34,6 +34,36 @@ sudo ln -s ~/.cargo/bin/somo /usr/local/bin/somo
 sudo somo   # this works now
 ```
 
+### 🔧 Shell Completions:
+Somo supports shell completions for bash, zsh, fish, and elvish. Choose your shell:
+
+#### Bash
+```bash
+mkdir -p ~/.local/share/bash-completion/completions
+somo generate-completions bash > ~/.local/share/bash-completion/completions/somo
+```
+
+#### Zsh
+```zsh
+mkdir -p ~/.local/share/zsh/site-functions
+somo generate-completions zsh > ~/.local/share/zsh/site-functions/_somo
+echo 'fpath=(~/.local/share/zsh/site-functions $fpath)' >> ~/.zshrc
+echo 'autoload -U compinit && compinit' >> ~/.zshrc
+```
+
+#### Fish
+```fish
+mkdir -p ~/.config/fish/completions
+somo generate-completions fish > ~/.config/fish/completions/somo.fish
+```
+
+#### Elvish
+```bash
+mkdir -p ~/.config/elvish/lib
+somo generate-completions elvish > ~/.config/elvish/lib/somo.elv
+echo 'use somo' >> ~/.config/elvish/rc.elv
+```
+
 ---
 
 ## 🏃‍♀️ Running somo:

@@ -1,15 +1,21 @@
 mod cli;
-mod schemas;
 mod connections;
-mod utils;
+mod schemas;
 mod table;
+mod utils;
 
-use schemas::FilterOptions;
 use schemas::Connection;
-
+use schemas::FilterOptions;
 
 fn main() {
-    let args: cli::Flags = cli::cli();
+    let args: Option<cli::Flags> = cli::cli();
+
+    // If cli() returns None, it means a subcommand was executed (like generate-completions)
+    // and we should exit early
+    let args = match args {
+        Some(flags) => flags,
+        None => return,
+    };
 
     let filter_options: FilterOptions = FilterOptions {
         by_proto: args.proto,
