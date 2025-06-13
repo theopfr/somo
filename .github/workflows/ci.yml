@@ -17,7 +17,7 @@ env:
   rust_toolchain: stable
 
 jobs:
-  compile:
+  build:
     runs-on: ubuntu-latest
     steps:
     - name: Setup | Rust
@@ -33,7 +33,7 @@ jobs:
       run: cargo build
 
   
-  check_format:
+  check-format:
     runs-on: ubuntu-latest
     steps:
     - name: Setup | Rust
@@ -48,7 +48,7 @@ jobs:
       run: cargo fmt -- --check
 
   
-  check_clippy:
+  check-clippy:
     runs-on: ubuntu-latest
     steps:
     - name: Setup | Rust
