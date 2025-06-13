@@ -1,14 +1,19 @@
-name: Rust
+name: Continuous Integration
 
 on:
   push:
     paths-ignore:
       - "**/README.md"
+    branches:
+      - master
   pull_request:
+    branches: ["**"]
   workflow_dispatch:
+  workflow_call:
 
 env:
   CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
   rust_toolchain: stable
 
 jobs:
