@@ -49,5 +49,8 @@ jobs:
       with:
         toolchain: ${{ env.rust_toolchain }}
 
+    - name: Setup | Checkout
+      uses: actions/checkout@v4
+
     - name: Test | Test
       run: cargo test
