@@ -17,6 +17,8 @@ pub struct Flags {
     pub port: Option<String>,
     pub program: Option<String>,
     pub pid: Option<String>,
+    pub format: Option<String>,
+    pub json: bool,
     pub open: bool,
     pub listen: bool,
     pub exclude_ipv6: bool,
@@ -47,6 +49,12 @@ struct Args {
     #[arg(long, default_value = None)]
     pid: Option<String>,
 
+    #[arg(long, default_value = None)]
+    format: Option<String>,
+
+    #[arg(long, default_value_t = false)]
+    json: bool,
+
     #[arg(short = 'o', long, default_value_t = false)]
     open: bool,
 
@@ -75,6 +83,8 @@ pub fn cli() -> Flags {
         remote_port: args.remote_port,
         port: args.port,
         pid: args.pid,
+        format: args.format,
+        json: args.json,
         open: args.open,
         listen: args.listen,
         exclude_ipv6: args.exclude_ipv6,
