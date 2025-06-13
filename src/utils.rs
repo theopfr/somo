@@ -1,21 +1,20 @@
-use termimad::crossterm::style::{Color::*, Attribute::*};
+use termimad::crossterm::style::{Attribute::*, Color::*};
 use termimad::*;
 
-
 /// Splits a string combined of an IP address and port with a ":" delimiter into two parts.
-/// 
+///
 /// # Arguments
 /// * `address`: The combination of address and port joined by a ":", e.g "127.0.0.1:5432"
-/// 
+///
 /// # Example
 /// ```
 /// let address_port_1 = "127.0.0.1:5432".to_string();
 /// assert_eq!(split_address(address_port_1), Some(("5432", "127.0.0.1")));
-/// 
+///
 /// let address_port_2 = "fails.com".to_string();
 /// assert_eq!(split_address(address_port_2), None);
 /// ```
-/// 
+///
 /// # Retunrs
 /// If the string can be successfully split it will return a tuple containing the address and the port, if not `None`.
 pub fn split_address(address: &str) -> Option<(&str, &str)> {
@@ -28,22 +27,21 @@ pub fn split_address(address: &str) -> Option<(&str, &str)> {
     }
 }
 
-
 /// Handles the output of the `split_address` function by replacing the port with a "-" if the string couldn't be split.
 /// ###### TODO: maybe combine it with the `split_address` function.
-/// 
+///
 /// # Arguments
 /// * `address`: The address-port combination which should be split.
-/// 
+///
 /// # Example
 /// ```
 /// let address_port_1 = "127.0.0.1:5432".to_string();
 /// assert_eq!(get_address_parts(address_port_1), ("5432", "127.0.0.1"));
-/// 
+///
 /// let address_port_2 = "fails.com".to_string();
 /// assert_eq!(get_address_parts(address_port_1), ("-", "127.0.0.1"));
 /// ```
-/// 
+///
 /// # Returns
 /// A tuple containing the address and port or just the address and a "-" if there wasn't a port.
 pub fn get_address_parts(address: &str) -> (String, String) {
@@ -53,15 +51,15 @@ pub fn get_address_parts(address: &str) -> (String, String) {
 }
 
 /// Prints out Markdown formatted text using a custom appearence / termimad "skin".
-/// 
+///
 /// # Appearence
 /// * **bold** text -> bold and white
 /// * *italic* text -> not italic and gray
 /// * ~~strikeout~~ text -> not striked out and green
-/// 
+///
 /// # Arguments
 /// * `text`: The text to print to the console.
-/// 
+///
 /// # Returns
 /// None
 pub fn pretty_print_info(text: &str) {
@@ -75,15 +73,15 @@ pub fn pretty_print_info(text: &str) {
 }
 
 /// Prints out Markdown formatted text using a custom appearence / termimad "skin".
-/// 
+///
 /// # Appearence
 /// * **bold** text -> bold and white
 /// * *italic* text -> not italic and gray
 /// * ~~strikeout~~ text -> not striked out and red
-/// 
+///
 /// # Arguments
 /// * `text`: The text to print to the console.
-/// 
+///
 /// # Returns
 /// None
 pub fn pretty_print_error(text: &str) {
@@ -95,7 +93,6 @@ pub fn pretty_print_error(text: &str) {
     let markdown: String = format!("~~Error~~: *{}*", text);
     print!("{}", skin.term_text(&markdown));
 }
-
 
 #[cfg(test)]
 mod tests {

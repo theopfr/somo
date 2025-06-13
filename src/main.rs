@@ -1,12 +1,11 @@
 mod cli;
-mod schemas;
 mod connections;
-mod utils;
+mod schemas;
 mod table;
+mod utils;
 
-use schemas::FilterOptions;
 use schemas::Connection;
-
+use schemas::FilterOptions;
 
 fn main() {
     let args: cli::Flags = cli::cli();
@@ -34,7 +33,7 @@ fn main() {
     } else {
         table::print_connections_table(&all_connections);
     }
-    
+
     if args.kill {
         cli::interactve_process_kill(&all_connections);
     }
