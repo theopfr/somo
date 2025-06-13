@@ -20,7 +20,6 @@ jobs:
   compile:
     runs-on: ubuntu-latest
     steps:
-    
     - name: Setup | Rust
       uses: dtolnay/rust-toolchain@v1
       with:
@@ -30,19 +29,12 @@ jobs:
     - name: Setup | Checkout
       uses: actions/checkout@v4
 
-    - name: Build | Fmt Check
-      run: cargo fmt -- --check
-
-    - name: Build | Clippy
-      run: cargo clippy --no-deps -- -Dwarnings
-
     - name: Build | Compile
       run: cargo build
 
-
-  test:
+  
+  check_format:
     runs-on: ubuntu-latest
-    needs: compile
     steps:
     - name: Setup | Rust
       uses: dtolnay/rust-toolchain@v1
@@ -52,5 +44,35 @@ jobs:
     - name: Setup | Checkout
       uses: actions/checkout@v4
 
-    - name: Test | Test
+    - name: Check | Fmt Check
+      run: cargo fmt -- --check
+
+  
+  check_clippy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup | Rust
+      uses: dtolnay/rust-toolchain@v1
+      with:
+        toolchain: ${{ env.rust_toolchain }}
+
+    - name: Setup | Checkout
+      uses: actions/checkout@v4
+
+    - name: Check | Clippy
+      run: cargo clippy --no-deps -- -Dwarnings
+
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup | Rust
+      uses: dtolnay/rust-toolchain@v1
+      with:
+        toolchain: ${{ env.rust_toolchain }}
+
+    - name: Setup | Checkout
+      uses: actions/checkout@v4
+
+    - name: Test | Run
       run: cargo test
