@@ -266,17 +266,13 @@ mod tests {
             by_local_port: Some("8080".to_string()),
             ..Default::default()
         };
-        assert!(
-            !filter_out_connection(&conn, &filter_by_matching_port)
-        );
+        assert!(!filter_out_connection(&conn, &filter_by_matching_port));
 
         let filter_by_non_matching_port = FilterOptions {
             by_local_port: Some("8181".to_string()),
             ..Default::default()
         };
-        assert!(
-            filter_out_connection(&conn, &filter_by_non_matching_port)
-        );
+        assert!(filter_out_connection(&conn, &filter_by_non_matching_port));
     }
 
     #[test]
@@ -318,9 +314,7 @@ mod tests {
             by_listen: false,
             ..Default::default()
         };
-        assert!(
-            !filter_out_connection(&conn, &no_active_listen_filter)
-        );
+        assert!(!filter_out_connection(&conn, &no_active_listen_filter));
     }
 
     #[test]
@@ -373,13 +367,12 @@ mod tests {
             by_listen: true,
             ..Default::default()
         };
-        assert!(
-            !filter_out_connection(&conn, &filter_by_multiple_conditions)
-        );
+        assert!(!filter_out_connection(
+            &conn,
+            &filter_by_multiple_conditions
+        ));
 
         conn.state = "close".to_string();
-        assert!(
-            filter_out_connection(&conn, &filter_by_multiple_conditions)
-        );
+        assert!(filter_out_connection(&conn, &filter_by_multiple_conditions));
     }
 }

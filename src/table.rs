@@ -31,7 +31,7 @@ fn create_table_style() -> MadSkin {
 }
 
 /// Marks localhost and unspecified IP addresses (ie. 0.0.0.0) using Markdown formatting.
-/// 
+///
 /// * `address_type` == Localhost -> *italic* + "localhost"
 /// * `address_type` == Unspecified -> *italic*
 /// * `address_type` == Extern -> not formatted
