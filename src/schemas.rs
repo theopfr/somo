@@ -1,6 +1,5 @@
 use std::net::SocketAddr;
 
-
 /// Represents the type of an IP address.
 ///
 /// # Variants
@@ -27,7 +26,6 @@ pub struct Connection {
     pub address_type: AddressType,
 }
 
-
 /// General struct type for TCP and UDP entries.
 #[derive(Debug)]
 pub struct NetEntry {
@@ -37,7 +35,6 @@ pub struct NetEntry {
     pub state: String,
     pub inode: u64,
 }
-
 
 /// Contains options for filtering a `Conntection`.
 #[derive(Debug, Default)]
@@ -50,5 +47,5 @@ pub struct FilterOptions {
     pub by_local_port: Option<String>,
     pub by_open: bool,
     pub by_listen: bool,
-    pub exclude_ipv6: bool
+    pub exclude_ipv6: bool,
 }

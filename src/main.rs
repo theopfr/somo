@@ -1,12 +1,11 @@
 mod cli;
-mod schemas;
 mod connections;
-mod utils;
+mod schemas;
 mod table;
+mod utils;
 
-use schemas::FilterOptions;
 use schemas::Connection;
-
+use schemas::FilterOptions;
 
 fn main() {
     let args: cli::Flags = cli::cli();

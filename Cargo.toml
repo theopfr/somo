@@ -16,3 +16,4 @@ inquire = "0.6.2"
 procfs = "0.15.1"
 termimad = "0.20"
 terminal_size = "0.2.6"
+nix = {version = "0.30.1", features = ["process", "signal"]}
