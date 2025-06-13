@@ -27,11 +27,11 @@ fn create_table_style() -> MadSkin {
     skin.table.align = Alignment::Center;
     skin.inline_code = CompoundStyle::new(Some(Yellow), None, Encircled.into());
 
-    return skin;
+    skin
 }
 
 /// Marks localhost and unspecified IP addresses (ie. 0.0.0.0) using Markdown formatting.
-
+/// 
 /// * `address_type` == Localhost -> *italic* + "localhost"
 /// * `address_type` == Unspecified -> *italic*
 /// * `address_type` == Extern -> not formatted
@@ -87,7 +87,7 @@ fn fill_terminal_width(terminal_width: u16, max_column_spaces: [u16; 7]) -> Stri
     }
     row.push_str("|\n");
 
-    return row;
+    row
 }
 
 /// Prints all current connections in a pretty Markdown table.
@@ -97,7 +97,7 @@ fn fill_terminal_width(terminal_width: u16, max_column_spaces: [u16; 7]) -> Stri
 ///
 /// # Returns
 /// None
-pub fn print_connections_table(all_connections: &Vec<Connection>) {
+pub fn print_connections_table(all_connections: &[Connection]) {
     let skin: MadSkin = create_table_style();
     let (terminal_width, _) = terminal_size();
 
@@ -162,7 +162,7 @@ pub fn get_connections_formatted(
     template_string: &String,
 ) -> String {
     let mut registry = Handlebars::new();
-    let _ = registry.register_template_string("connection_template", &template_string);
+    let _ = registry.register_template_string("connection_template", template_string);
 
     let mut rendered_lines = Vec::new();
 
@@ -241,7 +241,7 @@ mod tests {
         ];
 
         for (template, expected_result) in &template_and_expected_result {
-            let result = get_connections_formatted(&connections, &template);
+            let result = get_connections_formatted(&connections, template);
 
             assert_eq!(result.as_str(), expected_result.as_str());
         }

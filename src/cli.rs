@@ -75,7 +75,7 @@ struct Args {
 pub fn cli() -> Flags {
     let args = Args::parse();
 
-    return Flags {
+    Flags {
         kill: args.kill,
         proto: args.proto,
         ip: args.ip,
@@ -88,7 +88,7 @@ pub fn cli() -> Flags {
         open: args.open,
         listen: args.listen,
         exclude_ipv6: args.exclude_ipv6,
-    };
+    }
 }
 
 /// Kills a process by its PID.
@@ -119,7 +119,7 @@ pub fn kill_process(pid: &String) {
 ///
 /// # Returns
 /// None
-pub fn interactve_process_kill(connections: &Vec<Connection>) {
+pub fn interactve_process_kill(connections: &[Connection]) {
     let selection: Result<u32, InquireError> = Select::new(
         "Which process to kill (search or type index)?",
         (1..=connections.len() as u32).collect(),
@@ -142,7 +142,7 @@ mod tests {
 
     #[test]
     fn test_all_flags_parsing() {
-        let args = Args::parse_from(&[
+        let args = Args::parse_from([
             "test-bin",
             "-k",
             "--proto",
@@ -176,7 +176,7 @@ mod tests {
 
     #[test]
     fn test_default_values() {
-        let args = Args::parse_from(&["test-bin"]);
+        let args = Args::parse_from(["test-bin"]);
 
         assert!(!args.kill);
         assert!(args.proto.is_none());
@@ -192,8 +192,8 @@ mod tests {
 
     #[test]
     fn test_flag_short_and_long_equivalence() {
-        let short = Args::parse_from(&["test-bin", "-k", "-p", "80", "-o", "-l"]);
-        let long = Args::parse_from(&["test-bin", "--kill", "--port", "80", "--open", "--listen"]);
+        let short = Args::parse_from(["test-bin", "-k", "-p", "80", "-o", "-l"]);
+        let long = Args::parse_from(["test-bin", "--kill", "--port", "80", "--open", "--listen"]);
 
         assert_eq!(short.kill, long.kill);
         assert_eq!(short.port, long.port);

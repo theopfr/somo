@@ -45,9 +45,9 @@ pub fn split_address(address: &str) -> Option<(&str, &str)> {
 /// # Returns
 /// A tuple containing the address and port or just the address and a "-" if there wasn't a port.
 pub fn get_address_parts(address: &str) -> (String, String) {
-    return split_address(address)
+    split_address(address)
         .map(|(a, p)| (a.to_string(), p.to_string()))
-        .unwrap_or((address.to_string(), "-".to_string()));
+        .unwrap_or((address.to_string(), "-".to_string()))
 }
 
 /// Prints out Markdown formatted text using a custom appearence / termimad "skin".
