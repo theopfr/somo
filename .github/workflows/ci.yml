@@ -1,23 +1,38 @@
-name: Continuous Integration
+name: Rust
 
 on:
-  pull_request:
-    branches: ["**"]
   push:
-    branches:
-      - master
-  workflow_call:
+    paths-ignore:
+      - "**/README.md"
+  pull_request:
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
-  RUST_BACKTRACE: 1
+  rust_toolchain: stable
 
 jobs:
-  test:
+  compile:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
+    
+    - name: Setup | Rust
+      uses: dtolnay/rust-toolchain@v1
+      with:
+        toolchain: ${{ env.rust_toolchain }}
+        components: rustfmt, clippy, rust-src
+        
+    - name: Setup | Checkout
       uses: actions/checkout@v4
 
-    - name: Run tests
-      run: cargo test
+    - name: Build | Fmt Check
+      run: cargo fmt -- --check
+
+    - name: Build | Clippy
+      run: cargo clippy --no-deps -- -Dwarnings
+
+    - name: Build | Compile
+      run: cargo build --verbose
+      
+    - name: Test | Test
+      run: cargo test --verbose
