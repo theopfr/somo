@@ -37,7 +37,7 @@ jobs:
       run: cargo clippy --no-deps -- -Dwarnings
 
     - name: Build | Compile
-      run: cargo build --verbose
+      run: cargo build
       
     - name: Test | Test
-      run: cargo test --verbose
+      run: cargo test
