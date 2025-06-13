@@ -176,7 +176,7 @@ mod tests {
 
     #[test]
     fn test_default_values() {
-        let args = Args::parse_from(["test-bin"]);
+        let args = Args::parse_from(&["test-bin"]);
 
         assert!(!args.kill);
         assert!(args.proto.is_none());
