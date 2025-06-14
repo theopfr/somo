@@ -39,7 +39,7 @@ sudo somo   # this works now
 If you use Nix with Flakes, you can build and use the development version.
 
 ```sh
-nix build github:theopfr/somo
+nix build 'github:theopfr/somo?dir=nix'
 sudo ./result/bin/somo
 ```
 

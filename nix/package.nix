@@ -9,18 +9,18 @@ let
 in
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "somo";
-  version = with builtins; (fromTOML (readFile ./Cargo.toml)).package.version;
+  version = with builtins; (fromTOML (readFile ../Cargo.toml)).package.version;
 
   src = lib.fileset.toSource {
-    root = ./.;
+    root = ./..;
     fileset = lib.fileset.unions [
-      ./src
-      ./Cargo.toml
-      ./Cargo.lock
+      ../src
+      ../Cargo.toml
+      ../Cargo.lock
     ];
   };
 
-  cargoLock.lockFile = ./Cargo.lock;
+  cargoLock.lockFile = ../Cargo.lock;
 
   nativeInstallCheckInputs = [
     versionCheckHook
