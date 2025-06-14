@@ -34,6 +34,15 @@ sudo ln -s ~/.cargo/bin/somo /usr/local/bin/somo
 sudo somo   # this works now
 ```
 
+### Option 3 - Nix:
+
+If you use Nix with Flakes, you can build and use the development version.
+
+```sh
+nix build 'github:theopfr/somo?dir=nix'
+sudo ./result/bin/somo
+```
+
 ---
 
 ## 🏃‍♀️ Running somo:
