@@ -219,6 +219,15 @@ mod tests {
     }
 
     #[test]
+    fn test_table_style_alignment() {
+        let compact_skin = create_table_style(true);
+        assert_eq!(compact_skin.table.align, Alignment::Left);
+
+        let non_compact_skin = create_table_style(false);
+        assert_eq!(non_compact_skin.table.align, Alignment::Center);
+    }
+
+    #[test]
     fn test_get_connections_formatted() {
         let connections = vec![
             Connection {
