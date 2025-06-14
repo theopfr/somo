@@ -59,6 +59,12 @@ struct Args {
     #[arg(long, default_value = None)]
     pid: Option<String>,
 
+    #[arg(long, default_value = None)]
+    format: Option<String>,
+
+    #[arg(long, default_value_t = false)]
+    json: bool,
+
     /// Filter by open connections
     #[arg(short = 'o', long, default_value_t = false)]
     open: bool,
@@ -173,6 +179,8 @@ pub fn interactve_process_kill(connections: &Vec<Connection>) {
     }
 }
 
+
+
 #[cfg(test)]
 mod tests {
     use super::{Args, Commands};
@@ -183,18 +191,12 @@ mod tests {
         let args = Args::parse_from(&[
             "test-bin",
             "-k",
-            "--proto",
-            "udp",
-            "--ip",
-            "192.168.0.1",
-            "--remote-port",
-            "53",
-            "-p",
-            "8080",
-            "--program",
-            "nginx",
-            "--pid",
-            "1234",
+            "--proto", "udp",
+            "--ip", "192.168.0.1",
+            "--remote-port", "53",
+            "-p", "8080",
+            "--program", "nginx",
+            "--pid", "1234",
             "-o",
             "-l",
             "--exclude-ipv6",
@@ -231,7 +233,13 @@ mod tests {
     #[test]
     fn test_flag_short_and_long_equivalence() {
         let short = Args::parse_from(&["test-bin", "-k", "-p", "80", "-o", "-l"]);
-        let long = Args::parse_from(&["test-bin", "--kill", "--port", "80", "--open", "--listen"]);
+        let long = Args::parse_from(&[
+            "test-bin",
+            "--kill",
+            "--port", "80",
+            "--open",
+            "--listen",
+        ]);
 
         assert_eq!(short.kill, long.kill);
         assert_eq!(short.port, long.port);

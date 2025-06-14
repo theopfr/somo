@@ -7,7 +7,7 @@ use std::net::SocketAddr;
 /// * `Localhost`: Represents the localhost/127.0.0.1 address.
 /// * `Unspecified`: Represents an unspecified or wildcard address.
 /// * `Extern`: Represents an external address.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, serde::Serialize)]
 pub enum AddressType {
     Localhost,
     Unspecified,
@@ -15,7 +15,7 @@ pub enum AddressType {
 }
 
 /// Represents a processed socket connection with all its attributes.
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize)]
 pub struct Connection {
     pub proto: String,
     pub local_port: String,
