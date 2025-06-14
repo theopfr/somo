@@ -42,6 +42,6 @@ fn main() {
     }
     
     if args.kill {
-        cli::interactve_process_kill(&all_connections);
+        cli::interactive_process_kill(&all_connections);
     }
 }

@@ -5,19 +5,19 @@ use termimad::*;
 use crate::schemas::{AddressType, Connection};
 use crate::utils;
 
-/// Uses the termimad crate to create a custom appearence for Mardown text in the console.
+/// Uses the termimad crate to create a custom appearance for Markdown text in the console.
 ///
-/// # Appearence
+/// # Appearance
 /// * **bold** text -> bold and cyan
-/// * *italic* text -> italiv and light gray
-/// * ~~strikeout~~ text -> not striked out, red and blinking
+/// * *italic* text -> italic and light gray
+/// * ~~strikeout~~ text -> not struck out, red and blinking
 /// * `inline code` text -> not code formatted, yellow
 ///
 /// # Arguments
 /// None
 ///
 /// # Returns
-/// A custom markdow "skin".
+/// A custom markdown "skin".
 fn create_table_style() -> MadSkin {
     let mut skin = MadSkin::default();
     skin.bold.set_fg(Cyan);
@@ -27,11 +27,10 @@ fn create_table_style() -> MadSkin {
     skin.table.align = Alignment::Center;
     skin.inline_code = CompoundStyle::new(Some(Yellow), None, Encircled.into());
 
-    return skin;
+    skin
 }
 
-/// Marks localhost and unspecified IP addresses (ie. 0.0.0.0) using Markdown formatting.
-
+/// Marks localhost and unspecified IP addresses (i.e., 0.0.0.0) using Markdown formatting
 /// * `address_type` == Localhost -> *italic* + "localhost"
 /// * `address_type` == Unspecified -> *italic*
 /// * `address_type` == Extern -> not formatted
@@ -69,7 +68,7 @@ fn format_known_address(remote_address: &String, address_type: &AddressType) -> 
 /// * `max_column_spaces`: An array in which the values represent the max-width of each of the 7 Markdown table rows.
 ///
 /// # Returns
-/// A Markdown table row string in which each column is filled with as much empty characters needed to fit in content and as well fill out the terminal width.
+/// A Markdown table row string in which each column is filled with as many empty characters needed to fit in content and as well fill out the terminal width.
 fn fill_terminal_width(terminal_width: u16, max_column_spaces: [u16; 7]) -> String {
     let total_column_spaces: u16 = max_column_spaces.iter().sum();
 
@@ -87,7 +86,7 @@ fn fill_terminal_width(terminal_width: u16, max_column_spaces: [u16; 7]) -> Stri
     }
     row.push_str("|\n");
 
-    return row;
+    row
 }
 
 /// Prints all current connections in a pretty Markdown table.
@@ -97,7 +96,7 @@ fn fill_terminal_width(terminal_width: u16, max_column_spaces: [u16; 7]) -> Stri
 ///
 /// # Returns
 /// None
-pub fn print_connections_table(all_connections: &Vec<Connection>) {
+pub fn print_connections_table(all_connections: &[Connection]) {
     let skin: MadSkin = create_table_style();
     let (terminal_width, _) = terminal_size();
 
@@ -162,7 +161,7 @@ pub fn get_connections_formatted(
     template_string: &String,
 ) -> String {
     let mut registry = Handlebars::new();
-    let _ = registry.register_template_string("connection_template", &template_string);
+    let _ = registry.register_template_string("connection_template", template_string);
 
     let mut rendered_lines = Vec::new();
 

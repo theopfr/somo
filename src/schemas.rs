@@ -39,7 +39,7 @@ pub struct NetEntry {
 }
 
 
-/// Contains options for filtering a `Conntection`.
+/// Contains options for filtering a `Connection`.
 #[derive(Debug, Default)]
 pub struct FilterOptions {
     pub by_proto: Option<String>,

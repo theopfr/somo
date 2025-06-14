@@ -9,7 +9,7 @@ use std::string::String;
 use crate::schemas::Connection;
 use crate::utils;
 
-/// Used for parsing all the flags values provided by the user in the CLI.
+/// Used for parsing all the flag values provided by the user in the CLI.
 #[derive(Debug)]
 pub struct Flags {
     pub kill: bool,
@@ -65,7 +65,7 @@ struct Args {
     #[arg(long, default_value = None)]
     format: Option<String>,
 
-    /// Output in json
+    /// Output in JSON
     #[arg(long, default_value_t = false)]
     json: bool,
 
@@ -169,7 +169,7 @@ pub fn kill_process(pid: &String) {
 ///
 /// # Returns
 /// None
-pub fn interactve_process_kill(connections: &Vec<Connection>) {
+pub fn interactive_process_kill(connections: &[Connection]) {
     let selection: Result<u32, InquireError> = Select::new(
         "Which process to kill (search or type index)?",
         (1..=connections.len() as u32).collect(),
@@ -194,7 +194,7 @@ mod tests {
 
     #[test]
     fn test_all_flags_parsing() {
-        let args = Args::parse_from(&[
+        let args = Args::parse_from([
             "test-bin",
             "-k",
             "--proto", "udp",
@@ -222,7 +222,7 @@ mod tests {
 
     #[test]
     fn test_default_values() {
-        let args = Args::parse_from(&["test-bin"]);
+        let args = Args::parse_from(["test-bin"]);
 
         assert!(!args.kill);
         assert!(args.proto.is_none());
@@ -238,8 +238,8 @@ mod tests {
 
     #[test]
     fn test_flag_short_and_long_equivalence() {
-        let short = Args::parse_from(&["test-bin", "-k", "-p", "80", "-o", "-l"]);
-        let long = Args::parse_from(&[
+        let short = Args::parse_from(["test-bin", "-k", "-p", "80", "-o", "-l"]);
+        let long = Args::parse_from([
             "test-bin",
             "--kill",
             "--port", "80",
@@ -256,7 +256,7 @@ mod tests {
 
     #[test]
     fn test_generate_completions_subcommand() {
-        let args = Args::parse_from(&["test-bin", "generate-completions", "bash"]);
+        let args = Args::parse_from(["test-bin", "generate-completions", "bash"]);
 
         match args.command {
             Some(Commands::GenerateCompletions { shell }) => {
@@ -271,7 +271,7 @@ mod tests {
         let shells = ["bash", "zsh", "fish", "elvish"];
 
         for shell in &shells {
-            let args = Args::parse_from(&["test-bin", "generate-completions", shell]);
+            let args = Args::parse_from(["test-bin", "generate-completions", shell]);
 
             match args.command {
                 Some(Commands::GenerateCompletions {
@@ -291,7 +291,7 @@ mod tests {
 
         // We can't easily test the full cli() function without actually running the completion
         // generation, so we test the Args parsing logic instead
-        let args = Args::parse_from(&["test-bin", "generate-completions", "bash"]);
+        let args = Args::parse_from(["test-bin", "generate-completions", "bash"]);
 
         // Verify that a subcommand is present
         assert!(args.command.is_some());
