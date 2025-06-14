@@ -72,7 +72,7 @@ fn filter_out_connection(connection_details: &Connection, filter_options: &Filte
         return true;
     }
     
-    return false;
+    false
 }
 
 
@@ -124,7 +124,7 @@ fn get_connection_data(net_entry: NetEntry, all_processes: &HashMap<u64, Stat>) 
         address_type,
     };
 
-    return connection;
+    connection
 }
 
 
@@ -142,7 +142,7 @@ fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
         tcp_entries.extend(procfs::net::tcp6().unwrap());
     }
 
-    return tcp_entries
+    tcp_entries
         .iter()
         .filter_map(|entry| {
             let tcp_entry: NetEntry = NetEntry {
@@ -162,7 +162,7 @@ fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
                 None
             }
         })
-        .collect();
+        .collect()
 }
 
 
@@ -181,7 +181,7 @@ fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
         udp_entries.extend(procfs::net::udp6().unwrap());
     }
 
-    return udp_entries
+    udp_entries
         .iter()
         .filter_map(|entry| {
             let udp_entry: NetEntry = NetEntry {
@@ -201,7 +201,7 @@ fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
                 None
             }
         })
-        .collect();
+        .collect()
 }
 
  
@@ -227,7 +227,7 @@ pub fn get_all_connections(filter_options: &FilterOptions) -> Vec<Connection> {
         }
     }
 
-    return connections;
+    connections
 }
 
 
@@ -263,10 +263,10 @@ mod tests {
         };
 
         let filter_by_matching_port = FilterOptions { by_local_port: Some("8080".to_string()), ..Default::default() };
-        assert_eq!(filter_out_connection(&conn, &filter_by_matching_port), false);
+        assert!(!filter_out_connection(&conn, &filter_by_matching_port));
 
         let filter_by_non_matching_port = FilterOptions { by_local_port: Some("8181".to_string()), ..Default::default() };
-        assert_eq!(filter_out_connection(&conn, &filter_by_non_matching_port), true);
+        assert!(filter_out_connection(&conn, &filter_by_non_matching_port));
     }
 
     #[test]
@@ -285,18 +285,18 @@ mod tests {
         };
 
         let filter_by_open_state = FilterOptions { by_open: true, ..Default::default() };
-        assert_eq!(filter_out_connection(&conn, &filter_by_open_state), true);
+        assert!(filter_out_connection(&conn, &filter_by_open_state));
 
         let no_active_open_filter = FilterOptions { by_open: false, ..Default::default() };
-        assert_eq!(filter_out_connection(&conn, &no_active_open_filter), false);
+        assert!(!filter_out_connection(&conn, &no_active_open_filter));
 
         conn.state = "listen".to_string();
 
         let filter_by_listen_state = FilterOptions { by_listen: true, ..Default::default() };
-        assert_eq!(filter_out_connection(&conn, &filter_by_listen_state), false);
+        assert!(!filter_out_connection(&conn, &filter_by_listen_state));
 
         let no_active_listen_filter = FilterOptions { by_listen: false, ..Default::default() };
-        assert_eq!(filter_out_connection(&conn, &no_active_listen_filter), false);
+        assert!(!filter_out_connection(&conn, &no_active_listen_filter));
     }
 
     #[test]
@@ -315,10 +315,10 @@ mod tests {
         };
 
         let filter_by_open_state = FilterOptions { by_pid: Some("123".to_string()), ..Default::default() };
-        assert_eq!(filter_out_connection(&conn, &filter_by_open_state), false);
+        assert!(!filter_out_connection(&conn, &filter_by_open_state));
 
         let no_active_open_filter = FilterOptions { by_program: Some("postgres".to_string()), ..Default::default() };
-        assert_eq!(filter_out_connection(&conn, &no_active_open_filter), true);
+        assert!(filter_out_connection(&conn, &no_active_open_filter));
     }
 
     #[test]
@@ -343,10 +343,10 @@ mod tests {
             by_listen: true,
             ..Default::default() 
         };
-        assert_eq!(filter_out_connection(&conn, &filter_by_multiple_conditions), false);
+        assert!(!filter_out_connection(&conn, &filter_by_multiple_conditions));
 
         conn.state = "close".to_string();
-        assert_eq!(filter_out_connection(&conn, &filter_by_multiple_conditions), true);
+        assert!(filter_out_connection(&conn, &filter_by_multiple_conditions));
     }
 }
 

@@ -5,7 +5,7 @@ use termimad::*;
 /// Splits a string combined of an IP address and port with a ":" delimiter into two parts.
 /// 
 /// # Arguments
-/// * `address`: The combination of address and port joined by a ":", e.g "127.0.0.1:5432"
+/// * `address`: The combination of address and port joined by a ":", e.g. "127.0.0.1:5432"
 /// 
 /// # Example
 /// ```
@@ -16,8 +16,9 @@ use termimad::*;
 /// assert_eq!(split_address(address_port_2), None);
 /// ```
 /// 
-/// # Retunrs
-/// If the string can be successfully split it will return a tuple containing the address and the port, if not `None`.
+/// # Returns
+/// If the string can be successfully split,
+/// it will return a tuple containing the address and the port, if not `None`.
 pub fn split_address(address: &str) -> Option<(&str, &str)> {
     static DELIMITER: &str = ":";
 
@@ -47,17 +48,17 @@ pub fn split_address(address: &str) -> Option<(&str, &str)> {
 /// # Returns
 /// A tuple containing the address and port or just the address and a "-" if there wasn't a port.
 pub fn get_address_parts(address: &str) -> (String, String) {
-    return split_address(address)
+    split_address(address)
         .map(|(a, p)| (a.to_string(), p.to_string()))
-        .unwrap_or((address.to_string(), "-".to_string()));
+        .unwrap_or((address.to_string(), "-".to_string()))
 }
 
-/// Prints out Markdown formatted text using a custom appearence / termimad "skin".
+/// Prints out Markdown formatted text using a custom appearance / termimad "skin".
 /// 
-/// # Appearence
+/// # Appearance 
 /// * **bold** text -> bold and white
 /// * *italic* text -> not italic and gray
-/// * ~~strikeout~~ text -> not striked out and green
+/// * ~~strikeout~~ text -> not struck out and green
 /// 
 /// # Arguments
 /// * `text`: The text to print to the console.
@@ -74,12 +75,12 @@ pub fn pretty_print_info(text: &str) {
     print!("{}", skin.term_text(&markdown));
 }
 
-/// Prints out Markdown formatted text using a custom appearence / termimad "skin".
+/// Prints out Markdown formatted text using a custom appearance / termimad "skin".
 /// 
-/// # Appearence
+/// # Appearance 
 /// * **bold** text -> bold and white
 /// * *italic* text -> not italic and gray
-/// * ~~strikeout~~ text -> not striked out and red
+/// * ~~strikeout~~ text -> not struck out and red
 /// 
 /// # Arguments
 /// * `text`: The text to print to the console.
