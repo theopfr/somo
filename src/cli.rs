@@ -19,6 +19,8 @@ pub struct Flags {
     pub port: Option<String>,
     pub program: Option<String>,
     pub pid: Option<String>,
+    pub format: Option<String>,
+    pub json: bool,
     pub open: bool,
     pub listen: bool,
     pub exclude_ipv6: bool,
@@ -59,9 +61,11 @@ struct Args {
     #[arg(long, default_value = None)]
     pid: Option<String>,
 
+    /// Format the output in a certain way, e.g., `somo --format "PID: {{pid}}, Protocol: {{proto}}, Remote Address: {{remote_address}}"`
     #[arg(long, default_value = None)]
     format: Option<String>,
 
+    /// Output in json
     #[arg(long, default_value_t = false)]
     json: bool,
 
@@ -100,16 +104,16 @@ pub fn cli() -> Option<Flags> {
 
     // Handle subcommands
     if let Some(command) = args.command {
-        match command {
+        return match command {
             Commands::GenerateCompletions { shell } => {
                 let mut cmd = Args::command();
                 print_completions(shell, &mut cmd);
-                return None;
+                None
             }
         }
     }
 
-    return Some(Flags {
+    Some(Flags {
         kill: args.kill,
         proto: args.proto,
         ip: args.ip,
@@ -117,10 +121,12 @@ pub fn cli() -> Option<Flags> {
         remote_port: args.remote_port,
         port: args.port,
         pid: args.pid,
+        format: args.format,
+        json: args.json,
         open: args.open,
         listen: args.listen,
         exclude_ipv6: args.exclude_ipv6,
-    });
+    })
 }
 
 /// Generates and prints shell completions to stdout.
