@@ -22,6 +22,7 @@ pub struct Flags {
     pub open: bool,
     pub listen: bool,
     pub exclude_ipv6: bool,
+    pub compact: bool,
 }
 
 /// Represents all possible flags which can be provided by the user in the CLI.
@@ -63,6 +64,9 @@ struct Args {
 
     #[arg(long, default_value_t = false)]
     exclude_ipv6: bool,
+
+    #[arg(short = 'c', long, default_value_t = false)]
+    compact: bool,
 }
 
 /// Gets all flag values provided by the user in the CLI using the "clap" crate.
@@ -88,6 +92,7 @@ pub fn cli() -> Flags {
         open: args.open,
         listen: args.listen,
         exclude_ipv6: args.exclude_ipv6,
+        compact: args.compact,
     }
 }
 
