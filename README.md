@@ -51,8 +51,6 @@ To run somo just type:
 sudo somo
 ```
 
-
-
 ### Filtering:
 
 You can use the following flags to filter based on different attributes:
@@ -68,6 +66,8 @@ You can use the following flags to filter based on different attributes:
 | ```--listen, -l``` | filter by listening connections | - |
 | ```--exclude-ipv6``` | don't list IPv6 connections | - |
 
+### Compact table view:
+To get a smaller, more compact table use the ``--compact, -c`` flag.
 
 ### Process killing:
 With the ``--kill, -k`` flag you can choose to kill a process after inspecting the connections using an interactive selection option.
