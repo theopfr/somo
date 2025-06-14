@@ -31,7 +31,7 @@ fn main() {
         let result = table::get_connections_formatted(&all_connections, &args.format.unwrap());
         println!("{}", result);
     } else {
-        table::print_connections_table(&all_connections);
+        table::print_connections_table(&all_connections, args.compact);
     }
 
     if args.kill {

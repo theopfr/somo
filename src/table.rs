@@ -18,13 +18,17 @@ use crate::utils;
 ///
 /// # Returns
 /// A custom markdow "skin".
-fn create_table_style() -> MadSkin {
+fn create_table_style(use_compact_mode: bool) -> MadSkin {
     let mut skin = MadSkin::default();
     skin.bold.set_fg(Cyan);
     skin.italic.set_fg(gray(11));
     skin.strikeout = CompoundStyle::new(Some(Red), None, RapidBlink.into());
     skin.paragraph.align = Alignment::Left;
-    skin.table.align = Alignment::Center;
+    skin.table.align = if use_compact_mode {
+        Alignment::Left
+    } else {
+        Alignment::Center
+    };
     skin.inline_code = CompoundStyle::new(Some(Yellow), None, Encircled.into());
 
     skin
@@ -97,19 +101,18 @@ fn fill_terminal_width(terminal_width: u16, max_column_spaces: [u16; 7]) -> Stri
 ///
 /// # Returns
 /// None
-pub fn print_connections_table(all_connections: &[Connection]) {
-    let skin: MadSkin = create_table_style();
+pub fn print_connections_table(all_connections: &[Connection], use_compact_mode: bool) {
+    let skin: MadSkin = create_table_style(use_compact_mode);
     let (terminal_width, _) = terminal_size();
 
     // Add table headers
     static CENTER_MARKDOWN_ROW: &str = "| :-: | :-: | :-: | :-: | :-: | :-: | :-: |\n";
     let mut markdown = CENTER_MARKDOWN_ROW.to_string();
     markdown.push_str("| **#** | **proto** | **local port** | **remote address** | **remote port** | **pid** *program* | **state** |\n");
+    markdown.push_str(CENTER_MARKDOWN_ROW);
 
     // iterate over all connections to build the table
     for (idx, connection) in all_connections.iter().enumerate() {
-        markdown.push_str(CENTER_MARKDOWN_ROW);
-
         let formatted_remote_address: String =
             format_known_address(&connection.remote_address, &connection.address_type);
 
@@ -124,13 +127,20 @@ pub fn print_connections_table(all_connections: &[Connection]) {
             connection.program,
             connection.state
         ));
+
+        if !use_compact_mode && idx < all_connections.len() - 1 {
+            markdown.push_str(CENTER_MARKDOWN_ROW);
+        }
     }
 
-    // Create an empty row that forces the table to fit the terminal with respect to how much space ...
-    // ... each column should receive based on the max length of each column (in the array below)
-    let max_column_spaces: [u16; 7] = [5, 8, 8, 28, 7, 24, 13];
-    let terminal_filling_row: String = fill_terminal_width(terminal_width, max_column_spaces);
-    markdown.push_str(&terminal_filling_row);
+    if !use_compact_mode {
+        // Create an empty row that forces the table to fit the terminal with respect to how much space ...
+        // ... each column should receive based on the max length of each column (in the array below)
+        let max_column_spaces: [u16; 7] = [5, 8, 8, 28, 7, 24, 13];
+        let terminal_filling_row: String = fill_terminal_width(terminal_width, max_column_spaces);
+        markdown.push_str(&terminal_filling_row);
+    }
+
     markdown.push_str(CENTER_MARKDOWN_ROW);
 
     println!("{}", skin.term_text(&markdown));
