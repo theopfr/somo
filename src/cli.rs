@@ -4,8 +4,8 @@ use inquire::Select;
 use std::process;
 use std::string::String;
 
-use crate::utils;
 use crate::schemas::Connection;
+use crate::utils;
 
 /// Used for parsing all the flags values provided by the user in the CLI.
 #[derive(Debug)]
@@ -75,7 +75,7 @@ struct Args {
 pub fn cli() -> Flags {
     let args = Args::parse();
 
-    return Flags {
+    Flags {
         kill: args.kill,
         proto: args.proto,
         ip: args.ip,
@@ -108,9 +108,7 @@ pub fn kill_process(pid: &String) {
         utils::pretty_print_info(&format!("Killed process with PID {}.", pid));
     } else {
         println!("Failed to kill process, try running");
-        utils::pretty_print_error(
-            "Couldn't kill process! Try again using sudo.",
-        );
+        utils::pretty_print_error("Couldn't kill process! Try again using sudo.");
     }
 }
 
@@ -121,7 +119,7 @@ pub fn kill_process(pid: &String) {
 ///
 /// # Returns
 /// None
-pub fn interactve_process_kill(connections: &Vec<Connection>) {
+pub fn interactve_process_kill(connections: &[Connection]) {
     let selection: Result<u32, InquireError> = Select::new(
         "Which process to kill (search or type index)?",
         (1..=connections.len() as u32).collect(),
@@ -137,8 +135,6 @@ pub fn interactve_process_kill(connections: &Vec<Connection>) {
     }
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use super::Args;
@@ -146,15 +142,21 @@ mod tests {
 
     #[test]
     fn test_all_flags_parsing() {
-        let args = Args::parse_from(&[
+        let args = Args::parse_from([
             "test-bin",
             "-k",
-            "--proto", "udp",
-            "--ip", "192.168.0.1",
-            "--remote-port", "53",
-            "-p", "8080",
-            "--program", "nginx",
-            "--pid", "1234",
+            "--proto",
+            "udp",
+            "--ip",
+            "192.168.0.1",
+            "--remote-port",
+            "53",
+            "-p",
+            "8080",
+            "--program",
+            "nginx",
+            "--pid",
+            "1234",
             "-o",
             "-l",
             "--exclude-ipv6",
@@ -174,7 +176,7 @@ mod tests {
 
     #[test]
     fn test_default_values() {
-        let args = Args::parse_from(&["test-bin"]);
+        let args = Args::parse_from(["test-bin"]);
 
         assert!(!args.kill);
         assert!(args.proto.is_none());
@@ -190,14 +192,8 @@ mod tests {
 
     #[test]
     fn test_flag_short_and_long_equivalence() {
-        let short = Args::parse_from(&["test-bin", "-k", "-p", "80", "-o", "-l"]);
-        let long = Args::parse_from(&[
-            "test-bin",
-            "--kill",
-            "--port", "80",
-            "--open",
-            "--listen",
-        ]);
+        let short = Args::parse_from(["test-bin", "-k", "-p", "80", "-o", "-l"]);
+        let long = Args::parse_from(["test-bin", "--kill", "--port", "80", "--open", "--listen"]);
 
         assert_eq!(short.kill, long.kill);
         assert_eq!(short.port, long.port);
