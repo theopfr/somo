@@ -104,7 +104,7 @@ pub fn kill_process(pid_num: i32) {
 
     match signal::kill(pid, signal::Signal::SIGTERM) {
         Ok(_) => utils::pretty_print_info(&format!("Killed process with PID {}.", pid)),
-        Err(_) => utils::pretty_print_error(&format!("Failed to kill process with PID {}", pid)),
+        Err(_) => utils::pretty_print_error(&format!("Failed to kill process with PID {}.", pid)),
     }
 }
 
@@ -136,9 +136,8 @@ pub fn interactve_process_kill(connections: &[Connection]) {
         }
         Err(_) => {
             utils::pretty_print_error("Process selection cancelled.");
-            return;
         }
-    };
+    }
 }
 
 #[cfg(test)]
@@ -198,8 +197,8 @@ mod tests {
 
     #[test]
     fn test_flag_short_and_long_equivalence() {
-        let short = Args::parse_from(&["test-bin", "-k", "-p", "80", "-o", "-l"]);
-        let long = Args::parse_from(&["test-bin", "--kill", "--port", "80", "--open", "--listen"]);
+        let short = Args::parse_from(["test-bin", "-k", "-p", "80", "-o", "-l"]);
+        let long = Args::parse_from(["test-bin", "--kill", "--port", "80", "--open", "--listen"]);
 
         assert_eq!(short.kill, long.kill);
         assert_eq!(short.port, long.port);
