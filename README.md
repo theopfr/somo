@@ -33,6 +33,14 @@ Most of the time you will want to run this in ``sudo`` mode to see all processes
 sudo ln -s ~/.cargo/bin/somo /usr/local/bin/somo
 sudo somo   # this works now
 ```
+### Option 3 - Nix:
+
+If you use Nix with Flakes, you can build and use the development version.
+
+```sh
+nix build 'github:theopfr/somo?dir=nix'
+sudo ./result/bin/somo
+```
 
 ### 🔧 Shell Completions:
 Somo supports shell completions for bash, zsh, fish, and elvish. Choose your shell:

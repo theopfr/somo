@@ -31,6 +31,7 @@ fn create_table_style() -> MadSkin {
 }
 
 /// Marks localhost and unspecified IP addresses (i.e., 0.0.0.0) using Markdown formatting
+///
 /// * `address_type` == Localhost -> *italic* + "localhost"
 /// * `address_type` == Unspecified -> *italic*
 /// * `address_type` == Extern -> not formatted
@@ -240,7 +241,7 @@ mod tests {
         ];
 
         for (template, expected_result) in &template_and_expected_result {
-            let result = get_connections_formatted(&connections, &template);
+            let result = get_connections_formatted(&connections, template);
 
             assert_eq!(result.as_str(), expected_result.as_str());
         }

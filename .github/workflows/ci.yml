@@ -1,23 +1,85 @@
 name: Continuous Integration
 
 on:
-  pull_request:
-    branches: ["**"]
   push:
+    paths-ignore:
+      - "**/README.md"
     branches:
       - master
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
   workflow_call:
 
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
+  rust_toolchain: stable
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup | Rust
+      uses: dtolnay/rust-toolchain@v1
+      with:
+        toolchain: ${{ env.rust_toolchain }}
+        components: rustfmt, clippy, rust-src
+        
+    - name: Setup | Checkout
+      uses: actions/checkout@v4
+
+    - name: Build | Compile
+      run: cargo build
+
+  
+  check-format:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup | Rust
+      uses: dtolnay/rust-toolchain@v1
+      with:
+        toolchain: ${{ env.rust_toolchain }}
+
+    - name: Setup | Checkout
+      uses: actions/checkout@v4
+
+    - name: Check | Fmt Check
+      run: cargo fmt -- --check
+
+  
+  check-clippy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup | Rust
+      uses: dtolnay/rust-toolchain@v1
+      with:
+        toolchain: ${{ env.rust_toolchain }}
+
+    - name: Setup | Checkout
+      uses: actions/checkout@v4
+
+    - name: Check | Clippy
+      run: cargo clippy --no-deps -- -Dwarnings
+
+
   test:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
+    - name: Setup | Rust
+      uses: dtolnay/rust-toolchain@v1
+      with:
+        toolchain: ${{ env.rust_toolchain }}
+
+    - name: Setup | Checkout
       uses: actions/checkout@v4
 
-    - name: Run tests
+    - name: Test | Run
       run: cargo test
+
+  nix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3 # v17
+      - run: nix run 'path:.?dir=nix'

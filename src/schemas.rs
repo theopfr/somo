@@ -36,7 +36,7 @@ pub struct NetEntry {
     pub inode: u64,
 }
 
-/// Contains options for filtering a `Connection`.
+/// Contains options for filtering a `Conntection`.
 #[derive(Debug, Default)]
 pub struct FilterOptions {
     pub by_proto: Option<String>,
