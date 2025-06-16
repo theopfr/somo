@@ -103,7 +103,7 @@ pub enum CliCommand {
 /// None
 ///
 /// # Returns
-/// A struct containing all the flag values, or None if a subcommand was executed.
+/// A `CliCommand` enum which contains either the `Run` variant with the parsed flags or the `Subcommand` variant with a specific command.
 pub fn cli() -> CliCommand {
     let args = Args::parse();
 
