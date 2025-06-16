@@ -1,7 +1,8 @@
 use clap::Parser;
 use inquire::InquireError;
 use inquire::Select;
-use std::process;
+use nix::sys::signal;
+use nix::unistd::Pid;
 use std::string::String;
 
 use crate::schemas::Connection;
@@ -98,17 +99,12 @@ pub fn cli() -> Flags {
 ///
 /// # Returns
 /// None
-pub fn kill_process(pid: &String) {
-    let output = process::Command::new("kill")
-        .arg(pid)
-        .output()
-        .unwrap_or_else(|_| panic!("Failed to kill process with PID {}", pid));
+pub fn kill_process(pid_num: i32) {
+    let pid = Pid::from_raw(pid_num);
 
-    if output.status.success() {
-        utils::pretty_print_info(&format!("Killed process with PID {}.", pid));
-    } else {
-        println!("Failed to kill process, try running");
-        utils::pretty_print_error("Couldn't kill process! Try again using sudo.");
+    match signal::kill(pid, signal::Signal::SIGTERM) {
+        Ok(_) => utils::pretty_print_info(&format!("Killed process with PID {}.", pid)),
+        Err(_) => utils::pretty_print_error(&format!("Failed to kill process with PID {}.", pid)),
     }
 }
 
@@ -128,10 +124,19 @@ pub fn interactve_process_kill(connections: &[Connection]) {
 
     match selection {
         Ok(choice) => {
-            let pid: &String = &connections[choice as usize - 1].pid;
-            kill_process(pid);
+            let pid_str = &connections[choice as usize - 1].pid;
+            let pid_num = match pid_str.parse::<i32>() {
+                Ok(pid) => pid,
+                Err(_) => {
+                    utils::pretty_print_error("Couldn't find PID.");
+                    return;
+                }
+            };
+            kill_process(pid_num)
         }
-        Err(_) => println!("Couldn't find process."),
+        Err(_) => {
+            utils::pretty_print_error("Process selection cancelled.");
+        }
     }
 }
 
