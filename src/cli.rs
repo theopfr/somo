@@ -1,14 +1,15 @@
-use clap::Parser;
+use clap::{Parser, Subcommand};
+use clap_complete::{generate, Generator, Shell};
 use inquire::InquireError;
 use inquire::Select;
 use nix::sys::signal;
 use nix::unistd::Pid;
-use std::string::String;
+use std::{io, string::String};
 
 use crate::schemas::Connection;
 use crate::utils;
 
-/// Used for parsing all the flags values provided by the user in the CLI.
+/// Used for parsing all the flag values provided by the user in the CLI.
 #[derive(Debug)]
 pub struct Flags {
     pub kill: bool,
@@ -28,42 +29,72 @@ pub struct Flags {
 /// Represents all possible flags which can be provided by the user in the CLI.
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
-struct Args {
+pub struct Args {
+    #[command(subcommand)]
+    command: Option<Commands>,
+
+    /// Display an interactive selection option after inspecting connections
     #[arg(short = 'k', long, default_value = None)]
     kill: bool,
 
+    /// Filter connections by protocol, e.g., "tcp", "udp"
     #[arg(long, default_value = None)]
     proto: Option<String>,
 
+    /// Filter connections by remote IP address
     #[arg(long, default_value = None)]
     ip: Option<String>,
 
+    /// Filter connections by remote port
     #[arg(long, default_value = None)]
     remote_port: Option<String>,
 
+    /// Filter connections by local port
     #[arg(short = 'p', long, default_value = None)]
     port: Option<String>,
 
+    /// Filter connections by program name
     #[arg(long, default_value = None)]
     program: Option<String>,
 
+    /// Filter connections by PID
     #[arg(long, default_value = None)]
     pid: Option<String>,
 
+    /// Format the output in a certain way, e.g., `somo --format "PID: {{pid}}, Protocol: {{proto}}, Remote Address: {{remote_address}}"`
     #[arg(long, default_value = None)]
     format: Option<String>,
 
+    /// Output in JSON
     #[arg(long, default_value_t = false)]
     json: bool,
 
+    /// Filter by open connections
     #[arg(short = 'o', long, default_value_t = false)]
     open: bool,
 
+    /// Filter by listening connections
     #[arg(short = 'l', long, default_value_t = false)]
     listen: bool,
 
+    /// Exclude IPv6 connections
     #[arg(long, default_value_t = false)]
     exclude_ipv6: bool,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum Commands {
+    /// Generate shell completions
+    GenerateCompletions {
+        /// The shell to generate completions for
+        #[arg(value_enum)]
+        shell: Shell,
+    },
+}
+
+pub enum CliCommand {
+    Run(Flags),
+    Subcommand(Commands),
 }
 
 /// Gets all flag values provided by the user in the CLI using the "clap" crate.
@@ -72,24 +103,39 @@ struct Args {
 /// None
 ///
 /// # Returns
-/// A struct containing all the flag values.
-pub fn cli() -> Flags {
+/// A `CliCommand` enum which contains either the `Run` variant with the parsed flags or the `Subcommand` variant with a specific command.
+pub fn cli() -> CliCommand {
     let args = Args::parse();
 
-    Flags {
-        kill: args.kill,
-        proto: args.proto,
-        ip: args.ip,
-        program: args.program,
-        remote_port: args.remote_port,
-        port: args.port,
-        pid: args.pid,
-        format: args.format,
-        json: args.json,
-        open: args.open,
-        listen: args.listen,
-        exclude_ipv6: args.exclude_ipv6,
+    match args.command {
+        Some(cmd) => CliCommand::Subcommand(cmd),
+        None => CliCommand::Run(Flags {
+            kill: args.kill,
+            proto: args.proto,
+            ip: args.ip,
+            remote_port: args.remote_port,
+            port: args.port,
+            program: args.program,
+            pid: args.pid,
+            format: args.format,
+            json: args.json,
+            open: args.open,
+            listen: args.listen,
+            exclude_ipv6: args.exclude_ipv6,
+        }),
     }
+}
+
+/// Generates and prints shell completions to stdout.
+///
+/// # Arguments
+/// * `gen` - The shell to generate completions for
+/// * `cmd` - The clap command to generate completions for
+///
+/// # Returns
+/// None
+pub fn print_completions<G: Generator>(gen: G, cmd: &mut clap::Command) {
+    generate(gen, cmd, cmd.get_name().to_string(), &mut io::stdout());
 }
 
 /// Kills a process by its PID.
@@ -115,7 +161,7 @@ pub fn kill_process(pid_num: i32) {
 ///
 /// # Returns
 /// None
-pub fn interactve_process_kill(connections: &[Connection]) {
+pub fn interactive_process_kill(connections: &[Connection]) {
     let selection: Result<u32, InquireError> = Select::new(
         "Which process to kill (search or type index)?",
         (1..=connections.len() as u32).collect(),
@@ -142,7 +188,7 @@ pub fn interactve_process_kill(connections: &[Connection]) {
 
 #[cfg(test)]
 mod tests {
-    use super::Args;
+    use super::{Args, Commands};
     use clap::Parser;
 
     #[test]
@@ -205,5 +251,52 @@ mod tests {
         assert_eq!(short.open, long.open);
         assert_eq!(short.listen, long.listen);
         assert_eq!(short.exclude_ipv6, long.exclude_ipv6);
+    }
+
+    #[test]
+    fn test_generate_completions_subcommand() {
+        let args = Args::parse_from(["test-bin", "generate-completions", "bash"]);
+
+        match args.command {
+            Some(Commands::GenerateCompletions { shell }) => {
+                assert_eq!(shell.to_string(), "bash");
+            }
+            _ => panic!("Expected GenerateCompletions command"),
+        }
+    }
+
+    #[test]
+    fn test_generate_completions_all_shells() {
+        let shells = ["bash", "zsh", "fish", "elvish"];
+
+        for shell in &shells {
+            let args = Args::parse_from(["test-bin", "generate-completions", shell]);
+
+            match args.command {
+                Some(Commands::GenerateCompletions {
+                    shell: parsed_shell,
+                }) => {
+                    assert_eq!(parsed_shell.to_string(), *shell);
+                }
+                _ => panic!("Expected GenerateCompletions command for {}", shell),
+            }
+        }
+    }
+
+    #[test]
+    fn test_cli_returns_none_for_subcommands() {
+        // Mock the Args parsing by directly testing the logic
+        // This test ensures that when a subcommand is present, cli() returns None
+
+        // We can't easily test the full cli() function without actually running the completion
+        // generation, so we test the Args parsing logic instead
+        let args = Args::parse_from(["test-bin", "generate-completions", "bash"]);
+
+        // Verify that a subcommand is present
+        assert!(args.command.is_some());
+
+        // Verify that flags are still parsed correctly even with subcommands
+        assert!(!args.kill);
+        assert!(args.proto.is_none());
     }
 }
