@@ -1,4 +1,4 @@
-use termimad::crossterm::style::{Color::*, Attribute::*};
+use termimad::crossterm::style::{Attribute::*, Color::*};
 use termimad::*;
 
 /// Splits a string combined of an IP address and port with a ":" delimiter into two parts.

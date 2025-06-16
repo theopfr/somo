@@ -4,17 +4,18 @@ mod schemas;
 mod table;
 mod utils;
 
-use schemas::Connection;
-use schemas::FilterOptions;
+use clap::CommandFactory;
+use cli::{print_completions, Args, CliCommand, Commands};
+use schemas::{Connection, FilterOptions};
 
 fn main() {
-    let args: Option<cli::Flags> = cli::cli();
-
-    // If cli() returns None, it means a subcommand was executed (like generate-completions)
-    // and we should exit early
-    let args = match args {
-        Some(flags) => flags,
-        None => return,
+    let args = match cli::cli() {
+        CliCommand::Subcommand(Commands::GenerateCompletions { shell }) => {
+            let mut cmd = Args::command();
+            print_completions(shell, &mut cmd);
+            return;
+        }
+        CliCommand::Run(flags) => flags,
     };
 
     let filter_options: FilterOptions = FilterOptions {

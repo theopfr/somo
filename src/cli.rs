@@ -1,12 +1,10 @@
-use clap::{CommandFactory, Parser, Subcommand};
+use clap::{Parser, Subcommand};
 use clap_complete::{generate, Generator, Shell};
 use inquire::InquireError;
 use inquire::Select;
 use nix::sys::signal;
 use nix::unistd::Pid;
-use std::io;
-use std::process;
-use std::string::String;
+use std::{io, string::String};
 
 use crate::schemas::Connection;
 use crate::utils;
@@ -31,7 +29,7 @@ pub struct Flags {
 /// Represents all possible flags which can be provided by the user in the CLI.
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
-struct Args {
+pub struct Args {
     #[command(subcommand)]
     command: Option<Commands>,
 
@@ -85,13 +83,18 @@ struct Args {
 }
 
 #[derive(Subcommand, Debug)]
-enum Commands {
+pub enum Commands {
     /// Generate shell completions
     GenerateCompletions {
         /// The shell to generate completions for
         #[arg(value_enum)]
         shell: Shell,
     },
+}
+
+pub enum CliCommand {
+    Run(Flags),
+    Subcommand(Commands),
 }
 
 /// Gets all flag values provided by the user in the CLI using the "clap" crate.
@@ -101,34 +104,26 @@ enum Commands {
 ///
 /// # Returns
 /// A struct containing all the flag values, or None if a subcommand was executed.
-pub fn cli() -> Option<Flags> {
+pub fn cli() -> CliCommand {
     let args = Args::parse();
 
-    // Handle subcommands
-    if let Some(command) = args.command {
-        return match command {
-            Commands::GenerateCompletions { shell } => {
-                let mut cmd = Args::command();
-                print_completions(shell, &mut cmd);
-                None
-            }
-        };
+    match args.command {
+        Some(cmd) => CliCommand::Subcommand(cmd),
+        None => CliCommand::Run(Flags {
+            kill: args.kill,
+            proto: args.proto,
+            ip: args.ip,
+            remote_port: args.remote_port,
+            port: args.port,
+            program: args.program,
+            pid: args.pid,
+            format: args.format,
+            json: args.json,
+            open: args.open,
+            listen: args.listen,
+            exclude_ipv6: args.exclude_ipv6,
+        }),
     }
-
-    Some(Flags {
-        kill: args.kill,
-        proto: args.proto,
-        ip: args.ip,
-        program: args.program,
-        remote_port: args.remote_port,
-        port: args.port,
-        pid: args.pid,
-        format: args.format,
-        json: args.json,
-        open: args.open,
-        listen: args.listen,
-        exclude_ipv6: args.exclude_ipv6,
-    })
 }
 
 /// Generates and prints shell completions to stdout.
@@ -139,7 +134,7 @@ pub fn cli() -> Option<Flags> {
 ///
 /// # Returns
 /// None
-fn print_completions<G: Generator>(gen: G, cmd: &mut clap::Command) {
+pub fn print_completions<G: Generator>(gen: G, cmd: &mut clap::Command) {
     generate(gen, cmd, cmd.get_name().to_string(), &mut io::stdout());
 }
 
