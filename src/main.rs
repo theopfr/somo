@@ -40,7 +40,7 @@ fn main() {
     } else {
         table::print_connections_table(&all_connections);
     }
-    
+
     if args.kill {
         cli::interactive_process_kill(&all_connections);
     }
