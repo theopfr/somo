@@ -1,6 +1,9 @@
 use termimad::crossterm::style::{Attribute::*, Color::*};
 use termimad::*;
 
+pub const UDP: &str = "udp";
+pub const TCP: &str = "tcp";
+
 /// Splits a string combined of an IP address and port with a ":" delimiter into two parts.
 ///
 /// # Arguments

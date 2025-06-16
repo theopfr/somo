@@ -12,6 +12,8 @@ use crate::utils;
 pub struct Flags {
     pub kill: bool,
     pub proto: Option<String>,
+    pub tcp: bool,
+    pub udp: bool,
     pub ip: Option<String>,
     pub remote_port: Option<String>,
     pub port: Option<String>,
@@ -31,8 +33,15 @@ struct Args {
     #[arg(short = 'k', long, default_value = None)]
     kill: bool,
 
+    /// Deprecated. Use '--tcp' and '--udp' instead.
     #[arg(long, default_value = None)]
     proto: Option<String>,
+
+    #[arg(short, long, default_value = None)]
+    tcp: bool,
+
+    #[arg(short, long, default_value = None)]
+    udp: bool,
 
     #[arg(long, default_value = None)]
     ip: Option<String>,
@@ -78,6 +87,8 @@ pub fn cli() -> Flags {
     Flags {
         kill: args.kill,
         proto: args.proto,
+        tcp: args.tcp,
+        udp: args.udp,
         ip: args.ip,
         program: args.program,
         remote_port: args.remote_port,
@@ -147,6 +158,8 @@ mod tests {
             "-k",
             "--proto",
             "udp",
+            "--tcp",
+            "--udp",
             "--ip",
             "192.168.0.1",
             "--remote-port",
@@ -164,6 +177,8 @@ mod tests {
 
         assert!(args.kill);
         assert_eq!(args.proto.as_deref(), Some("udp"));
+        assert!(args.tcp);
+        assert!(args.udp);
         assert_eq!(args.ip.as_deref(), Some("192.168.0.1"));
         assert_eq!(args.remote_port.as_deref(), Some("53"));
         assert_eq!(args.port.as_deref(), Some("8080"));
@@ -180,6 +195,8 @@ mod tests {
 
         assert!(!args.kill);
         assert!(args.proto.is_none());
+        assert!(!args.tcp);
+        assert!(!args.udp);
         assert!(args.ip.is_none());
         assert!(args.remote_port.is_none());
         assert!(args.port.is_none());

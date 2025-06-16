@@ -13,6 +13,13 @@ pub enum AddressType {
     Extern,
 }
 
+/// Contains which type(s) of protocols the user wants to see.
+#[derive(Debug, Default)]
+pub struct Protocols {
+    pub tcp: bool,
+    pub udp: bool,
+}
+
 /// Represents a processed socket connection with all its attributes.
 #[derive(Debug, serde::Serialize)]
 pub struct Connection {
@@ -39,7 +46,7 @@ pub struct NetEntry {
 /// Contains options for filtering a `Conntection`.
 #[derive(Debug, Default)]
 pub struct FilterOptions {
-    pub by_proto: Option<String>,
+    pub by_proto: Protocols,
     pub by_program: Option<String>,
     pub by_pid: Option<String>,
     pub by_remote_address: Option<String>,
