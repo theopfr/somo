@@ -1,9 +1,10 @@
 <p align="center">
-  <img src="./images/somo-logo.png" />
+  <img style="width: 250px" src="./images/somo-logo.png" />
 </p>
 
 
 ### A human-friendly alternative to netstat for socket and port monitoring on Linux.
+
 
 ## ✨ Features:
 - pleasing to the eye thanks to a nice table-view
@@ -68,14 +69,13 @@ You can use the following flags to filter based on different attributes:
 ### Compact table view:
 To get a smaller, more compact table use the ``--compact, -c`` flag.
 
+![compact-example](./images/somo-compact-example.png)
+
+
 ### Process killing:
 With the ``--kill, -k`` flag you can choose to kill a process after inspecting the connections using an interactive selection option.
-![kill-example](./images/somo-kill-example.png)
 
-You can of course also apply filters and the kill-flag at the same time:
-```sh
-somo --program postgres -k
-```
+![kill-example](./images/somo-kill-example.png)
 
 ---
 
