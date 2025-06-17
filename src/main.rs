@@ -4,14 +4,22 @@ mod schemas;
 mod table;
 mod utils;
 
-use schemas::Connection;
-use schemas::FilterOptions;
+use clap::CommandFactory;
+use cli::{print_completions, Args, CliCommand, Commands};
+use schemas::{Connection, FilterOptions};
 
 fn main() {
-    let args: cli::Flags = cli::cli();
+    let args = match cli::cli() {
+        CliCommand::Subcommand(Commands::GenerateCompletions { shell }) => {
+            let mut cmd = Args::command();
+            print_completions(shell, &mut cmd);
+            return;
+        }
+        CliCommand::Run(flags) => flags,
+    };
 
     let filter_options: FilterOptions = FilterOptions {
-        by_proto: args.proto,
+        by_proto: cli::resolve_protocols(&args),
         by_remote_address: args.ip,
         by_remote_port: args.remote_port,
         by_local_port: args.port,
@@ -35,6 +43,6 @@ fn main() {
     }
 
     if args.kill {
-        cli::interactve_process_kill(&all_connections);
+        cli::interactive_process_kill(&all_connections);
     }
 }
