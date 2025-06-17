@@ -4,13 +4,14 @@ use inquire::InquireError;
 use inquire::Select;
 use nix::sys::signal;
 use nix::unistd::Pid;
+use std::str::FromStr;
 use std::{io, string::String};
 
-use crate::schemas::Connection;
+use crate::schemas::{Connection, Protocol, Protocols};
 use crate::utils;
 
 /// Used for parsing all the flag values provided by the user in the CLI.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Flags {
     pub kill: bool,
     pub proto: Option<String>,
@@ -138,6 +139,37 @@ pub fn cli() -> CliCommand {
     }
 }
 
+/// Determines which protocols to include based on CLI flags.
+///
+/// The `--tcp` and `--udp` flags take precedence over the deprecated `--proto` flag.
+/// If either `--tcp` or `--udp` is set, `--proto` is ignored.
+/// If no relevant flags are set, both TCP and UDP are enabled by default.
+///
+/// # Arguments
+/// * `args`: Parsed CLI flags (of interest: `--tcp`, `--udp`, and optionally `--proto`)
+///
+/// # Returns
+/// A `Protocols` struct indicating whether to include TCP, UDP, or both.
+pub fn resolve_protocols(args: &Flags) -> Protocols {
+    let mut protocols = Protocols::default();
+    if args.tcp || args.udp {
+        protocols.tcp = args.tcp;
+        protocols.udp = args.udp;
+    } else if let Some(arg) = &args.proto {
+        // Support the deprecated '--proto' argument
+        if let Ok(matching) = Protocol::from_str(arg) {
+            match matching {
+                Protocol::Tcp => protocols.tcp = true,
+                Protocol::Udp => protocols.udp = true,
+            }
+        }
+    } else {
+        protocols.tcp = true;
+        protocols.udp = true;
+    }
+    protocols
+}
+
 /// Generates and prints shell completions to stdout.
 ///
 /// # Arguments
@@ -200,7 +232,9 @@ pub fn interactive_process_kill(connections: &[Connection]) {
 
 #[cfg(test)]
 mod tests {
-    use super::{Args, Commands};
+    use crate::cli::resolve_protocols;
+
+    use super::{Args, Commands, Flags};
     use clap::Parser;
 
     #[test]
@@ -269,6 +303,53 @@ mod tests {
         assert_eq!(short.open, long.open);
         assert_eq!(short.listen, long.listen);
         assert_eq!(short.exclude_ipv6, long.exclude_ipv6);
+    }
+
+    #[test]
+    fn test_resolve_protocols() {
+        // Test deprecated --proto
+        let flags = Flags {
+            tcp: false,
+            udp: false,
+            proto: Some("tcp".into()),
+            ..Default::default()
+        };
+        let result = resolve_protocols(&flags);
+        assert!(result.tcp);
+        assert!(!result.udp);
+
+        // Test precendence of --tcp/--udp over --proto
+        let flags = Flags {
+            tcp: true,
+            udp: false,
+            proto: Some("udp".into()),
+            ..Default::default()
+        };
+        let result = resolve_protocols(&flags);
+        assert!(result.tcp);
+        assert!(!result.udp);
+
+        // Test default with no protocol flags
+        let flags = Flags {
+            tcp: false,
+            udp: false,
+            proto: None,
+            ..Default::default()
+        };
+        let result = resolve_protocols(&flags);
+        assert!(result.tcp);
+        assert!(result.udp);
+
+        // Test both --tcp and --udp set
+        let flags = Flags {
+            tcp: true,
+            udp: true,
+            proto: Some("tcp".into()),
+            ..Default::default()
+        };
+        let result = resolve_protocols(&flags);
+        assert!(result.tcp);
+        assert!(result.udp);
     }
 
     #[test]

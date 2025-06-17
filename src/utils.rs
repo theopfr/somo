@@ -1,9 +1,3 @@
-use std::str::FromStr;
-
-use crate::{
-    cli::Flags,
-    schemas::{Protocol, Protocols},
-};
 use termimad::crossterm::style::{Attribute::*, Color::*};
 use termimad::*;
 
@@ -99,28 +93,6 @@ pub fn pretty_print_error(text: &str) {
 
     let markdown: String = format!("~~Error~~: *{}*", text);
     print!("{}", skin.term_text(&markdown));
-}
-
-/// Parse the CLI arguments to determine which protocols to filter to.
-pub fn resolve_protocols(args: &Flags) -> Protocols {
-    let mut protocols = Protocols::default();
-    if args.tcp || args.udp {
-        protocols.tcp = args.tcp;
-        protocols.udp = args.udp;
-    } else if let Some(arg) = &args.proto {
-        // support the deprecated "--proto" argument
-        if let Ok(matching) = Protocol::from_str(arg) {
-            match matching {
-                Protocol::Tcp => protocols.tcp = true,
-                Protocol::Udp => protocols.udp = true,
-            }
-        }
-    } else {
-        // if neither is set, use both
-        protocols.tcp = true;
-        protocols.udp = true;
-    }
-    protocols
 }
 
 #[cfg(test)]
