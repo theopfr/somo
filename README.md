@@ -69,13 +69,14 @@ You can use the following flags to filter based on different attributes:
 ### Compact table view:
 To get a smaller, more compact table use the ``--compact, -c`` flag.
 
-![compact-example](./images/somo-compact-example.png)
+<img style="width: 75%" src="./images/somo-compact-example.png" />
+
 
 
 ### Process killing:
 With the ``--kill, -k`` flag you can choose to kill a process after inspecting the connections using an interactive selection option.
 
-![kill-example](./images/somo-kill-example.png)
+<img style="width: 75%" src="./images/somo-kill-example.png" />
 
 ---
 
