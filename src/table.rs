@@ -17,7 +17,7 @@ use crate::utils;
 /// None
 ///
 /// # Returns
-/// A custom markdow "skin".
+/// A custom markdown "skin".
 fn create_table_style(use_compact_mode: bool) -> MadSkin {
     let mut skin = MadSkin::default();
     skin.bold.set_fg(Cyan);
