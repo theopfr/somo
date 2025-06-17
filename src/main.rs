@@ -19,7 +19,7 @@ fn main() {
     };
 
     let filter_options: FilterOptions = FilterOptions {
-        by_proto: args.proto,
+        by_proto: cli::resolve_protocols(&args),
         by_remote_address: args.ip,
         by_remote_port: args.remote_port,
         by_local_port: args.port,

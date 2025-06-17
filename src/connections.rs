@@ -219,14 +219,11 @@ pub fn get_all_connections(filter_options: &FilterOptions) -> Vec<Connection> {
     let all_processes = get_processes();
 
     let mut connections = Vec::new();
-
-    match filter_options.by_proto.as_deref() {
-        Some("tcp") => connections.extend(get_tcp_connections(&all_processes, filter_options)),
-        Some("udp") => connections.extend(get_udp_connections(&all_processes, filter_options)),
-        _ => {
-            connections.extend(get_tcp_connections(&all_processes, filter_options));
-            connections.extend(get_udp_connections(&all_processes, filter_options));
-        }
+    if filter_options.by_proto.tcp {
+        connections.extend(get_tcp_connections(&all_processes, filter_options))
+    }
+    if filter_options.by_proto.udp {
+        connections.extend(get_udp_connections(&all_processes, filter_options))
     }
 
     connections

@@ -4,16 +4,19 @@ use inquire::InquireError;
 use inquire::Select;
 use nix::sys::signal;
 use nix::unistd::Pid;
+use std::str::FromStr;
 use std::{io, string::String};
 
-use crate::schemas::Connection;
+use crate::schemas::{Connection, Protocol, Protocols};
 use crate::utils;
 
 /// Used for parsing all the flag values provided by the user in the CLI.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Flags {
     pub kill: bool,
     pub proto: Option<String>,
+    pub tcp: bool,
+    pub udp: bool,
     pub ip: Option<String>,
     pub remote_port: Option<String>,
     pub port: Option<String>,
@@ -37,9 +40,17 @@ pub struct Args {
     #[arg(short = 'k', long, default_value = None)]
     kill: bool,
 
-    /// Filter connections by protocol, e.g., "tcp", "udp"
+    /// Deprecated. Use '--tcp' and '--udp' instead.
     #[arg(long, default_value = None)]
     proto: Option<String>,
+
+    /// Include TCP connections
+    #[arg(short, long, default_value = None)]
+    tcp: bool,
+
+    /// Include UDP connections
+    #[arg(short, long, default_value = None)]
+    udp: bool,
 
     /// Filter connections by remote IP address
     #[arg(long, default_value = None)]
@@ -112,6 +123,8 @@ pub fn cli() -> CliCommand {
         None => CliCommand::Run(Flags {
             kill: args.kill,
             proto: args.proto,
+            tcp: args.tcp,
+            udp: args.udp,
             ip: args.ip,
             remote_port: args.remote_port,
             port: args.port,
@@ -124,6 +137,37 @@ pub fn cli() -> CliCommand {
             exclude_ipv6: args.exclude_ipv6,
         }),
     }
+}
+
+/// Determines which protocols to include based on CLI flags.
+///
+/// The `--tcp` and `--udp` flags take precedence over the deprecated `--proto` flag.
+/// If either `--tcp` or `--udp` is set, `--proto` is ignored.
+/// If no relevant flags are set, both TCP and UDP are enabled by default.
+///
+/// # Arguments
+/// * `args`: Parsed CLI flags (of interest: `--tcp`, `--udp`, and optionally `--proto`)
+///
+/// # Returns
+/// A `Protocols` struct indicating whether to include TCP, UDP, or both.
+pub fn resolve_protocols(args: &Flags) -> Protocols {
+    let mut protocols = Protocols::default();
+    if args.tcp || args.udp {
+        protocols.tcp = args.tcp;
+        protocols.udp = args.udp;
+    } else if let Some(arg) = &args.proto {
+        // Support the deprecated '--proto' argument
+        if let Ok(matching) = Protocol::from_str(arg) {
+            match matching {
+                Protocol::Tcp => protocols.tcp = true,
+                Protocol::Udp => protocols.udp = true,
+            }
+        }
+    } else {
+        protocols.tcp = true;
+        protocols.udp = true;
+    }
+    protocols
 }
 
 /// Generates and prints shell completions to stdout.
@@ -188,7 +232,9 @@ pub fn interactive_process_kill(connections: &[Connection]) {
 
 #[cfg(test)]
 mod tests {
-    use super::{Args, Commands};
+    use crate::cli::resolve_protocols;
+
+    use super::{Args, Commands, Flags};
     use clap::Parser;
 
     #[test]
@@ -198,6 +244,8 @@ mod tests {
             "-k",
             "--proto",
             "udp",
+            "--tcp",
+            "--udp",
             "--ip",
             "192.168.0.1",
             "--remote-port",
@@ -215,6 +263,8 @@ mod tests {
 
         assert!(args.kill);
         assert_eq!(args.proto.as_deref(), Some("udp"));
+        assert!(args.tcp);
+        assert!(args.udp);
         assert_eq!(args.ip.as_deref(), Some("192.168.0.1"));
         assert_eq!(args.remote_port.as_deref(), Some("53"));
         assert_eq!(args.port.as_deref(), Some("8080"));
@@ -231,6 +281,8 @@ mod tests {
 
         assert!(!args.kill);
         assert!(args.proto.is_none());
+        assert!(!args.tcp);
+        assert!(!args.udp);
         assert!(args.ip.is_none());
         assert!(args.remote_port.is_none());
         assert!(args.port.is_none());
@@ -251,6 +303,53 @@ mod tests {
         assert_eq!(short.open, long.open);
         assert_eq!(short.listen, long.listen);
         assert_eq!(short.exclude_ipv6, long.exclude_ipv6);
+    }
+
+    #[test]
+    fn test_resolve_protocols() {
+        // Test deprecated --proto
+        let flags = Flags {
+            tcp: false,
+            udp: false,
+            proto: Some("tcp".into()),
+            ..Default::default()
+        };
+        let result = resolve_protocols(&flags);
+        assert!(result.tcp);
+        assert!(!result.udp);
+
+        // Test precendence of --tcp/--udp over --proto
+        let flags = Flags {
+            tcp: true,
+            udp: false,
+            proto: Some("udp".into()),
+            ..Default::default()
+        };
+        let result = resolve_protocols(&flags);
+        assert!(result.tcp);
+        assert!(!result.udp);
+
+        // Test default with no protocol flags
+        let flags = Flags {
+            tcp: false,
+            udp: false,
+            proto: None,
+            ..Default::default()
+        };
+        let result = resolve_protocols(&flags);
+        assert!(result.tcp);
+        assert!(result.udp);
+
+        // Test both --tcp and --udp set
+        let flags = Flags {
+            tcp: true,
+            udp: true,
+            proto: Some("tcp".into()),
+            ..Default::default()
+        };
+        let result = resolve_protocols(&flags);
+        assert!(result.tcp);
+        assert!(result.udp);
     }
 
     #[test]
