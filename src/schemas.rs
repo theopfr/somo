@@ -56,3 +56,21 @@ pub struct FilterOptions {
     pub by_listen: bool,
     pub exclude_ipv6: bool,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Protocol {
+    Tcp,
+    Udp,
+}
+
+impl std::str::FromStr for Protocol {
+    type Err = ();
+
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        match input.to_lowercase().as_str() {
+            "tcp" => Ok(Protocol::Tcp),
+            "udp" => Ok(Protocol::Udp),
+            _ => Err(()),
+        }
+    }
+}

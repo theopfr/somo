@@ -4,37 +4,13 @@ mod schemas;
 mod table;
 mod utils;
 
-use schemas::{Connection, FilterOptions, Protocols};
-use utils::{TCP, UDP};
+use schemas::{Connection, FilterOptions};
 
 fn main() {
     let args: cli::Flags = cli::cli();
 
-    let proto = {
-        let mut proto = Protocols::default();
-        if args.tcp || args.udp {
-            proto.tcp = args.tcp;
-            proto.udp = args.udp;
-        } else if let Some(p) = args.proto {
-            // support the deprecated "--proto" argument
-            match p.to_lowercase().as_str() {
-                TCP => {
-                    proto.tcp = true;
-                }
-                UDP => {
-                    proto.udp = true;
-                }
-                _ => {}
-            }
-        } else {
-            // if neither is set, use both
-            proto.tcp = true;
-            proto.udp = true;
-        }
-        proto
-    };
     let filter_options: FilterOptions = FilterOptions {
-        by_proto: proto,
+        by_proto: utils::resolve_protocols(&args),
         by_remote_address: args.ip,
         by_remote_port: args.remote_port,
         by_local_port: args.port,
