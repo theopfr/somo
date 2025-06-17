@@ -12,14 +12,11 @@ fn main() {
 
     let proto = {
         let mut proto = Protocols::default();
-        if args.tcp {
-            proto.tcp = true;
-        }
-        if args.udp {
-            proto.udp = true;
-        }
-        // support the deprecated "--proto" argument
-        if let Some(p) = args.proto {
+        if args.tcp || args.udp {
+            proto.tcp = args.tcp;
+            proto.udp = args.udp;
+        } else if let Some(p) = args.proto {
+            // support the deprecated "--proto" argument
             match p.to_lowercase().as_str() {
                 TCP => {
                     proto.tcp = true;
@@ -29,9 +26,8 @@ fn main() {
                 }
                 _ => {}
             }
-        }
-        // if neither is set, use both
-        if !proto.tcp && !proto.udp {
+        } else {
+            // if neither is set, use both
             proto.tcp = true;
             proto.udp = true;
         }
