@@ -1,6 +1,6 @@
 use termimad::crossterm::style::{Attribute::*, Color::*};
 use termimad::*;
-use std::io::{self, Write};
+use std::io::{Write};
 
 /// Splits a string combined of an IP address and port with a ":" delimiter into two parts.
 ///
@@ -71,9 +71,9 @@ pub fn pretty_print_info(text: &str) {
     skin.strikeout = CompoundStyle::new(Some(Cyan), None, Encircled.into());
 
     let markdown: String = format!("~~Info~~: *{}*", text);
-    match writeln!(io::stdout(), "{}", skin.term_text(&markdown)) {
+    match writeln!(std::io::stdout(), "{}", skin.term_text(&markdown)) {
         Ok(_) => (),
-        Err(broken_pipe) if broken_pipe.kind() == io::ErrorKind::BrokenPipe => (),
+        Err(broken_pipe) if broken_pipe.kind() == std::io::ErrorKind::BrokenPipe => (),
         Err(err) => panic!("Unknown error occured while writing to stdout {:?}", err.kind()),
     }
 }
@@ -97,9 +97,9 @@ pub fn pretty_print_error(text: &str) {
     skin.strikeout = CompoundStyle::new(Some(Red), None, Encircled.into());
 
     let markdown: String = format!("~~Error~~: *{}*", text);
-    match writeln!(io::stdout(), "{}", skin.term_text(&markdown)) {
+    match writeln!(std::io::stdout(), "{}", skin.term_text(&markdown)) {
         Ok(_) => (),
-        Err(broken_pipe) if broken_pipe.kind() == io::ErrorKind::BrokenPipe => (),
+        Err(broken_pipe) if broken_pipe.kind() == std::io::ErrorKind::BrokenPipe => (),
         Err(err) => panic!("Unknown error occured while writing to stdout {:?}", err.kind()),
     }
 }
