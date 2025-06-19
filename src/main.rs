@@ -34,10 +34,10 @@ fn main() {
 
     if args.json {
         let result = table::get_connections_json(&all_connections);
-        println!("{}", result);
+        soutln!("{}", result);
     } else if args.format.is_some() {
         let result = table::get_connections_formatted(&all_connections, &args.format.unwrap());
-        println!("{}", result);
+        soutln!("{}", result);
     } else {
         table::print_connections_table(&all_connections, args.compact);
     }

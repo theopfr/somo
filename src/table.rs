@@ -1,10 +1,9 @@
 use handlebars::Handlebars;
 use termimad::crossterm::style::{Attribute::*, Color::*};
 use termimad::*;
-use std::io::{Write};
 
 use crate::schemas::{AddressType, Connection};
-use crate::utils;
+use crate::{soutln, utils};
 
 /// Uses the termimad crate to create a custom appearance for Markdown text in the console.
 ///
@@ -144,11 +143,8 @@ pub fn print_connections_table(all_connections: &[Connection], use_compact_mode:
 
     markdown.push_str(CENTER_MARKDOWN_ROW);
 
-    match writeln!(std::io::stdout(), "{}", skin.term_text(&markdown)) {
-        Ok(_) => utils::pretty_print_info(&format!("**{} Connections**", all_connections.len())),
-        Err(broken_pipe) if broken_pipe.kind() == std::io::ErrorKind::BrokenPipe => (),
-        Err(err) => panic!("Unknown error occured while writing to stdout {:?}", err.kind()),
-    }
+    soutln!("{}", skin.term_text(&markdown));
+    utils::pretty_print_info(&format!("**{} Connections**", all_connections.len()))
 }
 
 /// Prints all current connections in a json format.
