@@ -17,7 +17,7 @@ macro_rules! soutln {
         match writeln!(std::io::stdout(), "") {
             Ok(_) => (),
             Err(broken_pipe) if broken_pipe.kind() == std::io::ErrorKind::BrokenPipe => (),
-            Err(err) => panic!("Unknown error occured while writing to stdout {:?}", err.kind()),
+            Err(err) => panic!("Unknown error occurred while writing to stdout {:?}", err.kind()),
         }
     }};
     ($($arg:tt)*) => {{
@@ -26,7 +26,7 @@ macro_rules! soutln {
         match writeln!(std::io::stdout(), $($arg)*) {
             Ok(_) => (),
             Err(broken_pipe) if broken_pipe.kind() == std::io::ErrorKind::BrokenPipe => (),
-            Err(err) => panic!("Unknown error occured while writing to stdout {:?}", err.kind()),
+            Err(err) => panic!("Unknown error occurred while writing to stdout {:?}", err.kind()),
         }
     }};
 }
