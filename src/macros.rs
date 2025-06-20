@@ -19,7 +19,6 @@ macro_rules! sout {
     }};
 }
 
-
 /// Pipe-safe stdout printing -- alternative to println!.
 /// This macro exists because there is no way to handle pipes ending abruptly with println!
 /// For more information, read:

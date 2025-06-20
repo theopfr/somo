@@ -1,6 +1,6 @@
+use crate::sout;
 use termimad::crossterm::style::{Attribute::*, Color::*};
 use termimad::*;
-use crate::sout;
 
 /// Splits a string combined of an IP address and port with a ":" delimiter into two parts.
 ///
