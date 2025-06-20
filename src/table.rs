@@ -3,7 +3,7 @@ use termimad::crossterm::style::{Attribute::*, Color::*};
 use termimad::*;
 
 use crate::schemas::{AddressType, Connection};
-use crate::utils;
+use crate::{soutln, utils};
 
 /// Uses the termimad crate to create a custom appearance for Markdown text in the console.
 ///
@@ -143,9 +143,8 @@ pub fn print_connections_table(all_connections: &[Connection], use_compact_mode:
 
     markdown.push_str(CENTER_MARKDOWN_ROW);
 
-    println!("{}", skin.term_text(&markdown));
-
-    utils::pretty_print_info(&format!("**{} Connections**", all_connections.len()));
+    soutln!("{}", skin.term_text(&markdown));
+    utils::pretty_print_info(&format!("**{} Connections**", all_connections.len()))
 }
 
 /// Prints all current connections in a json format.
