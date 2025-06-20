@@ -1,6 +1,6 @@
 use termimad::crossterm::style::{Attribute::*, Color::*};
 use termimad::*;
-use crate::soutln;
+use crate::sout;
 
 /// Splits a string combined of an IP address and port with a ":" delimiter into two parts.
 ///
@@ -71,7 +71,7 @@ pub fn pretty_print_info(text: &str) {
     skin.strikeout = CompoundStyle::new(Some(Cyan), None, Encircled.into());
 
     let markdown: String = format!("~~Info~~: *{}*", text);
-    soutln!("{}", skin.term_text(&markdown));
+    sout!("{}", skin.term_text(&markdown));
 }
 
 /// Prints out Markdown formatted text using a custom appearance / termimad "skin".
@@ -93,7 +93,7 @@ pub fn pretty_print_error(text: &str) {
     skin.strikeout = CompoundStyle::new(Some(Red), None, Encircled.into());
 
     let markdown: String = format!("~~Error~~: *{}*", text);
-    soutln!("{}", skin.term_text(&markdown));
+    sout!("{}", skin.term_text(&markdown));
 }
 
 #[cfg(test)]
