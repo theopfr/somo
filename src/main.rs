@@ -3,6 +3,7 @@ mod connections;
 mod schemas;
 mod table;
 mod utils;
+mod macros;
 
 use clap::CommandFactory;
 use cli::{print_completions, Args, CliCommand, Commands};
