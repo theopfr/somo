@@ -1,6 +1,8 @@
 {
   lib,
+  stdenv,
   rustPlatform,
+  installShellFiles,
   versionCheckHook,
 }:
 
@@ -21,6 +23,17 @@ rustPlatform.buildRustPackage (finalAttrs: {
   };
 
   cargoLock.lockFile = ../Cargo.lock;
+
+  nativeBuildInputs = [
+    installShellFiles
+  ];
+
+  postInstall = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
+    installShellCompletion --cmd ${mainProgram} \
+      --bash <("$out/bin/${mainProgram}" generate-completions bash) \
+      --zsh <("$out/bin/${mainProgram}" generate-completions zsh) \
+      --fish <("$out/bin/${mainProgram}" generate-completions fish)
+  '';
 
   nativeInstallCheckInputs = [
     versionCheckHook
