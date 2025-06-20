@@ -5,6 +5,7 @@ use inquire::Select;
 use nix::sys::signal;
 use nix::unistd::Pid;
 use std::str::FromStr;
+use std::u128;
 use std::{io, string::String};
 
 use crate::schemas::{Connection, Protocol, Protocols};
@@ -28,6 +29,7 @@ pub struct Flags {
     pub listen: bool,
     pub exclude_ipv6: bool,
     pub compact: bool,
+    pub sort: Option<(SortOrder, SortField)>,
 }
 
 /// Represents all possible flags which can be provided by the user in the CLI.
@@ -95,6 +97,23 @@ pub struct Args {
 
     #[arg(short = 'c', long, default_value_t = false)]
     compact: bool,
+
+    #[command(flatten)]
+    sorting_args: Option<SortingArgs>,
+}
+
+//  For future reference since this isn't terribly well documented,
+//   a mutually exclusive group would be defined with optional arguments with
+//   the group derivation
+//   #[group(multiple=true)]
+/// Mutually inclusive group of arguments regarding sorting of values.
+#[derive(clap::Args, Debug)]
+pub struct SortingArgs {
+    /// Sort by column ascending <column name>
+    #[arg(long, default_value = None)]
+    sort_order: SortOrder,
+    #[arg(long, default_value = None)]
+    sort_field: SortField,
 }
 
 #[derive(Subcommand, Debug)]
@@ -110,6 +129,81 @@ pub enum Commands {
 pub enum CliCommand {
     Run(Flags),
     Subcommand(Commands),
+}
+
+#[derive(clap::ValueEnum, Clone, Copy, Debug)]
+pub enum SortOrder {
+    ASCENDING,
+    DESCENDING,
+    ASC,
+    DESC,
+}
+
+#[derive(clap::ValueEnum, Clone, Copy, Debug)]
+pub enum SortField {
+    Proto,
+    LocalPort,
+    RemoteAddress,
+    RemotePort,
+    Program,
+    Pid,
+    State,
+}
+
+// we should not implement Ordering, because we want to (conveniently) sort by key.
+pub trait KeySortable {
+    fn sortable_by(&self, order: SortOrder, key: SortField) -> u128;
+}
+
+impl KeySortable for Connection {
+    fn sortable_by(&self, order: SortOrder, key: SortField) -> u128 {
+        let ordinal_value = match key {
+            SortField::Proto => match self.proto.as_str() {
+                "tcp" => 1,
+                "udp" => 2,
+                _ => 0,
+            },
+            SortField::LocalPort => self.local_port.parse::<u128>().unwrap(),
+            SortField::RemoteAddress => todo!(), // TODO
+            SortField::RemotePort => self.remote_port.parse::<u128>().unwrap(),
+            SortField::Program => todo!(), // TODO
+            SortField::Pid => match self.pid.parse::<u128>() {
+                Ok(v) => v,
+                Err(_) => 0,
+            },
+            SortField::State => match self.state.to_lowercase().as_str() {
+                "listen" => 1,
+                "established" => 2,
+                "close" => 3,
+                "synSent" => 5,
+                "synRecv" => 6,
+                "finWait1" => 7,
+                "finWait2" => 8,
+                "timeWait" => 9,
+                "closeWait" => 10,
+                "lastAck" => 11,
+                "closing" => 12,
+                "newSynRecv" => 13,
+                _ => 0, // error condition; have we covered all cases? where are they
+            },
+        };
+
+        let ordinal_offset: u128 = match order {
+            SortOrder::ASCENDING | SortOrder::ASC => 0,
+            // this is an alternative way to offset numbers in the positive natural number space,
+            //  like we would if we reversed them in the natural number space by multiplying via -1.
+            //  to elaborate, consider case:
+            //  - consider two numbers: 20, and 50.
+            //    - 20 will be subtracted by -40, returning u128::MAX-19
+            //    - 50 will be subtracted by -100, returning u128::MAX-49.
+            //     following this logic, the output will be reversed
+            SortOrder::DESCENDING | SortOrder::DESC => match ordinal_value {
+                0 => 1,  // edge case
+                _ => u128::overflowing_mul(ordinal_value, 2).0,
+            }
+        };
+        return u128::overflowing_sub(ordinal_value, ordinal_offset).0;
+    }
 }
 
 /// Gets all flag values provided by the user in the CLI using the "clap" crate.
@@ -140,6 +234,13 @@ pub fn cli() -> CliCommand {
             listen: args.listen,
             exclude_ipv6: args.exclude_ipv6,
             compact: args.compact,
+            sort: args.sorting_args.is_some().then(|| {
+                (
+                    // tuple
+                    args.sorting_args.as_ref().unwrap().sort_order,
+                    args.sorting_args.as_ref().unwrap().sort_field,
+                )
+            }),
         }),
     }
 }
