@@ -112,7 +112,7 @@ pub struct SortingArgs {
     #[arg(long, default_value = None)]
     sort_order: Option<SortOrder>,
 
-    /// Sort by <column name>, provided an order
+    /// Sort by <column name>.
     #[arg(long, default_value = None)]
     sort_by: SortField,
 }
