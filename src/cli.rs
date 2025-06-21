@@ -28,6 +28,7 @@ pub struct Flags {
     pub listen: bool,
     pub exclude_ipv6: bool,
     pub compact: bool,
+    pub sort: Option<(SortOrder, SortField)>,
 }
 
 /// Represents all possible flags which can be provided by the user in the CLI.
@@ -95,6 +96,25 @@ pub struct Args {
 
     #[arg(short = 'c', long, default_value_t = false)]
     compact: bool,
+
+    #[command(flatten)]
+    sorting_args: Option<SortingArgs>,
+}
+
+//  For future reference since this isn't terribly well documented,
+//   a mutually exclusive group would be defined with optional arguments with
+//   the group derivation
+//   #[group(multiple=true)]
+/// Mutually inclusive group of arguments regarding sorting of values.
+#[derive(clap::Args, Debug)]
+pub struct SortingArgs {
+    /// Sort by order <ascending/descending>, provided a <column name>. Defaults to ascending.
+    #[arg(long, default_value = None)]
+    sort_order: Option<SortOrder>,
+
+    /// Sort by <column name>.
+    #[arg(long, default_value = None)]
+    sort_by: SortField,
 }
 
 #[derive(Subcommand, Debug)]
@@ -110,6 +130,25 @@ pub enum Commands {
 pub enum CliCommand {
     Run(Flags),
     Subcommand(Commands),
+}
+
+#[derive(clap::ValueEnum, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SortOrder {
+    Ascending,
+    Descending,
+    Asc,
+    Desc,
+}
+
+#[derive(clap::ValueEnum, Clone, Copy, Debug)]
+pub enum SortField {
+    Proto,
+    LocalPort,
+    RemoteAddress,
+    RemotePort,
+    Program,
+    Pid,
+    State,
 }
 
 /// Gets all flag values provided by the user in the CLI using the "clap" crate.
@@ -140,7 +179,50 @@ pub fn cli() -> CliCommand {
             listen: args.listen,
             exclude_ipv6: args.exclude_ipv6,
             compact: args.compact,
+            sort: args.sorting_args.is_some().then(|| {
+                (
+                    // tuple
+                    args.sorting_args
+                        .as_ref()
+                        .unwrap()
+                        .sort_order
+                        .unwrap_or(SortOrder::Ascending),
+                    args.sorting_args.as_ref().unwrap().sort_by,
+                )
+            }),
         }),
+    }
+}
+
+pub fn sort_connections_via_order_and_key(
+    all_connections: &mut [Connection],
+    order: SortOrder,
+    field: SortField,
+) {
+    all_connections.sort_by(|our, other| match field {
+        SortField::Proto => our.proto.to_lowercase().cmp(&other.proto.to_lowercase()),
+        SortField::LocalPort => our
+            .local_port
+            .parse::<u32>()
+            .unwrap()
+            .cmp(&other.local_port.parse::<u32>().unwrap()),
+        SortField::RemoteAddress => todo!(),
+        SortField::RemotePort => our
+            .remote_port
+            .parse::<u32>()
+            .unwrap()
+            .cmp(&other.remote_port.parse::<u32>().unwrap()),
+        SortField::Program => our
+            .program
+            .to_lowercase()
+            .cmp(&other.program.to_lowercase()),
+        SortField::Pid => our.pid.cmp(&other.pid),
+        SortField::State => our.state.to_lowercase().cmp(&other.state.to_lowercase()),
+    });
+
+    // if it is to be sorted in reverse...
+    if order == SortOrder::Desc || order == SortOrder::Descending {
+        all_connections.reverse();
     }
 }
 
