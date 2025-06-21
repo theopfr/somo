@@ -108,9 +108,11 @@ pub struct Args {
 /// Mutually inclusive group of arguments regarding sorting of values.
 #[derive(clap::Args, Debug)]
 pub struct SortingArgs {
-    /// Sort by column ascending <column name>
+    /// Sort by order <ascending/descending>, provided a <column name>
     #[arg(long, default_value = None)]
     sort_order: SortOrder,
+
+    /// Sort by <column name>, provided an order
     #[arg(long, default_value = None)]
     sort_field: SortField,
 }
