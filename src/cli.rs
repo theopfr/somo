@@ -132,7 +132,7 @@ pub enum CliCommand {
     Subcommand(Commands),
 }
 
-#[derive(clap::ValueEnum, Clone, Copy, Debug)]
+#[derive(clap::ValueEnum, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SortOrder {
     Ascending,
     Descending,
@@ -149,65 +149,6 @@ pub enum SortField {
     Program,
     Pid,
     State,
-}
-
-// we should not implement Ordering, because we want to (conveniently) sort by key.
-pub trait KeySortable {
-    fn sortable_by(&self, order: SortOrder, key: SortField) -> u128;
-}
-
-impl KeySortable for Connection {
-    fn sortable_by(&self, order: SortOrder, key: SortField) -> u128 {
-        let ordinal_value = match key {
-            SortField::Proto => match self.proto.as_str() {
-                "tcp" => 1,
-                "udp" => 2,
-                _ => 0,
-            },
-            SortField::LocalPort => self.local_port.parse::<u128>().unwrap(),
-            SortField::RemoteAddress => todo!(), // TODO
-            SortField::RemotePort => self.remote_port.parse::<u128>().unwrap(),
-            SortField::Program => todo!(), // TODO
-            SortField::Pid => self.pid.parse::<u128>().unwrap_or_default(), // .unwrap_or_default() is 0 on err
-            SortField::State => match self.state.to_lowercase().as_str() {
-                // cases are derived from procfs::net::TcpState enum;
-                //  unfortunately we do not keep the enum as-is (it is stringified to ascii lowercase as of writing)
-                //  so the handling must be done by raw string; a better approach would be to keep the enum as-is
-                //  so any data structure handling (like this) is done more robustly, when we (eventually) upgrade
-                //  the procfs package
-                "listen" => 1,
-                "established" => 2,
-                "close" => 3,
-                "synsent" => 5,
-                "synrecv" => 6,
-                "finwait1" => 7,
-                "finwait2" => 8,
-                "timewait" => 9,
-                "closewait" => 10,
-                "lastack" => 11,
-                "closing" => 12,
-                "newsynrecv" => 13,
-                _ => 0,
-            },
-        };
-
-        let ordinal_offset: u128 = match order {
-            SortOrder::Ascending | SortOrder::Asc => 0,
-            // this is an alternative way to offset numbers in the positive natural number space,
-            //  like we would if we reversed them in the natural number space by multiplying via -1.
-            //  to elaborate, consider case:
-            //  - consider two numbers: 20, and 50.
-            //    - 20 will be subtracted by -40, returning u128::MAX-19
-            //    - 50 will be subtracted by -100, returning u128::MAX-49.
-            //     following this logic, the output will be reversed
-            SortOrder::Descending | SortOrder::Desc => match ordinal_value {
-                0 => 1, // edge case
-                _ => u128::overflowing_mul(ordinal_value, 2).0,
-            },
-        };
-
-        u128::overflowing_sub(ordinal_value, ordinal_offset).0
-    }
 }
 
 /// Gets all flag values provided by the user in the CLI using the "clap" crate.
@@ -246,6 +187,38 @@ pub fn cli() -> CliCommand {
                 )
             }),
         }),
+    }
+}
+
+pub fn sort_connections_via_order_and_key(
+    all_connections: &mut [Connection],
+    order: SortOrder,
+    field: SortField,
+) {
+    all_connections.sort_by(|our, other| match field {
+        SortField::Proto => our.proto.to_lowercase().cmp(&other.proto.to_lowercase()),
+        SortField::LocalPort => our
+            .local_port
+            .parse::<u32>()
+            .unwrap()
+            .cmp(&other.local_port.parse::<u32>().unwrap()),
+        SortField::RemoteAddress => todo!(),
+        SortField::RemotePort => our
+            .remote_port
+            .parse::<u32>()
+            .unwrap()
+            .cmp(&other.remote_port.parse::<u32>().unwrap()),
+        SortField::Program => our
+            .program
+            .to_lowercase()
+            .cmp(&other.program.to_lowercase()),
+        SortField::Pid => our.pid.cmp(&other.pid),
+        SortField::State => our.state.to_lowercase().cmp(&other.state.to_lowercase()),
+    });
+
+    // if it is to be sorted in reverse...
+    if order == SortOrder::Desc || order == SortOrder::Descending {
+        all_connections.reverse();
     }
 }
 

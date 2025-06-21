@@ -9,7 +9,7 @@ use clap::CommandFactory;
 use cli::{print_completions, Args, CliCommand, Commands};
 use schemas::{Connection, FilterOptions};
 
-use crate::cli::KeySortable;
+use crate::cli::sort_connections_via_order_and_key;
 
 fn main() {
     let args = match cli::cli() {
@@ -34,8 +34,13 @@ fn main() {
     };
 
     let mut all_connections: Vec<Connection> = connections::get_all_connections(&filter_options);
+    // if we're instructed to sort in any way...
     args.sort.is_some().then(|| {
-        all_connections.sort_by_key(|k| k.sortable_by(args.sort.unwrap().0, args.sort.unwrap().1))
+        sort_connections_via_order_and_key(
+            &mut all_connections,
+            args.sort.unwrap().0, // order
+            args.sort.unwrap().1, // key
+        )
     });
 
     if args.json {
