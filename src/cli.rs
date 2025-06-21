@@ -108,13 +108,13 @@ pub struct Args {
 /// Mutually inclusive group of arguments regarding sorting of values.
 #[derive(clap::Args, Debug)]
 pub struct SortingArgs {
-    /// Sort by order <ascending/descending>, provided a <column name>
+    /// Sort by order <ascending/descending>, provided a <column name>. Defaults to ascending.
     #[arg(long, default_value = None)]
-    sort_order: SortOrder,
+    sort_order: Option<SortOrder>,
 
     /// Sort by <column name>, provided an order
     #[arg(long, default_value = None)]
-    sort_field: SortField,
+    sort_by: SortField,
 }
 
 #[derive(Subcommand, Debug)]
@@ -182,8 +182,12 @@ pub fn cli() -> CliCommand {
             sort: args.sorting_args.is_some().then(|| {
                 (
                     // tuple
-                    args.sorting_args.as_ref().unwrap().sort_order,
-                    args.sorting_args.as_ref().unwrap().sort_field,
+                    args.sorting_args
+                        .as_ref()
+                        .unwrap()
+                        .sort_order
+                        .unwrap_or(SortOrder::Ascending),
+                    args.sorting_args.as_ref().unwrap().sort_by,
                 )
             }),
         }),
