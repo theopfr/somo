@@ -35,9 +35,7 @@ fn main() {
 
     let mut all_connections: Vec<Connection> = connections::get_all_connections(&filter_options);
     args.sort.is_some().then(|| {
-        all_connections.sort_by_key(
-            |k| k.sortable_by(args.sort.unwrap().0, args.sort.unwrap().1)
-        )
+        all_connections.sort_by_key(|k| k.sortable_by(args.sort.unwrap().0, args.sort.unwrap().1))
     });
 
     if args.json {

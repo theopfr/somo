@@ -5,7 +5,6 @@ use inquire::Select;
 use nix::sys::signal;
 use nix::unistd::Pid;
 use std::str::FromStr;
-use std::u128;
 use std::{io, string::String};
 
 use crate::schemas::{Connection, Protocol, Protocols};
@@ -133,10 +132,10 @@ pub enum CliCommand {
 
 #[derive(clap::ValueEnum, Clone, Copy, Debug)]
 pub enum SortOrder {
-    ASCENDING,
-    DESCENDING,
-    ASC,
-    DESC,
+    Ascending,
+    Descending,
+    Asc,
+    Desc,
 }
 
 #[derive(clap::ValueEnum, Clone, Copy, Debug)]
@@ -167,29 +166,31 @@ impl KeySortable for Connection {
             SortField::RemoteAddress => todo!(), // TODO
             SortField::RemotePort => self.remote_port.parse::<u128>().unwrap(),
             SortField::Program => todo!(), // TODO
-            SortField::Pid => match self.pid.parse::<u128>() {
-                Ok(v) => v,
-                Err(_) => 0,
-            },
+            SortField::Pid => self.pid.parse::<u128>().unwrap_or_default(), // .unwrap_or_default() is 0 on err
             SortField::State => match self.state.to_lowercase().as_str() {
+                // cases are derived from procfs::net::TcpState enum;
+                //  unfortunately we do not keep the enum as-is (it is stringified to ascii lowercase as of writing)
+                //  so the handling must be done by raw string; a better approach would be to keep the enum as-is
+                //  so any data structure handling (like this) is done more robustly, when we (eventually) upgrade
+                //  the procfs package
                 "listen" => 1,
                 "established" => 2,
                 "close" => 3,
-                "synSent" => 5,
-                "synRecv" => 6,
-                "finWait1" => 7,
-                "finWait2" => 8,
-                "timeWait" => 9,
-                "closeWait" => 10,
-                "lastAck" => 11,
+                "synsent" => 5,
+                "synrecv" => 6,
+                "finwait1" => 7,
+                "finwait2" => 8,
+                "timewait" => 9,
+                "closewait" => 10,
+                "lastack" => 11,
                 "closing" => 12,
-                "newSynRecv" => 13,
-                _ => 0, // error condition; have we covered all cases? where are they
+                "newsynrecv" => 13,
+                _ => 0,
             },
         };
 
         let ordinal_offset: u128 = match order {
-            SortOrder::ASCENDING | SortOrder::ASC => 0,
+            SortOrder::Ascending | SortOrder::Asc => 0,
             // this is an alternative way to offset numbers in the positive natural number space,
             //  like we would if we reversed them in the natural number space by multiplying via -1.
             //  to elaborate, consider case:
@@ -197,12 +198,13 @@ impl KeySortable for Connection {
             //    - 20 will be subtracted by -40, returning u128::MAX-19
             //    - 50 will be subtracted by -100, returning u128::MAX-49.
             //     following this logic, the output will be reversed
-            SortOrder::DESCENDING | SortOrder::DESC => match ordinal_value {
-                0 => 1,  // edge case
+            SortOrder::Descending | SortOrder::Desc => match ordinal_value {
+                0 => 1, // edge case
                 _ => u128::overflowing_mul(ordinal_value, 2).0,
-            }
+            },
         };
-        return u128::overflowing_sub(ordinal_value, ordinal_offset).0;
+
+        u128::overflowing_sub(ordinal_value, ordinal_offset).0
     }
 }
 
