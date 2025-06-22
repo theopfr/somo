@@ -28,8 +28,8 @@ pub struct Flags {
     pub listen: bool,
     pub exclude_ipv6: bool,
     pub compact: bool,
-    pub sort_by: Option<SortField>,
-    pub reverse_sorted: bool,
+    pub sort: Option<SortField>,
+    pub reverse: bool,
 }
 
 /// Represents all possible flags which can be provided by the user in the CLI.
@@ -172,12 +172,12 @@ pub fn cli() -> CliCommand {
             listen: args.listen,
             exclude_ipv6: args.exclude_ipv6,
             compact: args.compact,
-            sort_by: if args.sorting_args.is_some() {
+            sort: if args.sorting_args.is_some() {
                 Some(args.sorting_args.as_ref().unwrap().sort)
             } else {
                 None
             },
-            reverse_sorted: if args.sorting_args.is_some() {
+            reverse: if args.sorting_args.is_some() {
                 args.sorting_args.as_ref().unwrap().reverse
             } else {
                 false
