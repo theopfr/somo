@@ -9,7 +9,7 @@ use clap::CommandFactory;
 use cli::{print_completions, Args, CliCommand, Commands};
 use schemas::{Connection, FilterOptions};
 
-use crate::cli::sort_connections_via_key;
+use crate::cli::sort_connections;
 
 fn main() {
     let args = match cli::cli() {
@@ -37,7 +37,7 @@ fn main() {
     // if we're instructed to sort in any way...
     args.sort
         .is_some()
-        .then(|| sort_connections_via_key(&mut all_connections, args.sort.unwrap()));
+        .then(|| sort_connections(&mut all_connections, args.sort.unwrap()));
 
     if args.reverse {
         all_connections.reverse();

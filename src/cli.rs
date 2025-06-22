@@ -98,24 +98,13 @@ pub struct Args {
     #[arg(short = 'c', long, default_value_t = false)]
     compact: bool,
 
-    #[command(flatten)]
-    sorting_args: Option<SortingArgs>,
-}
-
-//  For future reference since this isn't terribly well documented,
-//   a mutually exclusive group would be defined with optional arguments with
-//   the group derivation
-//   #[group(multiple=true)]
-/// Mutually inclusive group of arguments regarding sorting of values.
-#[derive(clap::Args, Debug)]
-pub struct SortingArgs {
-    /// Sort in reverse.
+    /// Reverse order of the table
     #[arg(short = 'r', long, default_value_t = false)]
     reverse: bool,
 
     /// Sort by <column name>.
     #[arg(short = 's', long, default_value = None)]
-    sort: SortField,
+    sort: Option<SortField>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -172,21 +161,13 @@ pub fn cli() -> CliCommand {
             listen: args.listen,
             exclude_ipv6: args.exclude_ipv6,
             compact: args.compact,
-            sort: if args.sorting_args.is_some() {
-                Some(args.sorting_args.as_ref().unwrap().sort)
-            } else {
-                None
-            },
-            reverse: if args.sorting_args.is_some() {
-                args.sorting_args.as_ref().unwrap().reverse
-            } else {
-                false
-            },
+            sort: args.sort,
+            reverse: args.reverse,
         }),
     }
 }
 
-pub fn sort_connections_via_key(all_connections: &mut [Connection], field: SortField) {
+pub fn sort_connections(all_connections: &mut [Connection], field: SortField) {
     all_connections.sort_by(|our, other| match field {
         SortField::Proto => our.proto.to_lowercase().cmp(&other.proto.to_lowercase()),
         SortField::LocalPort => our
