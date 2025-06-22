@@ -34,10 +34,10 @@ fn main() {
     };
 
     let mut all_connections: Vec<Connection> = connections::get_all_connections(&filter_options);
-    // if we're instructed to sort in any way...
-    args.sort
-        .is_some()
-        .then(|| sort_connections(&mut all_connections, args.sort.unwrap()));
+
+    if let Some(sort) = args.sort {
+        sort_connections(&mut all_connections, sort);
+    }
 
     if args.reverse {
         all_connections.reverse();

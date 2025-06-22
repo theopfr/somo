@@ -32,7 +32,7 @@ pub struct Connection {
     pub state: String,
     pub address_type: AddressType,
 
-    /// internal variable used only for ordering operations of raw ipv4/6 addresses
+    /// Internal variable used only for ordering operations of raw ipv4/6 addresses
     #[serde(skip_serializing)]
     pub ipvx_raw: IpAddr,
 }

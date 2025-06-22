@@ -111,7 +111,6 @@ pub fn print_connections_table(all_connections: &[Connection], use_compact_mode:
     markdown.push_str("| **#** | **proto** | **local port** | **remote address** | **remote port** | **pid** *program* | **state** |\n");
     markdown.push_str(CENTER_MARKDOWN_ROW);
 
-    // iterate over all connections to build the table
     for (idx, connection) in all_connections.iter().enumerate() {
         let formatted_remote_address: String =
             format_known_address(&connection.remote_address, &connection.address_type);

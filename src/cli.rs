@@ -102,7 +102,7 @@ pub struct Args {
     #[arg(short = 'r', long, default_value_t = false)]
     reverse: bool,
 
-    /// Sort by <column name>.
+    /// Sort by column name
     #[arg(short = 's', long, default_value = None)]
     sort: Option<SortField>,
 }
@@ -283,7 +283,12 @@ pub fn interactive_process_kill(connections: &[Connection]) {
 
 #[cfg(test)]
 mod tests {
-    use crate::cli::resolve_protocols;
+    use std::{net::IpAddr, str::FromStr};
+
+    use crate::{
+        cli::{resolve_protocols, sort_connections, SortField},
+        schemas::AddressType,
+    };
 
     use super::{Args, Commands, Flags};
     use clap::Parser;
@@ -448,5 +453,51 @@ mod tests {
         // Verify that flags are still parsed correctly even with subcommands
         assert!(!args.kill);
         assert!(args.proto.is_none());
+    }
+
+    #[test]
+    fn test_sort_connections() {
+        use crate::schemas::Connection;
+
+        fn build_connection(
+            proto: &str,
+            local_port: &str,
+            remote: &str,
+            remote_port: &str,
+            program: &str,
+            pid: &str,
+            state: &str,
+        ) -> Connection {
+            Connection {
+                proto: proto.to_string(),
+                local_port: local_port.to_string(),
+                remote_port: remote_port.to_string(),
+                ipvx_raw: IpAddr::from_str(remote).unwrap(),
+                program: program.to_string(),
+                pid: pid.to_string(),
+                state: state.to_string(),
+                remote_address: remote.to_string(),
+                address_type: AddressType::Extern,
+            }
+        }
+
+        let mut connections = vec![
+            build_connection("TCP", "443", "9.9.9.9", "443", "nginx", "1", "ESTABLISHED"),
+            build_connection("UDP", "53", "8.8.8.8", "8080", "apache", "2", "CLOSE_WAIT"),
+            build_connection("TCP", "80", "0.0.0.0", "80", "postgres", "3", "LISTEN"),
+        ];
+
+        // Maps a sort key to the expected order of the connections (represented by their PIDs) after sort
+        let sort_scenarios = vec![
+            (SortField::Pid, ["1", "2", "3"]),
+            (SortField::RemoteAddress, ["3", "2", "1"]),
+            (SortField::State, ["2", "1", "3"]),
+        ];
+
+        for scenario in sort_scenarios {
+            sort_connections(&mut connections, scenario.0);
+            let result_pids: Vec<&str> = connections.iter().map(|c| c.pid.as_str()).collect();
+            assert_eq!(result_pids, scenario.1);
+        }
     }
 }
