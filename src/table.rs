@@ -111,7 +111,6 @@ pub fn print_connections_table(all_connections: &[Connection], use_compact_mode:
     markdown.push_str("| **#** | **proto** | **local port** | **remote address** | **remote port** | **pid** *program* | **state** |\n");
     markdown.push_str(CENTER_MARKDOWN_ROW);
 
-    // iterate over all connections to build the table
     for (idx, connection) in all_connections.iter().enumerate() {
         let formatted_remote_address: String =
             format_known_address(&connection.remote_address, &connection.address_type);
@@ -187,6 +186,8 @@ pub fn get_connections_formatted(
 
 #[cfg(test)]
 mod tests {
+    use std::net::{Ipv4Addr, Ipv6Addr};
+
     use super::*;
 
     #[test]
@@ -238,6 +239,7 @@ mod tests {
                 pid: "200".to_string(),
                 state: "established".to_string(),
                 address_type: AddressType::Localhost,
+                ipvx_raw: Ipv4Addr::new(192, 168, 1, 0).into(),
             },
             Connection {
                 proto: "tcp".to_string(),
@@ -248,6 +250,7 @@ mod tests {
                 pid: "-".to_string(),
                 state: "timewait".to_string(),
                 address_type: AddressType::Extern,
+                ipvx_raw: Ipv6Addr::new(0, 0, 0, 0xffff, 65, 9, 95, 5).into(),
             },
         ];
 

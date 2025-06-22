@@ -1,4 +1,4 @@
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 
 /// Represents the type of an IP address.
 ///
@@ -31,6 +31,10 @@ pub struct Connection {
     pub pid: String,
     pub state: String,
     pub address_type: AddressType,
+
+    /// Internal variable used only for ordering operations of raw ipv4/6 addresses
+    #[serde(skip_serializing)]
+    pub ipvx_raw: IpAddr,
 }
 
 /// General struct type for TCP and UDP entries.

@@ -28,6 +28,8 @@ pub struct Flags {
     pub listen: bool,
     pub exclude_ipv6: bool,
     pub compact: bool,
+    pub sort: Option<SortField>,
+    pub reverse: bool,
 }
 
 /// Represents all possible flags which can be provided by the user in the CLI.
@@ -95,6 +97,14 @@ pub struct Args {
 
     #[arg(short = 'c', long, default_value_t = false)]
     compact: bool,
+
+    /// Reverse order of the table
+    #[arg(short = 'r', long, default_value_t = false)]
+    reverse: bool,
+
+    /// Sort by column name
+    #[arg(short = 's', long, default_value = None)]
+    sort: Option<SortField>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -110,6 +120,17 @@ pub enum Commands {
 pub enum CliCommand {
     Run(Flags),
     Subcommand(Commands),
+}
+
+#[derive(clap::ValueEnum, Clone, Copy, Debug)]
+pub enum SortField {
+    Proto,
+    LocalPort,
+    RemoteAddress,
+    RemotePort,
+    Program,
+    Pid,
+    State,
 }
 
 /// Gets all flag values provided by the user in the CLI using the "clap" crate.
@@ -140,8 +161,33 @@ pub fn cli() -> CliCommand {
             listen: args.listen,
             exclude_ipv6: args.exclude_ipv6,
             compact: args.compact,
+            sort: args.sort,
+            reverse: args.reverse,
         }),
     }
+}
+
+pub fn sort_connections(all_connections: &mut [Connection], field: SortField) {
+    all_connections.sort_by(|our, other| match field {
+        SortField::Proto => our.proto.to_lowercase().cmp(&other.proto.to_lowercase()),
+        SortField::LocalPort => our
+            .local_port
+            .parse::<u32>()
+            .unwrap()
+            .cmp(&other.local_port.parse::<u32>().unwrap()),
+        SortField::RemoteAddress => our.ipvx_raw.cmp(&other.ipvx_raw),
+        SortField::RemotePort => our
+            .remote_port
+            .parse::<u32>()
+            .unwrap()
+            .cmp(&other.remote_port.parse::<u32>().unwrap()),
+        SortField::Program => our
+            .program
+            .to_lowercase()
+            .cmp(&other.program.to_lowercase()),
+        SortField::Pid => our.pid.cmp(&other.pid),
+        SortField::State => our.state.to_lowercase().cmp(&other.state.to_lowercase()),
+    });
 }
 
 /// Determines which protocols to include based on CLI flags.
@@ -237,7 +283,12 @@ pub fn interactive_process_kill(connections: &[Connection]) {
 
 #[cfg(test)]
 mod tests {
-    use crate::cli::resolve_protocols;
+    use std::{net::IpAddr, str::FromStr};
+
+    use crate::{
+        cli::{resolve_protocols, sort_connections, SortField},
+        schemas::AddressType,
+    };
 
     use super::{Args, Commands, Flags};
     use clap::Parser;
@@ -402,5 +453,51 @@ mod tests {
         // Verify that flags are still parsed correctly even with subcommands
         assert!(!args.kill);
         assert!(args.proto.is_none());
+    }
+
+    #[test]
+    fn test_sort_connections() {
+        use crate::schemas::Connection;
+
+        fn build_connection(
+            proto: &str,
+            local_port: &str,
+            remote: &str,
+            remote_port: &str,
+            program: &str,
+            pid: &str,
+            state: &str,
+        ) -> Connection {
+            Connection {
+                proto: proto.to_string(),
+                local_port: local_port.to_string(),
+                remote_port: remote_port.to_string(),
+                ipvx_raw: IpAddr::from_str(remote).unwrap(),
+                program: program.to_string(),
+                pid: pid.to_string(),
+                state: state.to_string(),
+                remote_address: remote.to_string(),
+                address_type: AddressType::Extern,
+            }
+        }
+
+        let mut connections = vec![
+            build_connection("TCP", "443", "9.9.9.9", "443", "nginx", "1", "ESTABLISHED"),
+            build_connection("UDP", "53", "8.8.8.8", "8080", "apache", "2", "CLOSE_WAIT"),
+            build_connection("TCP", "80", "0.0.0.0", "80", "postgres", "3", "LISTEN"),
+        ];
+
+        // Maps a sort key to the expected order of the connections (represented by their PIDs) after sort
+        let sort_scenarios = vec![
+            (SortField::Pid, ["1", "2", "3"]),
+            (SortField::RemoteAddress, ["3", "2", "1"]),
+            (SortField::State, ["2", "1", "3"]),
+        ];
+
+        for scenario in sort_scenarios {
+            sort_connections(&mut connections, scenario.0);
+            let result_pids: Vec<&str> = connections.iter().map(|c| c.pid.as_str()).collect();
+            assert_eq!(result_pids, scenario.1);
+        }
     }
 }

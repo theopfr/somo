@@ -9,6 +9,8 @@ use clap::CommandFactory;
 use cli::{print_completions, Args, CliCommand, Commands};
 use schemas::{Connection, FilterOptions};
 
+use crate::cli::sort_connections;
+
 fn main() {
     let args = match cli::cli() {
         CliCommand::Subcommand(Commands::GenerateCompletions { shell }) => {
@@ -31,7 +33,15 @@ fn main() {
         exclude_ipv6: args.exclude_ipv6,
     };
 
-    let all_connections: Vec<Connection> = connections::get_all_connections(&filter_options);
+    let mut all_connections: Vec<Connection> = connections::get_all_connections(&filter_options);
+
+    if let Some(sort) = args.sort {
+        sort_connections(&mut all_connections, sort);
+    }
+
+    if args.reverse {
+        all_connections.reverse();
+    }
 
     if args.json {
         let result = table::get_connections_json(&all_connections);
