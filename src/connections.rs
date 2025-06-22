@@ -232,6 +232,8 @@ pub fn get_all_connections(filter_options: &FilterOptions) -> Vec<Connection> {
 
 #[cfg(test)]
 mod tests {
+    use std::net::Ipv4Addr;
+
     use super::*;
 
     #[test]
@@ -258,6 +260,7 @@ mod tests {
             pid: "123".to_string(),
             state: "established".to_string(),
             address_type: AddressType::Extern,
+            ipvx_raw: Ipv4Addr::new(8, 8, 8, 8).into(),
         };
 
         let filter_by_matching_port = FilterOptions {
@@ -286,6 +289,7 @@ mod tests {
             pid: "123".to_string(),
             state: "close".to_string(),
             address_type: AddressType::Extern,
+            ipvx_raw: Ipv4Addr::new(8, 8, 8, 8).into(),
         };
 
         let filter_by_open_state = FilterOptions {
@@ -328,6 +332,7 @@ mod tests {
             pid: "123".to_string(),
             state: "close".to_string(),
             address_type: AddressType::Extern,
+            ipvx_raw: Ipv4Addr::new(8, 8, 8, 8).into(),
         };
 
         let filter_by_open_state = FilterOptions {
@@ -356,6 +361,7 @@ mod tests {
             pid: "123".to_string(),
             state: "listen".to_string(),
             address_type: AddressType::Extern,
+            ipvx_raw: Ipv4Addr::new(8, 8, 8, 8).into(),
         };
 
         let filter_by_multiple_conditions = FilterOptions {

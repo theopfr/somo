@@ -187,6 +187,8 @@ pub fn get_connections_formatted(
 
 #[cfg(test)]
 mod tests {
+    use std::net::{Ipv4Addr, Ipv6Addr};
+
     use super::*;
 
     #[test]
@@ -238,6 +240,7 @@ mod tests {
                 pid: "200".to_string(),
                 state: "established".to_string(),
                 address_type: AddressType::Localhost,
+                ipvx_raw: Ipv4Addr::new(192, 168, 1, 0).into(),
             },
             Connection {
                 proto: "tcp".to_string(),
@@ -248,6 +251,7 @@ mod tests {
                 pid: "-".to_string(),
                 state: "timewait".to_string(),
                 address_type: AddressType::Extern,
+                ipvx_raw: Ipv6Addr::new(0, 0, 0, 0xffff, 65, 9, 95, 5).into(),
             },
         ];
 
