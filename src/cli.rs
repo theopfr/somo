@@ -110,11 +110,11 @@ pub struct Args {
 #[derive(clap::Args, Debug)]
 pub struct SortingArgs {
     /// Sort in reverse.
-    #[arg(long, default_value_t = false, visible_alias = "re")]
+    #[arg(short = 'r', long, default_value_t = false)]
     reverse: bool,
 
     /// Sort by <column name>.
-    #[arg(long, default_value = None, visible_alias = "sb")]
+    #[arg(short = 's', long, default_value = None)]
     sort: SortField,
 }
 
