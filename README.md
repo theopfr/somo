@@ -12,7 +12,7 @@
 - interactive killing of processes
 - JSON and custom format output
 - from ``netstat -tulpn`` to ``somo -l``
-- you can find all featues in further down
+- you can find all features in further down
 
 <br />
 
@@ -53,18 +53,20 @@ To run somo just type:
 sudo somo
 ```
 
+Somo supports the following features:
+
 ### ✨ Filtering:
 You can use the following flags to filter based on different attributes:
 | filter flag | description | value |
 | :------------- |:------------- | :----- |
 | ```--tcp, -t``` | filter by TCP connections | - |
 | ```--udp, -u``` | filter by UDP connections  | - | 
-| ```--proto``` | (deprecated) filter by either TCP or UDP | ``tcp`` or ``udp`` | 
+| ```--proto``` | deprecated – use ``--tcp`` / ``--udp`` instead | ``tcp`` or ``udp`` | 
 | ```--port, -p``` | filter by a local port | port number, e.g ``5433`` |
 | ```--remote-port``` | filter by a remote port | port number, e.g ``443`` |
 | ```--ip``` | filter by a remote IP | IP address e.g ``0.0.0.0`` |
 | ```--program``` | filter by a client program | program name e.g ``chrome`` |
-| ```--pid, -p``` | filter by a PID | PID number, e.g ``10000`` |
+| ```--pid``` | filter by a PID | PID number, e.g ``10000`` |
 | ```--open, -o``` | filter by open connections | - |
 | ```--listen, -l``` | filter by listening connections | - |
 | ```--exclude-ipv6``` | don't list IPv6 connections | - |
@@ -85,7 +87,7 @@ You can also define a custom output format using the ``--format`` flag, for exam
 ```sh
 somo --format "PID: {{pid}}, Protocol: {{proto}}, Remote Address: {{remote_address}}" # attributes must be specified in snake_case
 ```
-In the format-string, the attributes have to de specified in *snake_case*.
+In the format-string, the attributes have to be specified in *snake_case*.
 
 ### ✨ Sorting by columns:
 The ``--sort, -s`` flag can be used to sort the table after a specific column ascending. For example:
