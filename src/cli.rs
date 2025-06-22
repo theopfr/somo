@@ -194,7 +194,7 @@ pub fn sort_connections_via_key(all_connections: &mut [Connection], field: SortF
             .parse::<u32>()
             .unwrap()
             .cmp(&other.local_port.parse::<u32>().unwrap()),
-        SortField::RemoteAddress => todo!(),
+        SortField::RemoteAddress => our.ipvx_raw.cmp(&other.ipvx_raw),
         SortField::RemotePort => our
             .remote_port
             .parse::<u32>()
