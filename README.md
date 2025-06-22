@@ -10,7 +10,7 @@
 - pleasing to the eye thanks to a nice table view
 - filterable and sortable output
 - interactive killing of processes
-- JSON and custom format output
+- JSON and custom formatable output
 - from ``netstat -tulpn`` to ``somo -l``
 - you can find all features in further down
 
