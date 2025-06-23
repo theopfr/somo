@@ -6,7 +6,7 @@
 ### A human-friendly alternative to netstat for socket and port monitoring on Linux.
 
 
-## ✨ Features:
+## ✨ Highlights:
 - pleasing to the eye thanks to a nice table view
 - filterable and sortable output
 - interactive killing of processes
