@@ -51,8 +51,8 @@ jobs:
             echo "Mismatch between selected release type and actual version bump. Aborting release."
             exit 1
           fi
-
-  build_and_release:
+    
+  build-and-release:
     needs: version-check
 
     runs-on: ubuntu-latest
@@ -63,6 +63,20 @@ jobs:
     - name: Extract version from Cargo.toml
       id: version
       run: echo "version=$(grep -Po '^version = \"\K[^\"]+' Cargo.toml)" >> "$GITHUB_OUTPUT"
+
+    - name: Extract changelog entry
+      id: changelog
+      run: |
+        version=${{ steps.version.outputs.version }}
+        content=$(awk -v ver="$version" '
+          $0 ~ "^## \\["ver"\\]" { found = 1; print; next }
+          found && /^---$/ { exit }
+          found { print }
+        ' CHANGELOG.md)
+
+        echo "changelog<<EOF" >> $GITHUB_OUTPUT
+        echo "$content" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Build and package
       run: |
@@ -88,6 +102,7 @@ jobs:
       with:
         tag_name: v${{ steps.version.outputs.version }}
         release_name: 🎉 Somo Release ${{ steps.version.outputs.version }}
+        body: ${{ steps.changelog.outputs.changelog }}
         draft: false
         prerelease: false
       id: create_release

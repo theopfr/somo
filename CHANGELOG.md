@@ -1,32 +1,27 @@
 # Changelog
 
-## [1.0.2] - 06.11.2025
-### Features
-- lorem1
-- ipsum1
-
-### Bugfixes
-- lorem1
-- ipsum1
-
----
-
-## [1.0.1] - 06.11.2025
-### Features
-- lorem2
-- ipsum2
-
-### Bugfixes
-- lorem2
-- ipsum2
+## [1.1.0] - 23.06.2025
+- **add** sorting by column, by @gerelef
+- **fix** somo panicking when being piped, by @gerelef
+- **add** compact table view, by @theopfr
+- **add** format and clippy check to CI, by @jerry1098
+- **update** CLI arguments (adds ``--tcp``, ``--udp``), by @celeo
+- **add** shell completions, by @polponline
+- **add** Nix packaging support, by @kachick
+- **update** kill functionality to use SIGTERM, by @rongyi
+- **add** JSON and custom formattable output, by @aptypp
+- **fix** typos in README, by @cma5 @robinhutty
+- **add** MIT license, by @theopfr
 
 ---
 
-## [1.0.0] - 06.11.2025
-### Features
-- lorem3
-- ipsum3
+## [1.0.0] - 04.06.2025
+- **update** flags, by @theopfr
+    - move ``--local-port`` to ``--port``
+    - move ``--port`` to ``--remote-port``
+    - add ``--listen``
+- **remove** abuseipdb scanning, by @theopfr
+- **add** logo, by @theopfr
+- **add** tests, by @theopfr
 
-### Bugfixes
-- lorem3
-- ipsum3
+---
