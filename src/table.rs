@@ -3,6 +3,7 @@ use termimad::crossterm::style::{Attribute::*, Color::*};
 use termimad::*;
 
 use crate::schemas::{AddressType, Connection};
+use crate::utils::pretty_single_line_syntax_error;
 use crate::{soutln, utils};
 
 /// Uses the termimad crate to create a custom appearance for Markdown text in the console.
@@ -170,13 +171,39 @@ pub fn get_connections_formatted(
     template_string: &String,
 ) -> String {
     let mut registry = Handlebars::new();
-    let _ = registry.register_template_string("connection_template", template_string);
+    registry.set_strict_mode(true);
+
+    if let Err(err) = registry.register_template_string("connection_template", template_string) {
+        pretty_single_line_syntax_error(
+            format!(
+                "Invalid syntax at column index {}",
+                err.column_no.unwrap_or_default()
+            )
+            .as_str(),
+            template_string,
+            err.column_no.unwrap_or_default(),
+        );
+        std::process::exit(2); // exit with 2 is user err
+    }
 
     let mut rendered_lines = Vec::new();
 
     for connection in all_connections {
         let json_value = serde_json::to_value(connection).unwrap();
         let rendered_line = registry.render("connection_template", &json_value);
+
+        if let Err(err) = rendered_line {
+            pretty_single_line_syntax_error(
+                format!(
+                    "Invalid syntax at column index {}",
+                    err.column_no.unwrap_or_default()
+                )
+                .as_str(),
+                template_string,
+                err.column_no.unwrap_or_default(),
+            );
+            std::process::exit(2); // exit with 2 is user err
+        }
 
         rendered_lines.push(rendered_line.unwrap());
     }
