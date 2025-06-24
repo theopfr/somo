@@ -123,6 +123,7 @@ pub enum CliCommand {
 }
 
 #[derive(clap::ValueEnum, Clone, Copy, Debug)]
+#[clap(rename_all = "snake_case")]
 pub enum SortField {
     Proto,
     LocalPort,
