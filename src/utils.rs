@@ -97,7 +97,7 @@ pub fn pretty_print_error(text: &str) {
 }
 
 // template_segment is unfortunately NOT exposed in handlebars api :)
-pub fn pretty_single_line_syntax_error(preamble: &str, text: &str, column: usize) {
+pub fn pretty_print_syntax_error(preamble: &str, text: &str, column: usize) {
     let mut skin = MadSkin::default();
     skin.bold.set_fg(White);
     skin.italic = CompoundStyle::new(Some(gray(11)), None, Encircled.into());
@@ -105,8 +105,8 @@ pub fn pretty_single_line_syntax_error(preamble: &str, text: &str, column: usize
 
     let preamble_markdown: String = format!("~~Error~~: *{}*", preamble);
 
-    let indicator: String = format!("{}{}", "╌".repeat(column - 1), "┘");
-    let syntax_markdown: String = format!("{}\n*{}*", text, indicator);
+    let indicator: String = format!("{}{}", "─".repeat(column - 1), "┘");
+    let syntax_markdown: String = format!("*├────> {}*\n*└──────{}*", text, indicator);
     sout!("{}", skin.term_text(&preamble_markdown));
     sout!("{}", skin.term_text(&syntax_markdown));
 }
