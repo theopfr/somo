@@ -855,7 +855,7 @@ checksum = "a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0"
 
 [[package]]
 name = "somo"
-version = "1.1.0"
+version = "1.0.1"
 dependencies = [
  "clap",
  "clap_complete",

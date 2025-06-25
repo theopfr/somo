@@ -12,7 +12,7 @@
 - interactive killing of processes
 - JSON and custom formattable output
 - from ``netstat -tulpn`` to ``somo -l``
-- you can find all features in further down
+- you can find all features further down
 
 <br />
 
