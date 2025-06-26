@@ -1,4 +1,4 @@
-use crate::sout;
+use crate::{sout, soutln};
 use termimad::crossterm::style::{Attribute::*, Color::*};
 use termimad::*;
 
@@ -94,6 +94,26 @@ pub fn pretty_print_error(text: &str) {
 
     let markdown: String = format!("~~Error~~: *{}*", text);
     sout!("{}", skin.term_text(&markdown));
+}
+
+// template_segment is unfortunately NOT exposed in handlebars api :)
+pub fn pretty_print_syntax_error(preamble: &str, text: &str, column: usize) {
+    let mut skin = MadSkin::default();
+    skin.bold.set_fg(White);
+    skin.italic = CompoundStyle::new(Some(gray(11)), None, Encircled.into());
+    skin.strikeout = CompoundStyle::new(Some(Red), None, Encircled.into());
+
+    let preamble_markdown: String = format!("~~Error~~: *{}*", preamble);
+
+    let indicator: String = format!("{}{}", "─".repeat(column - 1), "┘");
+    let mut syntax_skinned: String = skin.term_text("*├────> *").to_string();
+    syntax_skinned.pop(); // remove trailing newline from termimad
+    syntax_skinned.push_str(text);
+
+    let indicator_markdown: String = format!("*└──────{}*", indicator);
+    sout!("{}", skin.term_text(&preamble_markdown));
+    soutln!("{}", syntax_skinned);
+    sout!("{}", skin.term_text(&indicator_markdown));
 }
 
 #[cfg(test)]

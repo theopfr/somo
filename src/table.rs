@@ -3,6 +3,7 @@ use termimad::crossterm::style::{Attribute::*, Color::*};
 use termimad::*;
 
 use crate::schemas::{AddressType, Connection};
+use crate::utils::pretty_print_syntax_error;
 use crate::{soutln, utils};
 
 /// Uses the termimad crate to create a custom appearance for Markdown text in the console.
@@ -170,13 +171,31 @@ pub fn get_connections_formatted(
     template_string: &String,
 ) -> String {
     let mut registry = Handlebars::new();
-    let _ = registry.register_template_string("connection_template", template_string);
+    registry.set_strict_mode(true);
+
+    if let Err(err) = registry.register_template_string("connection_template", template_string) {
+        pretty_print_syntax_error(
+            format!("Invalid syntax at column {}", err.column_no.unwrap_or(1)).as_str(),
+            template_string,
+            err.column_no.unwrap_or(1),
+        );
+        std::process::exit(2); // exit with 2 is user err
+    }
 
     let mut rendered_lines = Vec::new();
 
     for connection in all_connections {
         let json_value = serde_json::to_value(connection).unwrap();
         let rendered_line = registry.render("connection_template", &json_value);
+
+        if let Err(err) = rendered_line {
+            pretty_print_syntax_error(
+                err.desc.replace(" in strict mode", "").as_str(),
+                template_string,
+                err.column_no.unwrap_or(1),
+            );
+            std::process::exit(2); // exit with 2 is user err
+        }
 
         rendered_lines.push(rendered_line.unwrap());
     }
@@ -189,6 +208,36 @@ mod tests {
     use std::net::{Ipv4Addr, Ipv6Addr};
 
     use super::*;
+
+    #[test]
+    fn test_handlebars_rendererror_invalid_argument_consistency() {
+        let template_string = "{{cowabunga}}";
+        let mut registry = Handlebars::new();
+        registry.set_strict_mode(true);
+        registry.register_template_string("connection_template", template_string);
+
+        let connection: Connection = Connection {
+            proto: "tcp".to_string(),
+            local_port: "44796".to_string(),
+            remote_address: "192.168.1.0".to_string(),
+            remote_port: "443".to_string(),
+            program: "firefox".to_string(),
+            pid: "200".to_string(),
+            state: "established".to_string(),
+            address_type: AddressType::Localhost,
+            ipvx_raw: Ipv4Addr::new(192, 168, 1, 0).into(),
+        };
+        let json_value = serde_json::to_value(connection).unwrap();
+        let rendered_line = registry.render("connection_template", &json_value);
+
+        assert!(rendered_line.is_err());
+
+        let err = rendered_line.unwrap_err();
+        assert_eq!(
+            format!("{}", err.desc.replace(" in strict mode", "")).as_str(),
+            "Variable \"cowabunga\" not found."
+        );
+    }
 
     #[test]
     fn test_format_known_address_localhost() {
