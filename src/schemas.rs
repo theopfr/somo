@@ -22,6 +22,7 @@ pub struct Protocols {
 
 /// Represents a processed socket connection with all its attributes.
 #[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "snake_case")]
 pub struct Connection {
     pub proto: String,
     pub local_port: String,
