@@ -1,4 +1,4 @@
-use crate::sout;
+use crate::{sout, soutln};
 use termimad::crossterm::style::{Attribute::*, Color::*};
 use termimad::*;
 
@@ -106,9 +106,14 @@ pub fn pretty_print_syntax_error(preamble: &str, text: &str, column: usize) {
     let preamble_markdown: String = format!("~~Error~~: *{}*", preamble);
 
     let indicator: String = format!("{}{}", "─".repeat(column - 1), "┘");
-    let syntax_markdown: String = format!("*├────> {}*\n*└──────{}*", text, indicator);
+    let mut syntax_skinned: String = skin.term_text("*├────> *").to_string();
+    syntax_skinned.pop(); // remove trailing newline from termimad
+    syntax_skinned.push_str(text);
+
+    let indicator_markdown: String = format!("*└──────{}*", indicator);
     sout!("{}", skin.term_text(&preamble_markdown));
-    sout!("{}", skin.term_text(&syntax_markdown));
+    soutln!("{}", syntax_skinned);
+    sout!("{}", skin.term_text(&indicator_markdown));
 }
 
 #[cfg(test)]
