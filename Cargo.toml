@@ -3,7 +3,7 @@ name = "somo"
 version = "1.0.1"
 edition = "2021"
 authors = ["theopfr"]
-description = "A human-friendly alternative to netstat for socket and port monitoring on Linux."
+description = "A human-friendly alternative to netstat for socket and port monitoring on Linux and macOS."
 license = "MIT"
 readme = "./README.md"
 repository = "https://github.com/theopfr/somo/"
@@ -14,10 +14,16 @@ categories = ["command-line-utilities"]
 clap = { version = "4.5.40", features = ["derive"] }
 clap_complete = "4.5.54"
 inquire = "0.6.2"
-procfs = "0.15.1"
 termimad = "0.20"
 terminal_size = "0.2.6"
 serde = { version = "1.0.196", features = ["derive"] }
 serde_json = "1.0.96"
 handlebars = "4"
 nix = {version = "0.30.1", features = ["process", "signal"]}
+
+[target.'cfg(target_os = "linux")'.dependencies]
+procfs = "0.15.1"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+netstat2 = "0.11.1"
+libproc = "0.14.10"
