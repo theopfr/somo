@@ -34,6 +34,6 @@ rustPlatform.buildRustPackage (finalAttrs: {
     description = "Human-friendly alternative to netstat for socket and port monitoring";
     homepage = "https://github.com/theopfr/somo";
     license = lib.licenses.mit;
-    platforms = lib.platforms.linux;
+    platforms = lib.platforms.linux ++ lib.platforms.darwin;
   };
 })

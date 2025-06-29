@@ -3,7 +3,7 @@
 </p>
 
 
-### A human-friendly alternative to netstat for socket and port monitoring on Linux.
+### A human-friendly alternative to netstat for socket and port monitoring on Linux and macOS.
 
 
 ## ✨ Highlights:
@@ -12,6 +12,7 @@
 - interactive killing of processes
 - JSON and custom formattable output
 - from ``netstat -tulpn`` to ``somo -l``
+- cross-platform support for Linux and macOS
 - you can find all features further down
 
 <br />
@@ -127,3 +128,10 @@ mkdir -p ~/.config/elvish/lib
 somo generate-completions elvish > ~/.config/elvish/lib/somo.elv
 echo 'use somo' >> ~/.config/elvish/rc.elv
 ```
+
+## 🖥️ Platform Support:
+Somo currently supports:
+- Linux: Full support using the procfs library
+- macOS: Full support using netstat2 and libproc libraries
+
+We welcome contributions to extend support to other platforms!
