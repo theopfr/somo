@@ -6,6 +6,56 @@ use crate::schemas::{Connection, FilterOptions, NetEntry};
 
 use crate::connections::common::{filter_out_connection, get_address_type};
 
+/// Splits a string combined of an IP address and port with a ":" delimiter into two parts.
+///
+/// # Arguments
+/// * `address`: The combination of address and port joined by a ":", e.g. "127.0.0.1:5432"
+///
+/// # Example
+/// ```
+/// let address_port_1 = "127.0.0.1:5432".to_string();
+/// assert_eq!(split_address(address_port_1), Some(("5432", "127.0.0.1")));
+///
+/// let address_port_2 = "fails.com".to_string();
+/// assert_eq!(split_address(address_port_2), None);
+/// ```
+///
+/// # Returns
+/// If the string can be successfully split,
+/// it will return a tuple containing the address and the port, if not `None`.
+fn split_address(address: &str) -> Option<(&str, &str)> {
+    static DELIMITER: &str = ":";
+
+    let mut address_parts = address.rsplitn(2, DELIMITER);
+    match (address_parts.next(), address_parts.next()) {
+        (Some(first), Some(second)) => Some((second, first)),
+        _ => None,
+    }
+}
+
+/// Handles the output of the `split_address` function by replacing the port with a "-" if the string couldn't be split.
+/// ###### TODO: maybe combine it with the `split_address` function.
+///
+/// # Arguments
+/// * `address`: The address-port combination which should be split.
+///
+/// # Example
+/// ```
+/// let address_port_1 = "127.0.0.1:5432".to_string();
+/// assert_eq!(get_address_parts(address_port_1), ("5432", "127.0.0.1"));
+///
+/// let address_port_2 = "fails.com".to_string();
+/// assert_eq!(get_address_parts(address_port_1), ("-", "127.0.0.1"));
+/// ```
+///
+/// # Returns
+/// A tuple containing the address and port or just the address and a "-" if there wasn't a port.
+fn get_address_parts(address: &str) -> (String, String) {
+    split_address(address)
+        .map(|(a, p)| (a.to_string(), p.to_string()))
+        .unwrap_or((address.to_string(), "-".to_string()))
+}
+
 /// Gets all running processes on the system using the "procfs" crate.
 /// This code is taken from the "procfs" crate documentation.
 ///
@@ -32,19 +82,13 @@ fn get_processes() -> HashMap<u64, Stat> {
 }
 
 fn get_connection_data(net_entry: NetEntry, all_processes: &HashMap<u64, Stat>) -> Connection {
-    // process the remote-address and remote-port by spliting them at ":"
-    let local_address = format!("{}", net_entry.local_address);
-    let local_parts: Vec<&str> = local_address.split(':').collect();
-    let local_port = local_parts.last().unwrap_or(&"-").to_string();
+    // process the local-address and local-port
+    let local_address_full = format!("{}", net_entry.local_address);
+    let (local_address, local_port) = get_address_parts(&local_address_full);
 
+    // process the remote-address and remote-port
     let remote_address_full = format!("{}", net_entry.remote_address);
-    let remote_parts: Vec<&str> = remote_address_full.split(':').collect();
-    let remote_port = remote_parts.last().unwrap_or(&"-").to_string();
-    let remote_address = if remote_parts.len() > 1 {
-        remote_parts[0..remote_parts.len() - 1].join(":")
-    } else {
-        remote_address_full.clone()
-    };
+    let (remote_address, remote_port) = get_address_parts(&remote_address_full);
     let state = net_entry.state;
 
     // check if there is no program/pid information
@@ -58,7 +102,7 @@ fn get_connection_data(net_entry: NetEntry, all_processes: &HashMap<u64, Stat>) 
     let connection: Connection = Connection {
         proto: net_entry.protocol,
         local_port,
-        remote_address: remote_address.to_string(),
+        remote_address,
         remote_port,
         program,
         pid,
@@ -168,4 +212,42 @@ pub fn get_connections(filter_options: &FilterOptions) -> Vec<Connection> {
     }
 
     connections
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_split_address_valid() {
+        let addr = "127.0.0.1:5432";
+        assert_eq!(split_address(addr), Some(("127.0.0.1", "5432")));
+
+        let addr = "[::1]:8080";
+        assert_eq!(split_address(addr), Some(("[::1]", "8080")));
+    }
+
+    #[test]
+    fn test_split_address_invalid() {
+        let addr = "localhost";
+        assert_eq!(split_address(addr), None);
+        let addr = "192.168.0.1";
+        assert_eq!(split_address(addr), None);
+    }
+
+    #[test]
+    fn test_get_address_parts_valid() {
+        let addr = "192.168.0.1:80";
+        let (address, port) = get_address_parts(addr);
+        assert_eq!(address, "192.168.0.1");
+        assert_eq!(port, "80");
+    }
+
+    #[test]
+    fn test_get_address_parts_invalid() {
+        let addr = "example.com";
+        let (address, port) = get_address_parts(addr);
+        assert_eq!(address, "example.com");
+        assert_eq!(port, "-");
+    }
 }
