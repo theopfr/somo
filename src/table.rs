@@ -1,9 +1,9 @@
-use handlebars::Handlebars;
+use handlebars::{Handlebars, RenderErrorReason};
 use termimad::crossterm::style::{Attribute::*, Color::*};
 use termimad::*;
 
 use crate::schemas::{AddressType, Connection};
-use crate::utils::pretty_print_syntax_error;
+use crate::utils::{pretty_print_error, pretty_print_syntax_error};
 use crate::{soutln, utils};
 
 /// Uses the termimad crate to create a custom appearance for Markdown text in the console.
@@ -144,7 +144,7 @@ pub fn print_connections_table(all_connections: &[Connection], use_compact_mode:
     markdown.push_str(CENTER_MARKDOWN_ROW);
 
     soutln!("{}", skin.term_text(&markdown));
-    utils::pretty_print_info(&format!("**{} Connections**", all_connections.len()))
+    utils::pretty_print_info(&format!("{} Connections", all_connections.len()))
 }
 
 /// Prints all current connections in a json format.
@@ -174,12 +174,15 @@ pub fn get_connections_formatted(
     registry.set_strict_mode(true);
 
     if let Err(err) = registry.register_template_string("connection_template", template_string) {
+        let (line_no, column_no) = err.pos().unwrap_or((1, 1));
+
         pretty_print_syntax_error(
-            format!("Invalid syntax at column {}", err.column_no.unwrap_or(1)).as_str(),
+            "Invalid template syntax.",
             template_string,
-            err.column_no.unwrap_or(1),
+            line_no,
+            column_no,
         );
-        std::process::exit(2); // exit with 2 is user err
+        std::process::exit(2);
     }
 
     let mut rendered_lines = Vec::new();
@@ -189,12 +192,27 @@ pub fn get_connections_formatted(
         let rendered_line = registry.render("connection_template", &json_value);
 
         if let Err(err) = rendered_line {
-            pretty_print_syntax_error(
-                err.desc.replace(" in strict mode", "").as_str(),
-                template_string,
-                err.column_no.unwrap_or(1),
-            );
-            std::process::exit(2); // exit with 2 is user err
+            let (line_no, column_no) = (err.line_no.unwrap_or(1), err.column_no.unwrap_or(1));
+
+            match err.reason() {
+                RenderErrorReason::MissingVariable(Some(var_name)) => {
+                    pretty_print_syntax_error(
+                        &format!("Invalid template variable '{}'.", var_name),
+                        template_string,
+                        line_no,
+                        column_no,
+                    );
+                }
+                _ => {
+                    pretty_print_syntax_error(
+                        &format!("Template error - {}", err.reason()),
+                        template_string,
+                        line_no,
+                        column_no,
+                    );
+                }
+            }
+            std::process::exit(2);
         }
 
         rendered_lines.push(rendered_line.unwrap());
@@ -208,36 +226,6 @@ mod tests {
     use std::net::{Ipv4Addr, Ipv6Addr};
 
     use super::*;
-
-    #[test]
-    fn test_handlebars_rendererror_invalid_argument_consistency() {
-        let template_string = "{{cowabunga}}";
-        let mut registry = Handlebars::new();
-        registry.set_strict_mode(true);
-        registry.register_template_string("connection_template", template_string);
-
-        let connection: Connection = Connection {
-            proto: "tcp".to_string(),
-            local_port: "44796".to_string(),
-            remote_address: "192.168.1.0".to_string(),
-            remote_port: "443".to_string(),
-            program: "firefox".to_string(),
-            pid: "200".to_string(),
-            state: "established".to_string(),
-            address_type: AddressType::Localhost,
-            ipvx_raw: Ipv4Addr::new(192, 168, 1, 0).into(),
-        };
-        let json_value = serde_json::to_value(connection).unwrap();
-        let rendered_line = registry.render("connection_template", &json_value);
-
-        assert!(rendered_line.is_err());
-
-        let err = rendered_line.unwrap_err();
-        assert_eq!(
-            format!("{}", err.desc.replace(" in strict mode", "")).as_str(),
-            "Variable \"cowabunga\" not found."
-        );
-    }
 
     #[test]
     fn test_format_known_address_localhost() {
