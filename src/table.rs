@@ -3,7 +3,7 @@ use termimad::crossterm::style::{Attribute::*, Color::*};
 use termimad::*;
 
 use crate::schemas::{AddressType, Connection};
-use crate::utils::{pretty_print_error, pretty_print_syntax_error};
+use crate::utils::pretty_print_syntax_error;
 use crate::{soutln, utils};
 
 /// Uses the termimad crate to create a custom appearance for Markdown text in the console.
