@@ -244,8 +244,8 @@ pub fn kill_process(pid_num: i32) {
     let pid = Pid::from_raw(pid_num);
 
     match signal::kill(pid, signal::Signal::SIGTERM) {
-        Ok(_) => utils::pretty_print_info(&format!("Killed process with PID {}.", pid)),
-        Err(_) => utils::pretty_print_error(&format!("Failed to kill process with PID {}.", pid)),
+        Ok(_) => utils::pretty_print_info(&format!("Killed process with PID {pid}.")),
+        Err(_) => utils::pretty_print_error(&format!("Failed to kill process with PID {pid}.")),
     }
 }
 

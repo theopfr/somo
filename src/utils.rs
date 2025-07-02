@@ -52,17 +52,17 @@ pub fn get_address_parts(address: &str) -> (String, String) {
 
 /// Wraps the input text in ANSI escape codes to print it in red.
 fn red_text(text: &str) -> String {
-    format!("\x1b[1;31m{}\x1b[0m", text)
+    format!("\x1b[1;31m{text}\x1b[0m")
 }
 
 /// Wraps the input text in ANSI escape codes to print it in cyan.
 fn cyan_text(text: &str) -> String {
-    format!("\x1B[36m{}\x1B[0m", text)
+    format!("\x1B[36m{text}\x1B[0m")
 }
 
 /// Wraps the input text in ANSI escape codes to print it in bold.
 fn bold_text(text: &str) -> String {
-    format!("\x1B[1m{}\x1B[0m", text)
+    format!("\x1B[1m{text}\x1B[0m")
 }
 
 /// Prints out formatted text starting with a cyan "Info:" prefix.

@@ -58,10 +58,10 @@ fn create_table_style(use_compact_mode: bool) -> MadSkin {
 fn format_known_address(remote_address: &String, address_type: &AddressType) -> String {
     match address_type {
         AddressType::Unspecified => {
-            format!("*{}*", remote_address)
+            format!("*{remote_address}*")
         }
         AddressType::Localhost => {
-            format!("*{} localhost*", remote_address)
+            format!("*{remote_address} localhost*")
         }
         AddressType::Extern => remote_address.to_string(),
     }
@@ -197,7 +197,7 @@ pub fn get_connections_formatted(
             match err.reason() {
                 RenderErrorReason::MissingVariable(Some(var_name)) => {
                     pretty_print_syntax_error(
-                        &format!("Invalid template variable '{}'.", var_name),
+                        &format!("Invalid template variable '{var_name}'."),
                         template_string,
                         line_no,
                         column_no,
