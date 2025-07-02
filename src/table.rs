@@ -1,8 +1,9 @@
-use handlebars::Handlebars;
+use handlebars::{Handlebars, RenderErrorReason};
 use termimad::crossterm::style::{Attribute::*, Color::*};
 use termimad::*;
 
 use crate::schemas::{AddressType, Connection};
+use crate::utils::pretty_print_syntax_error;
 use crate::{soutln, utils};
 
 /// Uses the termimad crate to create a custom appearance for Markdown text in the console.
@@ -57,10 +58,10 @@ fn create_table_style(use_compact_mode: bool) -> MadSkin {
 fn format_known_address(remote_address: &String, address_type: &AddressType) -> String {
     match address_type {
         AddressType::Unspecified => {
-            format!("*{}*", remote_address)
+            format!("*{remote_address}*")
         }
         AddressType::Localhost => {
-            format!("*{} localhost*", remote_address)
+            format!("*{remote_address} localhost*")
         }
         AddressType::Extern => remote_address.to_string(),
     }
@@ -143,7 +144,7 @@ pub fn print_connections_table(all_connections: &[Connection], use_compact_mode:
     markdown.push_str(CENTER_MARKDOWN_ROW);
 
     soutln!("{}", skin.term_text(&markdown));
-    utils::pretty_print_info(&format!("**{} Connections**", all_connections.len()))
+    utils::pretty_print_info(&format!("{} Connections", all_connections.len()))
 }
 
 /// Prints all current connections in a json format.
@@ -170,13 +171,49 @@ pub fn get_connections_formatted(
     template_string: &String,
 ) -> String {
     let mut registry = Handlebars::new();
-    let _ = registry.register_template_string("connection_template", template_string);
+    registry.set_strict_mode(true);
+
+    if let Err(err) = registry.register_template_string("connection_template", template_string) {
+        let (line_no, column_no) = err.pos().unwrap_or((1, 1));
+
+        pretty_print_syntax_error(
+            "Invalid template syntax.",
+            template_string,
+            line_no,
+            column_no,
+        );
+        std::process::exit(2);
+    }
 
     let mut rendered_lines = Vec::new();
 
     for connection in all_connections {
         let json_value = serde_json::to_value(connection).unwrap();
         let rendered_line = registry.render("connection_template", &json_value);
+
+        if let Err(err) = rendered_line {
+            let (line_no, column_no) = (err.line_no.unwrap_or(1), err.column_no.unwrap_or(1));
+
+            match err.reason() {
+                RenderErrorReason::MissingVariable(Some(var_name)) => {
+                    pretty_print_syntax_error(
+                        &format!("Invalid template variable '{var_name}'."),
+                        template_string,
+                        line_no,
+                        column_no,
+                    );
+                }
+                _ => {
+                    pretty_print_syntax_error(
+                        &format!("Template error - {}", err.reason()),
+                        template_string,
+                        line_no,
+                        column_no,
+                    );
+                }
+            }
+            std::process::exit(2);
+        }
 
         rendered_lines.push(rendered_line.unwrap());
     }
