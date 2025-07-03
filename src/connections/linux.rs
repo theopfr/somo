@@ -1,10 +1,19 @@
+use crate::connections::common::{filter_out_connection, get_address_type};
+use crate::schemas::{Connection, FilterOptions};
 use procfs::process::FDTarget;
 use procfs::process::Stat;
 use std::collections::HashMap;
+use std::net::SocketAddr;
 
-use crate::schemas::{Connection, FilterOptions, NetEntry};
-
-use crate::connections::common::{filter_out_connection, get_address_type};
+/// General struct type for TCP and UDP entries.
+#[derive(Debug)]
+pub struct NetEntry {
+    pub protocol: String,
+    pub local_address: SocketAddr,
+    pub remote_address: SocketAddr,
+    pub state: String,
+    pub inode: u64,
+}
 
 /// Splits a string combined of an IP address and port with a ":" delimiter into two parts.
 ///
@@ -82,16 +91,13 @@ fn get_processes() -> HashMap<u64, Stat> {
 }
 
 fn get_connection_data(net_entry: NetEntry, all_processes: &HashMap<u64, Stat>) -> Connection {
-    // process the local-address and local-port
     let local_address_full = format!("{}", net_entry.local_address);
-    let (local_address, local_port) = get_address_parts(&local_address_full);
+    let (_, local_port) = get_address_parts(&local_address_full);
 
-    // process the remote-address and remote-port
     let remote_address_full = format!("{}", net_entry.remote_address);
     let (remote_address, remote_port) = get_address_parts(&remote_address_full);
     let state = net_entry.state;
 
-    // check if there is no program/pid information
     let (program, pid) = all_processes
         .get(&net_entry.inode)
         .map(|stat| (stat.comm.to_string(), stat.pid.to_string()))
@@ -154,7 +160,6 @@ fn get_tcp_connections(
 }
 
 /// Gets all currently open UDP connections using the "procfs" crate and processes them.
-/// ###### TODO: combine with the `get_tcp_connections` function if possible.
 ///
 /// # Arguments
 /// * `all_processes`: A map of all running processes on the system.

@@ -1,14 +1,18 @@
+use crate::connections::common::{filter_out_connection, get_address_type};
+use crate::schemas::{Connection, FilterOptions};
 use libproc::libproc::proc_pid;
 use netstat2::{
     get_sockets_info, AddressFamilyFlags, ProtocolFlags, ProtocolSocketInfo as NetstatSocketInfo,
 };
 use std::collections::HashSet;
 
-use crate::schemas::{Connection, FilterOptions};
-
-use crate::connections::common::{filter_out_connection, get_address_type};
-
-/// Gets the process name for a given PID on macOS
+/// Retrieves the name of a process given its PID on macOS using the libproc library.
+///
+/// # Arguments
+/// * `pid`: The process ID for which to obtain the process name.
+///
+/// # Returns
+/// A string containing the process name if found, or "-" if the name cannot be retrieved.
 fn get_process_name(pid: i32) -> String {
     match proc_pid::name(pid) {
         Ok(name) => name,
@@ -24,7 +28,6 @@ fn get_process_name(pid: i32) -> String {
 /// # Returns
 /// All processed and filtered TCP/UDP connections as a `Connection` struct in a vector.
 pub fn get_connections(filter_options: &FilterOptions) -> Vec<Connection> {
-    // Determine which address families to include
     let mut af_flags = AddressFamilyFlags::empty();
     if !filter_options.exclude_ipv6 {
         af_flags |= AddressFamilyFlags::IPV4 | AddressFamilyFlags::IPV6;
@@ -32,7 +35,6 @@ pub fn get_connections(filter_options: &FilterOptions) -> Vec<Connection> {
         af_flags |= AddressFamilyFlags::IPV4;
     }
 
-    // Determine which protocols to include
     let mut proto_flags = ProtocolFlags::empty();
     if filter_options.by_proto.tcp {
         proto_flags |= ProtocolFlags::TCP;
@@ -75,9 +77,7 @@ pub fn get_connections(filter_options: &FilterOptions) -> Vec<Connection> {
                     ),
                 };
 
-            // Get program and PID info
             let (program, pid) = if let Some(first_pid) = si.associated_pids.first() {
-                // Get process name
                 let proc_name = get_process_name(*first_pid as i32);
                 (proc_name, first_pid.to_string())
             } else {
@@ -86,7 +86,7 @@ pub fn get_connections(filter_options: &FilterOptions) -> Vec<Connection> {
 
             // Create a unique key for deduplication
             let connection_key = format!(
-                "{}:{}:{}:{}.{}:{}",
+                "{}:{}:{}:{}:{}:{}",
                 proto, local_port, remote_address, remote_port, state, pid
             );
 
@@ -95,7 +95,6 @@ pub fn get_connections(filter_options: &FilterOptions) -> Vec<Connection> {
                 return None;
             }
 
-            // Create our connection data structure
             let conn = Connection {
                 proto,
                 local_port,
@@ -108,7 +107,6 @@ pub fn get_connections(filter_options: &FilterOptions) -> Vec<Connection> {
                 ipvx_raw: si.local_addr(),
             };
 
-            // Filter connections based on the provided options
             if filter_out_connection(&conn, filter_options) {
                 None
             } else {

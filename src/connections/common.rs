@@ -62,9 +62,9 @@ pub fn filter_out_connection(
 /// # Returns
 /// The address-type as an AddressType enum.
 pub fn get_address_type(remote_address: &str) -> AddressType {
-    if remote_address == "127.0.0.1" || remote_address == "[::1]" {
+    if remote_address == "127.0.0.1" || remote_address == "[::1]" || remote_address == "::1" {
         return AddressType::Localhost;
-    } else if remote_address == "0.0.0.0" || remote_address == "[::]" {
+    } else if remote_address == "0.0.0.0" || remote_address == "[::]" || remote_address == "::" {
         return AddressType::Unspecified;
     }
     AddressType::Extern
