@@ -18,7 +18,11 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
     steps:
     - name: Setup | Rust
       uses: dtolnay/rust-toolchain@v1
@@ -64,7 +68,10 @@ jobs:
 
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
     steps:
     - name: Setup | Rust
       uses: dtolnay/rust-toolchain@v1
