@@ -198,7 +198,7 @@ fn get_udp_connections(
         .collect()
 }
 
-/// Gets both TCP and UDP connections and combines them based on the `proto` filter option.
+/// Gets both TCP and UDP connections and combines them based on protocol filter options.
 ///
 /// # Arguments
 /// * `filter_options`: The filter options provided by the user.
