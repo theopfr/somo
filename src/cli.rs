@@ -174,14 +174,14 @@ pub fn sort_connections(all_connections: &mut [Connection], field: SortField) {
         SortField::LocalPort => our
             .local_port
             .parse::<u32>()
-            .unwrap()
-            .cmp(&other.local_port.parse::<u32>().unwrap()),
+            .unwrap_or(0)
+            .cmp(&other.local_port.parse::<u32>().unwrap_or(0)),
         SortField::RemoteAddress => our.ipvx_raw.cmp(&other.ipvx_raw),
         SortField::RemotePort => our
             .remote_port
             .parse::<u32>()
-            .unwrap()
-            .cmp(&other.remote_port.parse::<u32>().unwrap()),
+            .unwrap_or(0)
+            .cmp(&other.remote_port.parse::<u32>().unwrap_or(0)),
         SortField::Program => our
             .program
             .to_lowercase()

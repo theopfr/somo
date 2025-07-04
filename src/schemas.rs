@@ -1,4 +1,4 @@
-use std::net::{IpAddr, SocketAddr};
+use std::net::IpAddr;
 
 /// Represents the type of an IP address.
 ///
@@ -36,16 +36,6 @@ pub struct Connection {
     /// Internal variable used only for ordering operations of raw ipv4/6 addresses
     #[serde(skip_serializing)]
     pub ipvx_raw: IpAddr,
-}
-
-/// General struct type for TCP and UDP entries.
-#[derive(Debug)]
-pub struct NetEntry {
-    pub protocol: String,
-    pub local_address: SocketAddr,
-    pub remote_address: SocketAddr,
-    pub state: String,
-    pub inode: u64,
 }
 
 /// Contains options for filtering a `Connection`.
