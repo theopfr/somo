@@ -21,14 +21,15 @@ fn get_process_name(pid: i32) -> String {
     }
 }
 
-/// Gets network connection information on macOS using the netstat2 library.
+/// Parses and filters TCP and/or UDP connections using socket information.
 ///
 /// # Arguments
+/// * `sockets_info`: List of socket information coming from the netstat2 crate
 /// * `filter_options`: The filter options provided by the user.
 ///
 /// # Returns
-/// All processed and filtered TCP/UDP connections as a `Connection` struct in a vector.
-pub fn parse_connections(
+/// All filtered TCP/UDP connections as a `Connection` struct in a vector.
+fn parse_connections(
     sockets_info: &Vec<SocketInfo>,
     filter_options: &FilterOptions,
 ) -> Vec<Connection> {
@@ -114,7 +115,7 @@ pub fn parse_connections(
         .collect()
 }
 
-/// Gets network connection information on macOS using the netstat2 library.
+/// Gets and filters TCP and/or UDP connections using socket information from the netstat2 crate.
 ///
 /// # Arguments
 /// * `filter_options`: The filter options provided by the user.
@@ -137,7 +138,6 @@ pub fn get_connections(filter_options: &FilterOptions) -> Vec<Connection> {
         proto_flags |= ProtocolFlags::UDP;
     }
 
-    // Get the socket information using netstat2
     let sockets_info = match get_sockets_info(af_flags, proto_flags) {
         Ok(sockets) => sockets,
         Err(_) => return Vec::new(),
@@ -154,7 +154,7 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr};
 
     #[test]
-    fn test_parse_connections_basic_tcp() {
+    fn test_parse_connections_tcp() {
         let mock_socket = SocketInfo {
             protocol_socket_info: ProtocolSocketInfo::Tcp(TcpSocketInfo {
                 local_port: 8080,
@@ -188,7 +188,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_connections_basic_udp() {
+    fn test_parse_connections_udp() {
         let mock_socket = SocketInfo {
             protocol_socket_info: ProtocolSocketInfo::Udp(netstat2::UdpSocketInfo {
                 local_port: 53,
