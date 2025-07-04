@@ -8,7 +8,7 @@ mod macos;
 use crate::schemas::Connection;
 use crate::schemas::FilterOptions;
 
-/// Gets both TCP and UDP connections and combines them based on the `proto` filter option.
+/// Retrieves all TCP/UDP network connections based on the current operating system (Linux or macOS).
 ///
 /// # Arguments
 /// * `filter_options`: The filter options provided by the user.

@@ -5,6 +5,9 @@
 
 ### A human-friendly alternative to netstat for socket and port monitoring on Linux and macOS.
 
+> [!NOTE]  
+> The master branch code and README may include features not yet released. For the official, stable version and its documentation, please refer to the crates.io page.
+
 
 ## ✨ Highlights:
 - pleasing to the eye thanks to a nice table view
@@ -45,6 +48,15 @@ If you use Nix with Flakes, you can build and use the development version.
 nix build 'github:theopfr/somo?dir=nix'
 sudo ./result/bin/somo
 ```
+
+### Option 4 - GitHub (Development Version):
+You can install the latest development version directly from the GitHub repository:
+
+```sh
+cargo install --git https://github.com/theopfr/somo
+```
+
+*Warning:* This is the cutting-edge development version and may be unstable or contain incomplete features. Use this option only if you want to try the latest features even though they are not released yet.
 
 ---
 
@@ -102,13 +114,13 @@ To get a descending order, you can use the ``--reverse, -r`` flag.
 ## 🐚 Shell Completions:
 Somo supports shell completions for bash, zsh, fish, and elvish. Choose your shell:
 
-### Bash
+#### Bash
 ```bash
 mkdir -p ~/.local/share/bash-completion/completions
 somo generate-completions bash > ~/.local/share/bash-completion/completions/somo
 ```
 
-### Zsh
+#### Zsh
 ```zsh
 mkdir -p ~/.local/share/zsh/site-functions
 somo generate-completions zsh > ~/.local/share/zsh/site-functions/_somo
@@ -116,13 +128,13 @@ echo 'fpath=(~/.local/share/zsh/site-functions $fpath)' >> ~/.zshrc
 echo 'autoload -U compinit && compinit' >> ~/.zshrc
 ```
 
-### Fish
+#### Fish
 ```fish
 mkdir -p ~/.config/fish/completions
 somo generate-completions fish > ~/.config/fish/completions/somo.fish
 ```
 
-### Elvish
+#### Elvish
 ```bash
 mkdir -p ~/.config/elvish/lib
 somo generate-completions elvish > ~/.config/elvish/lib/somo.elv
@@ -131,7 +143,7 @@ echo 'use somo' >> ~/.config/elvish/rc.elv
 
 ## 🖥️ Platform Support:
 Somo currently supports:
-- Linux: Full support using the procfs library
-- macOS: Full support using netstat2 and libproc libraries
+- Linux: Full support using the [procfs](https://crates.io/crates/procfs) crate
+- macOS: Full support using [netstat2](https://crates.io/crates/netstat2) and [libproc](https://crates.io/crates/libproc/0.13.0) crates
 
 We welcome contributions to extend support to other platforms!
