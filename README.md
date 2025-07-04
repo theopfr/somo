@@ -6,8 +6,7 @@
 ### A human-friendly alternative to netstat for socket and port monitoring on Linux and macOS.
 
 > [!NOTE]  
-> The master branch code and README may include features not yet released. For the official, stable version and its documentation, please refer to the crates.io page.
-
+> The master branch code and readme may include features that are not yet released. For the official, stable version and its documentation, please refer to the [crates.io](https://crates.io/crates/somo) page.
 
 ## ✨ Highlights:
 - pleasing to the eye thanks to a nice table view
@@ -24,14 +23,12 @@
   <img src="./images/somo-example.png" />
 </p>
 
----
-
 ## ⬇️ Installation:
 
 ### Option 1 - Debian:
 If you use a Debian OS go to [releases](https://github.com/theopfr/somo/releases) and download the latest .deb release.
 
-### Option 2 - From crates.io:
+### Option 2 - crates.io:
 ```sh
 cargo install somo
 ```
@@ -50,13 +47,12 @@ sudo ./result/bin/somo
 ```
 
 ### Option 4 - GitHub (Development Version):
-You can install the latest development version directly from the GitHub repository:
+*Warning:* This is the cutting-edge development version and may be unstable or contain incomplete features. You can install it via cargo directly from the GitHub repository.
 
 ```sh
 cargo install --git https://github.com/theopfr/somo
 ```
 
-*Warning:* This is the cutting-edge development version and may be unstable or contain incomplete features. Use this option only if you want to try the latest features even though they are not released yet.
 
 ---
 
