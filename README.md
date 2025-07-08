@@ -5,6 +5,8 @@
 
 ### A human-friendly alternative to netstat for socket and port monitoring on Linux and macOS.
 
+> [!NOTE]  
+> The master branch code and readme may include features that are not yet released. For the official, stable version and its documentation, please refer to the [crates.io](https://crates.io/crates/somo) page.
 
 ## ✨ Highlights:
 - pleasing to the eye thanks to a nice table view
@@ -21,14 +23,12 @@
   <img src="./images/somo-example.png" />
 </p>
 
----
-
 ## ⬇️ Installation:
 
 ### Option 1 - Debian:
 If you use a Debian OS go to [releases](https://github.com/theopfr/somo/releases) and download the latest .deb release.
 
-### Option 2 - From crates.io:
+### Option 2 - crates.io:
 ```sh
 cargo install somo
 ```
@@ -45,6 +45,14 @@ If you use Nix with Flakes, you can build and use the development version.
 nix build 'github:theopfr/somo?dir=nix'
 sudo ./result/bin/somo
 ```
+
+### Option 4 - GitHub (Development Version):
+*Warning:* This is the cutting-edge development version and may be unstable or contain incomplete features. You can install it via cargo directly from the GitHub repository.
+
+```sh
+cargo install --git https://github.com/theopfr/somo
+```
+
 
 ---
 
@@ -102,13 +110,13 @@ To get a descending order, you can use the ``--reverse, -r`` flag.
 ## 🐚 Shell Completions:
 Somo supports shell completions for bash, zsh, fish, and elvish. Choose your shell:
 
-### Bash
+#### Bash
 ```bash
 mkdir -p ~/.local/share/bash-completion/completions
 somo generate-completions bash > ~/.local/share/bash-completion/completions/somo
 ```
 
-### Zsh
+#### Zsh
 ```zsh
 mkdir -p ~/.local/share/zsh/site-functions
 somo generate-completions zsh > ~/.local/share/zsh/site-functions/_somo
@@ -116,13 +124,13 @@ echo 'fpath=(~/.local/share/zsh/site-functions $fpath)' >> ~/.zshrc
 echo 'autoload -U compinit && compinit' >> ~/.zshrc
 ```
 
-### Fish
+#### Fish
 ```fish
 mkdir -p ~/.config/fish/completions
 somo generate-completions fish > ~/.config/fish/completions/somo.fish
 ```
 
-### Elvish
+#### Elvish
 ```bash
 mkdir -p ~/.config/elvish/lib
 somo generate-completions elvish > ~/.config/elvish/lib/somo.elv
@@ -131,7 +139,7 @@ echo 'use somo' >> ~/.config/elvish/rc.elv
 
 ## 🖥️ Platform Support:
 Somo currently supports:
-- Linux: Full support using the procfs library
-- macOS: Full support using netstat2 and libproc libraries
+- Linux: Full support using the [procfs](https://crates.io/crates/procfs) crate
+- macOS: Full support using [netstat2](https://crates.io/crates/netstat2) and [libproc](https://crates.io/crates/libproc/0.13.0) crates
 
 We welcome contributions to extend support to other platforms!
