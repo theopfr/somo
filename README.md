@@ -37,14 +37,6 @@ Most of the time you will want to run this in ``sudo`` mode to see all processes
 sudo ln -s ~/.cargo/bin/somo /usr/local/bin/somo
 sudo somo   # this works now
 ```
-### Option 3 - Nix:
-
-If you use Nix with Flakes, you can build and use the development version.
-
-```sh
-nix build 'github:theopfr/somo?dir=nix'
-sudo ./result/bin/somo
-```
 
 ### Option 4 - GitHub (Development Version):
 *Warning:* This is the cutting-edge development version and may be unstable or contain incomplete features. You can install it via cargo directly from the GitHub repository.
@@ -53,6 +45,12 @@ sudo ./result/bin/somo
 cargo install --git https://github.com/theopfr/somo
 ```
 
+### Option 3 - Nix (Development Version):
+You can build and use the development version using Nix with Flakes.
+```sh
+nix build 'github:theopfr/somo?dir=nix'
+sudo ./result/bin/somo
+```
 
 ---
 
@@ -137,9 +135,9 @@ somo generate-completions elvish > ~/.config/elvish/lib/somo.elv
 echo 'use somo' >> ~/.config/elvish/rc.elv
 ```
 
+---
+
 ## 🖥️ Platform Support:
 Somo currently supports:
 - Linux: Full support using the [procfs](https://crates.io/crates/procfs) crate
 - macOS: Full support using [netstat2](https://crates.io/crates/netstat2) and [libproc](https://crates.io/crates/libproc/0.13.0) crates
-
-We welcome contributions to extend support to other platforms!

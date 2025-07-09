@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.1.0] - 04.07.2025
+## [1.1.0] - 09.07.2025
 - **add** macOS support, by @belingud
 - **add** sorting by column, by @gerelef
 - **fix** panicking when being piped, by @gerelef
