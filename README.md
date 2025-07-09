@@ -38,14 +38,14 @@ sudo ln -s ~/.cargo/bin/somo /usr/local/bin/somo
 sudo somo   # this works now
 ```
 
-### Option 4 - GitHub (Development Version):
+### Option 3 - GitHub (Development Version):
 *Warning:* This is the cutting-edge development version and may be unstable or contain incomplete features. You can install it via cargo directly from the GitHub repository.
 
 ```sh
 cargo install --git https://github.com/theopfr/somo
 ```
 
-### Option 3 - Nix (Development Version):
+### Option 4 - Nix (Development Version):
 You can build and use the development version using Nix with Flakes.
 ```sh
 nix build 'github:theopfr/somo?dir=nix'
