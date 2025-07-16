@@ -14,7 +14,6 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
-  rust_toolchain: stable
 
 jobs:
   build:
@@ -25,25 +24,22 @@ jobs:
 
     steps:
     - name: Setup | Rust
-      uses: dtolnay/rust-toolchain@v1
+      uses: dtolnay/rust-toolchain@stable
       with:
-        toolchain: ${{ env.rust_toolchain }}
         components: rustfmt, clippy, rust-src
-        
+
     - name: Setup | Checkout
       uses: actions/checkout@v4
 
     - name: Build | Compile
       run: cargo build
 
-  
+
   check-format:
     runs-on: ubuntu-latest
     steps:
     - name: Setup | Rust
-      uses: dtolnay/rust-toolchain@v1
-      with:
-        toolchain: ${{ env.rust_toolchain }}
+      uses: dtolnay/rust-toolchain@stable
 
     - name: Setup | Checkout
       uses: actions/checkout@v4
@@ -51,14 +47,12 @@ jobs:
     - name: Check | Fmt Check
       run: cargo fmt -- --check
 
-  
+
   check-clippy:
     runs-on: ubuntu-latest
     steps:
     - name: Setup | Rust
-      uses: dtolnay/rust-toolchain@v1
-      with:
-        toolchain: ${{ env.rust_toolchain }}
+      uses: dtolnay/rust-toolchain@stable
 
     - name: Setup | Checkout
       uses: actions/checkout@v4
@@ -74,9 +68,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     steps:
     - name: Setup | Rust
-      uses: dtolnay/rust-toolchain@v1
-      with:
-        toolchain: ${{ env.rust_toolchain }}
+      uses: dtolnay/rust-toolchain@stable
 
     - name: Setup | Checkout
       uses: actions/checkout@v4
@@ -88,5 +80,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3 # v17
+      - uses: DeterminateSystems/nix-installer-action@90bb610b90bf290cad97484ba341453bd1cbefea # v19
       - run: nix run 'path:.?dir=nix'

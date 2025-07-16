@@ -434,7 +434,7 @@ mod tests {
                 }) => {
                     assert_eq!(parsed_shell.to_string(), *shell);
                 }
-                _ => panic!("Expected GenerateCompletions command for {}", shell),
+                _ => panic!("Expected GenerateCompletions command for {shell}"),
             }
         }
     }
