@@ -30,7 +30,7 @@ fn get_process_name(pid: i32) -> String {
 /// # Returns
 /// All filtered TCP/UDP connections as a `Connection` struct in a vector.
 fn parse_connections(
-    sockets_info: &Vec<SocketInfo>,
+    sockets_info: &[SocketInfo],
     filter_options: &FilterOptions,
 ) -> Vec<Connection> {
     let mut af_flags = AddressFamilyFlags::empty();
@@ -84,10 +84,8 @@ fn parse_connections(
             };
 
             // Create a unique key for deduplication
-            let connection_key = format!(
-                "{}:{}:{}:{}:{}:{}",
-                proto, local_port, remote_address, remote_port, state, pid
-            );
+            let connection_key =
+                format!("{proto}:{local_port}:{remote_address}:{remote_port}:{state}:{pid}");
 
             // If the connection has already been processed, skip it
             if !seen_connections.insert(connection_key) {
