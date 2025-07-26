@@ -76,6 +76,7 @@ You can use the following flags to filter based on different attributes:
 | ```--pid``` | filter by a PID | PID number, e.g ``10000`` |
 | ```--open, -o``` | filter by open connections | - |
 | ```--listen, -l``` | filter by listening connections | - |
+| ```--established, -e``` | filter by established connections | - |
 | ```--exclude-ipv6``` | don't list IPv6 connections | - |
 
 ### ✨ Compact table view:

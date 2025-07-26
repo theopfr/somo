@@ -26,6 +26,7 @@ pub struct Flags {
     pub json: bool,
     pub open: bool,
     pub listen: bool,
+    pub established: bool,
     pub exclude_ipv6: bool,
     pub compact: bool,
     pub sort: Option<SortField>,
@@ -90,6 +91,10 @@ pub struct Args {
     /// Filter by listening connections
     #[arg(short = 'l', long, default_value_t = false)]
     listen: bool,
+
+    /// Filter by established connections
+    #[arg(short = 'e', long, default_value_t = false)]
+    established: bool,
 
     /// Exclude IPv6 connections
     #[arg(long, default_value_t = false)]
@@ -160,6 +165,7 @@ pub fn cli() -> CliCommand {
             json: args.json,
             open: args.open,
             listen: args.listen,
+            established: args.established,
             exclude_ipv6: args.exclude_ipv6,
             compact: args.compact,
             sort: args.sort,

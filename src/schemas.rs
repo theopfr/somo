@@ -49,6 +49,7 @@ pub struct FilterOptions {
     pub by_local_port: Option<String>,
     pub by_open: bool,
     pub by_listen: bool,
+    pub by_established: bool,
     pub exclude_ipv6: bool,
 }
 
