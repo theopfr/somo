@@ -46,6 +46,9 @@ pub fn filter_out_connection(
     if filter_options.by_open && connection_details.state == "close" {
         return true;
     }
+    if filter_options.by_established && connection_details.state != "established" {
+        return true;
+    }
 
     false
 }

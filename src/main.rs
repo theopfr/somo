@@ -30,6 +30,7 @@ fn main() {
         by_pid: args.pid,
         by_open: args.open,
         by_listen: args.listen,
+        by_established: args.established,
         exclude_ipv6: args.exclude_ipv6,
     };
 
