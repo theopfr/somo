@@ -4,6 +4,7 @@ mod macros;
 mod schemas;
 mod table;
 mod utils;
+mod markdown;
 
 use clap::CommandFactory;
 use cli::{print_completions, Args, CliCommand, Commands};

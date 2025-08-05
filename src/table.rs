@@ -1,35 +1,11 @@
 use handlebars::{Handlebars, RenderErrorReason};
-use termimad::crossterm::style::{Attribute::*, Color::*};
 use termimad::*;
 
+use crate::markdown::{build_table_header, build_table_row, set_table_style, get_row_alignment, markdown_fmt_row};
 use crate::schemas::{AddressType, Connection};
-use crate::utils::pretty_print_syntax_error;
-use crate::{soutln, utils};
+use crate::utils::{pretty_print_syntax_error};
+use crate::{sout, utils};
 
-/// Uses the termimad crate to create a custom appearance for Markdown text in the console.
-///
-/// # Appearance
-/// * **bold** text -> bold and cyan
-/// * *italic* text -> italic and light gray
-/// * ~~strikeout~~ text -> not struck out, red and blinking
-/// * `inline code` text -> not code formatted, yellow
-///
-/// # Arguments
-/// None
-///
-/// # Returns
-/// A custom markdown "skin".
-fn create_table_style() -> MadSkin {
-    let mut skin = MadSkin::default();
-    skin.bold.set_fg(Cyan);
-    skin.italic.set_fg(gray(11));
-    skin.strikeout = CompoundStyle::new(Some(Red), None, RapidBlink.into());
-    skin.paragraph.align = Alignment::Left;
-    skin.table.align = Alignment::Left;
-    skin.inline_code = CompoundStyle::new(Some(Yellow), None, Encircled.into());
-
-    skin
-}
 
 /// Marks localhost and unspecified IP addresses (i.e., 0.0.0.0) using Markdown formatting
 ///
@@ -51,7 +27,7 @@ fn create_table_style() -> MadSkin {
 ///
 /// # Returns
 /// A Markdown formatted string based on the address-type.
-fn format_known_address(remote_address: &String, address_type: &AddressType) -> String {
+fn format_known_address(remote_address: &str, address_type: &AddressType) -> String {
     match address_type {
         AddressType::Unspecified => {
             format!("*{remote_address}*")
@@ -63,28 +39,6 @@ fn format_known_address(remote_address: &String, address_type: &AddressType) -> 
     }
 }
 
-/// Creates a Markdown table row with just empty characters with the width of the terminal window.
-///
-/// # Argument
-/// * `terminal_width`: The current width of the terminal.
-/// * `max_column_spaces`: An array in which the values represent the max-width of each of the 7 Markdown table rows.
-///
-/// # Returns
-/// A Markdown table row string in which each column is filled with as many empty characters needed to fit in content and as well fill out the terminal width.
-fn fill_terminal_width(max_column_spaces: [u16; 8]) -> String {
-    let empty_character = "\u{2800}";
-
-    let mut row: String = String::new();
-    for &max_column_space in &max_column_spaces {
-        row.push_str(&format!(
-            "| {} ",
-            empty_character.repeat(max_column_space as usize)
-        ));
-    }
-    row.push_str("|\n");
-
-    row
-}
 
 /// Prints all current connections in a pretty Markdown table.
 ///
@@ -94,49 +48,51 @@ fn fill_terminal_width(max_column_spaces: [u16; 8]) -> String {
 /// # Returns
 /// None
 pub fn print_connections_table(all_connections: &[Connection], use_compact_mode: bool) {
-    let skin: MadSkin = create_table_style();
+    let skin: MadSkin = set_table_style();
 
-    // Add table headers
-    static HEADER_MARKDOWN_ROW: &str = "| :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |\n";
-    static DATA_MARKDOWN_ROW: &str = "| -: | :-: | -: | -: | :- | -: | :- | :-: |\n";
-    let mut markdown = HEADER_MARKDOWN_ROW.to_string();
-    markdown.push_str("| **#** | **proto** | **local port** | **remote address** | **remote port** | **pid** | ***program*** | **state** |\n");
-    markdown.push_str(DATA_MARKDOWN_ROW);
+    const COLUMN_NAMES: &[&str] = &[
+        "**#**",
+        "**proto**",
+        "**local port**",
+        "**remote address**",
+        "**remote port**",
+        "**pid** *program*",
+        "**state**"
+    ];
+    const NUM_TABLE_COLUMNS: usize = COLUMN_NAMES.len();
+
+    let markdown_row_seperator = &markdown_fmt_row(NUM_TABLE_COLUMNS, get_row_alignment(use_compact_mode));
+    let mut output_table = String::new();
+
+    output_table.push_str(markdown_row_seperator);
+    output_table.push_str(&build_table_header(COLUMN_NAMES));
+    output_table.push_str(markdown_row_seperator);
 
     for (idx, connection) in all_connections.iter().enumerate() {
         let formatted_remote_address: String =
             format_known_address(&connection.remote_address, &connection.address_type);
+        let formatted_pid_info: String = format!("{} *{}*", connection.pid, connection.program);
 
-        markdown.push_str(&format!(
-            "| *{}* | {} | {} | {} | {} | {} | *{}* | {} |\n",
-            idx + 1,
-            connection.proto,
-            connection.local_port,
+        output_table.push_str(&build_table_row(idx + 1, &[
+            &connection.proto,
+            &connection.local_port,
             &formatted_remote_address,
-            connection.remote_port,
-            connection.pid,
-            connection.program,
-            connection.state
-        ));
+            &connection.remote_port,
+            &formatted_pid_info,
+            &connection.state,
+        ]));
 
         if !use_compact_mode && idx < all_connections.len() - 1 {
-            markdown.push_str(DATA_MARKDOWN_ROW);
+            output_table.push_str(markdown_row_seperator);
         }
     }
 
-    if !use_compact_mode {
-        // Create an empty row that forces the table to fit the terminal with respect to how much space ...
-        // ... each column should receive based on the max length of each column (in the array below)
-        let max_column_spaces: [u16; 8] = [5, 8, 8, 19, 7, 5, 19, 13];
-        let terminal_filling_row: String = fill_terminal_width(max_column_spaces);
-        markdown.push_str(&terminal_filling_row);
-    }
+    output_table.push_str(markdown_row_seperator);
 
-    markdown.push_str(HEADER_MARKDOWN_ROW);
-
-    soutln!("{}", skin.term_text(&markdown));
+    sout!("{}", skin.term_text(&output_table));
     utils::pretty_print_info(&format!("{} Connections", all_connections.len()))
 }
+
 
 /// Prints all current connections in a json format.
 ///
@@ -237,19 +193,6 @@ mod tests {
         let addr = "123.123.123".to_string();
         let result = format_known_address(&addr, &AddressType::Extern);
         assert_eq!(result, "123.123.123");
-    }
-
-    #[test]
-    fn test_fill_terminal_width() {
-        let row = fill_terminal_width([5, 8, 8, 19, 7, 5, 19, 13]);
-        let columns = row.matches('|').count();
-        assert_eq!(columns, 9); // 8 columns + final pipe
-    }
-
-    #[test]
-    fn test_table_style_alignment() {
-        let compact_skin = create_table_style();
-        assert_eq!(compact_skin.table.align, Alignment::Left);
     }
 
     #[test]

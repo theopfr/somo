@@ -15,6 +15,7 @@ fn bold_text(text: &str) -> String {
     format!("\x1B[1m{text}\x1B[0m")
 }
 
+
 /// Prints out formatted text starting with a cyan "Info:" prefix.
 ///
 /// # Arguments
