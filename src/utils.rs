@@ -106,8 +106,6 @@ pub fn pretty_print_syntax_error(preamble: &str, text: &str, line: usize, column
     );
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use super::*;

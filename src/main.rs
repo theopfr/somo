@@ -1,10 +1,10 @@
 mod cli;
 mod connections;
 mod macros;
-mod schemas;
-mod view;
-mod utils;
 mod markdown;
+mod schemas;
+mod utils;
+mod view;
 
 use clap::CommandFactory;
 use cli::{print_completions, Args, CliCommand, Commands};

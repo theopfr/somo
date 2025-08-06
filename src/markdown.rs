@@ -68,7 +68,7 @@ impl fmt::Display for TableCell {
 
         // Add optional secondary text formatted as cursive, ie. using `*`
         if let Some(ref sec) = self.secondary_text {
-            content.push_str(&format!(" *{}*", sec));
+            content.push_str(&format!(" *{sec}*"));
         }
 
         // Add optional padding around the cell content, if set to `Auto` padding depends on the terminal width
@@ -79,9 +79,9 @@ impl fmt::Display for TableCell {
         };
 
         if should_pad {
-            write!(f, "\u{2800}{}\u{2800}", content)
+            write!(f, "\u{2800}{content}\u{2800}")
         } else {
-            write!(f, "{}", content)
+            write!(f, "{content}")
         }
     }
 }
@@ -142,12 +142,11 @@ impl Table {
             MarkdownRowAlignment::Center => ":-:",
         };
 
-        let row = std::iter::repeat(cell)
-            .take(num_cols)
+        let row = std::iter::repeat_n(cell, num_cols)
             .collect::<Vec<_>>()
             .join(" | ");
 
-        format!("| {} |\n", row)
+        format!("| {row} |\n")
     }
 
     /// Builds a markdown row string from the provided table cells
@@ -212,24 +211,24 @@ mod tests {
     #[test]
     fn test_table_cell_header() {
         let cell = TableCell::header("text", None, Padding::NoPad);
-        let output = format!("{}", cell);
+        let output = format!("{cell}");
         assert_eq!(output, "**text**");
 
         // With secondary text
         let cell = TableCell::header("text", Some("secondary text".to_string()), Padding::NoPad);
-        let output = format!("{}", cell);
+        let output = format!("{cell}");
         assert_eq!(output, "**text** *secondary text*");
     }
 
     #[test]
     fn test_table_cell_body() {
         let cell = TableCell::body("text", None, Padding::NoPad);
-        let output = format!("{}", cell);
+        let output = format!("{cell}");
         assert_eq!(output, "text");
 
         // With secondary text
         let cell = TableCell::body("text", Some("secondary text".to_string()), Padding::NoPad);
-        let output = format!("{}", cell);
+        let output = format!("{cell}");
         assert_eq!(output, "text *secondary text*");
     }
 

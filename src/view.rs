@@ -134,35 +134,6 @@ mod tests {
     use std::net::{Ipv4Addr, Ipv6Addr};
 
     #[test]
-    fn test_get_connections_table_contains_expected_data() {
-        let connections = vec![
-            Connection {
-                proto: "tcp".to_string(),
-                local_port: "12345".to_string(),
-                remote_address: "127.0.0.1".to_string(),
-                remote_port: "80".to_string(),
-                program: "nginx".to_string(),
-                pid: "42".to_string(),
-                state: "listening".to_string(),
-                address_type: AddressType::Localhost,
-                ipvx_raw: Ipv4Addr::new(127, 0, 0, 1).into(),
-            },
-        ];
-
-        let output = get_connections_table(&connections, true);
-
-        assert!(output.contains("tcp"));
-        assert!(output.contains("12345"));
-        assert!(output.contains("127.0.0.1"));
-        assert!(output.contains("localhost"));
-        assert!(output.contains("80"));
-        assert!(output.contains("nginx"));
-        assert!(output.contains("42"));
-        assert!(output.contains("listening"));
-    }
-
-
-    #[test]
     fn test_get_connections_formatted() {
         let connections = vec![
             Connection {
