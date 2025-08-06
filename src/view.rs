@@ -1,98 +1,57 @@
+use crate::markdown::{get_row_alignment, Padding, Table, TableCell};
+use crate::schemas::Connection;
+use crate::utils::{format_known_address, pretty_print_syntax_error};
 use handlebars::{Handlebars, RenderErrorReason};
-use termimad::*;
 
-use crate::markdown::{build_table_header, build_table_row, set_table_style, get_row_alignment, markdown_fmt_row};
-use crate::schemas::{AddressType, Connection};
-use crate::utils::{pretty_print_syntax_error};
-use crate::{sout, utils};
-
-
-/// Marks localhost and unspecified IP addresses (i.e., 0.0.0.0) using Markdown formatting
-///
-/// * `address_type` == Localhost -> *italic* + "localhost"
-/// * `address_type` == Unspecified -> *italic*
-/// * `address_type` == Extern -> not formatted
-///
-/// # Arguments
-/// * `remote_address`: The remote address.
-/// * `address_type`: The address type as an AddressType enum.
-///
-/// # Example
-/// ```
-/// let address = "127.0.0.1".to_string();
-/// let address_type = AddressType::Localhost;
-/// let formatted = format_known_address(&address, &address_type);
-/// assert_eq!(formatted, "*127.0.0.1 localhost*");
-/// ```
-///
-/// # Returns
-/// A Markdown formatted string based on the address-type.
-fn format_known_address(remote_address: &str, address_type: &AddressType) -> String {
-    match address_type {
-        AddressType::Unspecified => {
-            format!("*{remote_address}*")
-        }
-        AddressType::Localhost => {
-            format!("*{remote_address} localhost*")
-        }
-        AddressType::Extern => remote_address.to_string(),
-    }
-}
-
-
-/// Prints all current connections in a pretty Markdown table.
+/// Builds a Markdown formatted table with all current connections.
 ///
 /// # Arguments
 /// * `all_connections`: A list containing all current connections as a `Connection` struct.
+/// * `is_compact`: Wether the table should be rendered compact, ie. without horizontal row separators.
 ///
 /// # Returns
-/// None
-pub fn print_connections_table(all_connections: &[Connection], use_compact_mode: bool) {
-    let skin: MadSkin = set_table_style();
-
-    const COLUMN_NAMES: &[&str] = &[
-        "**#**",
-        "**proto**",
-        "**local port**",
-        "**remote address**",
-        "**remote port**",
-        "**pid** *program*",
-        "**state**"
+/// A string containing the Markdown formatted connections table.
+pub fn get_connections_table(all_connections: &[Connection], is_compact: bool) -> String {
+    let column_names: Vec<TableCell> = vec![
+        TableCell::header("#", None, Padding::Auto),
+        TableCell::header("proto", None, Padding::Auto),
+        TableCell::header("local port", None, Padding::Auto),
+        TableCell::header("remote address", None, Padding::Auto),
+        TableCell::header("remote port", None, Padding::Auto),
+        TableCell::header("pid", Some("program".to_owned()), Padding::Auto),
+        TableCell::header("state", None, Padding::Auto),
     ];
-    const NUM_TABLE_COLUMNS: usize = COLUMN_NAMES.len();
 
-    let markdown_row_seperator = &markdown_fmt_row(NUM_TABLE_COLUMNS, get_row_alignment(use_compact_mode));
-    let mut output_table = String::new();
-
-    output_table.push_str(markdown_row_seperator);
-    output_table.push_str(&build_table_header(COLUMN_NAMES));
-    output_table.push_str(markdown_row_seperator);
+    let mut somo_table: Table = Table::new(column_names.len(), get_row_alignment(is_compact));
+    somo_table.add_header(column_names);
 
     for (idx, connection) in all_connections.iter().enumerate() {
-        let formatted_remote_address: String =
-            format_known_address(&connection.remote_address, &connection.address_type);
-        let formatted_pid_info: String = format!("{} *{}*", connection.pid, connection.program);
+        let add_row_separator = !is_compact || idx + 1 == all_connections.len();
 
-        output_table.push_str(&build_table_row(idx + 1, &[
-            &connection.proto,
-            &connection.local_port,
-            &formatted_remote_address,
-            &connection.remote_port,
-            &formatted_pid_info,
-            &connection.state,
-        ]));
-
-        if !use_compact_mode && idx < all_connections.len() - 1 {
-            output_table.push_str(markdown_row_seperator);
-        }
+        somo_table.add_row(
+            vec![
+                TableCell::body(&format!("*{}*", idx + 1), None, Padding::NoPad),
+                TableCell::body(&connection.proto, None, Padding::Auto),
+                TableCell::body(&connection.local_port, None, Padding::Auto),
+                TableCell::body(
+                    &format_known_address(&connection.remote_address, &connection.address_type),
+                    None,
+                    Padding::Auto,
+                ),
+                TableCell::body(&connection.remote_port, None, Padding::Auto),
+                TableCell::body(
+                    &connection.pid,
+                    Some(connection.program.clone()),
+                    Padding::Auto,
+                ),
+                TableCell::body(&connection.state, None, Padding::Auto),
+            ],
+            add_row_separator,
+        )
     }
 
-    output_table.push_str(markdown_row_seperator);
-
-    sout!("{}", skin.term_text(&output_table));
-    utils::pretty_print_info(&format!("{} Connections", all_connections.len()))
+    somo_table.build()
 }
-
 
 /// Prints all current connections in a json format.
 ///
@@ -170,30 +129,38 @@ pub fn get_connections_formatted(
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use crate::schemas::AddressType;
     use std::net::{Ipv4Addr, Ipv6Addr};
 
-    use super::*;
-
     #[test]
-    fn test_format_known_address_localhost() {
-        let addr = "127.0.0.1".to_string();
-        let result = format_known_address(&addr, &AddressType::Localhost);
-        assert_eq!(result, "*127.0.0.1 localhost*");
+    fn test_get_connections_table_contains_expected_data() {
+        let connections = vec![
+            Connection {
+                proto: "tcp".to_string(),
+                local_port: "12345".to_string(),
+                remote_address: "127.0.0.1".to_string(),
+                remote_port: "80".to_string(),
+                program: "nginx".to_string(),
+                pid: "42".to_string(),
+                state: "listening".to_string(),
+                address_type: AddressType::Localhost,
+                ipvx_raw: Ipv4Addr::new(127, 0, 0, 1).into(),
+            },
+        ];
+
+        let output = get_connections_table(&connections, true);
+
+        assert!(output.contains("tcp"));
+        assert!(output.contains("12345"));
+        assert!(output.contains("127.0.0.1"));
+        assert!(output.contains("localhost"));
+        assert!(output.contains("80"));
+        assert!(output.contains("nginx"));
+        assert!(output.contains("42"));
+        assert!(output.contains("listening"));
     }
 
-    #[test]
-    fn test_format_known_address_unspecified() {
-        let addr = "0.0.0.0".to_string();
-        let result = format_known_address(&addr, &AddressType::Unspecified);
-        assert_eq!(result, "*0.0.0.0*");
-    }
-
-    #[test]
-    fn test_format_known_address_extern() {
-        let addr = "123.123.123".to_string();
-        let result = format_known_address(&addr, &AddressType::Extern);
-        assert_eq!(result, "123.123.123");
-    }
 
     #[test]
     fn test_get_connections_formatted() {

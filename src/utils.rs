@@ -1,4 +1,4 @@
-use crate::soutln;
+use crate::{schemas::AddressType, soutln};
 
 /// Wraps the input text in ANSI escape codes to print it in red.
 fn red_text(text: &str) -> String {
@@ -15,6 +15,37 @@ fn bold_text(text: &str) -> String {
     format!("\x1B[1m{text}\x1B[0m")
 }
 
+/// Marks localhost and unspecified IP addresses (i.e., 0.0.0.0) using Markdown formatting
+///
+/// * `address_type` == Localhost -> *italic* + "localhost"
+/// * `address_type` == Unspecified -> *italic*
+/// * `address_type` == Extern -> not formatted
+///
+/// # Arguments
+/// * `remote_address`: The remote address.
+/// * `address_type`: The address type as an AddressType enum.
+///
+/// # Example
+/// ```
+/// let address = "127.0.0.1".to_string();
+/// let address_type = AddressType::Localhost;
+/// let formatted = format_known_address(&address, &address_type);
+/// assert_eq!(formatted, "*127.0.0.1 localhost*");
+/// ```
+///
+/// # Returns
+/// A Markdown formatted string based on the address-type.
+pub fn format_known_address(remote_address: &str, address_type: &AddressType) -> String {
+    match address_type {
+        AddressType::Unspecified => {
+            format!("*{remote_address}*")
+        }
+        AddressType::Localhost => {
+            format!("*{remote_address} localhost*")
+        }
+        AddressType::Extern => remote_address.to_string(),
+    }
+}
 
 /// Prints out formatted text starting with a cyan "Info:" prefix.
 ///
@@ -73,4 +104,32 @@ pub fn pretty_print_syntax_error(preamble: &str, text: &str, line: usize, column
         " ".repeat(line_pointer.chars().count() + column - 1),
         red_text("^")
     );
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_format_known_address_localhost() {
+        let addr = "127.0.0.1".to_string();
+        let result = format_known_address(&addr, &AddressType::Localhost);
+        assert_eq!(result, "*127.0.0.1 localhost*");
+    }
+
+    #[test]
+    fn test_format_known_address_unspecified() {
+        let addr = "0.0.0.0".to_string();
+        let result = format_known_address(&addr, &AddressType::Unspecified);
+        assert_eq!(result, "*0.0.0.0*");
+    }
+
+    #[test]
+    fn test_format_known_address_extern() {
+        let addr = "123.123.123".to_string();
+        let result = format_known_address(&addr, &AddressType::Extern);
+        assert_eq!(result, "123.123.123");
+    }
 }
