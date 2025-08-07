@@ -53,6 +53,7 @@ pub struct FilterOptions {
     pub exclude_ipv6: bool,
 }
 
+/// Represents the types of network protocols.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Protocol {
     Tcp,

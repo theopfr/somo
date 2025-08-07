@@ -1,9 +1,10 @@
 mod cli;
 mod connections;
 mod macros;
+mod markdown;
 mod schemas;
-mod table;
 mod utils;
+mod view;
 
 use clap::CommandFactory;
 use cli::{print_completions, Args, CliCommand, Commands};
@@ -45,13 +46,15 @@ fn main() {
     }
 
     if args.json {
-        let result = table::get_connections_json(&all_connections);
+        let result = view::get_connections_json(&all_connections);
         soutln!("{}", result);
     } else if args.format.is_some() {
-        let result = table::get_connections_formatted(&all_connections, &args.format.unwrap());
+        let result = view::get_connections_formatted(&all_connections, &args.format.unwrap());
         soutln!("{}", result);
     } else {
-        table::print_connections_table(&all_connections, args.compact);
+        let result = view::get_connections_table(&all_connections, args.compact);
+        sout!("{}", result);
+        utils::pretty_print_info(&format!("{} Connections", all_connections.len()));
     }
 
     if args.kill {
