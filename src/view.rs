@@ -1,5 +1,6 @@
 use crate::markdown::{get_row_alignment, Padding, Table, TableCell};
 use crate::schemas::Connection;
+use crate::services::format_remote_port;
 use crate::utils::{format_known_address, pretty_print_syntax_error};
 use handlebars::{Handlebars, RenderErrorReason};
 
@@ -8,10 +9,15 @@ use handlebars::{Handlebars, RenderErrorReason};
 /// # Arguments
 /// * `all_connections`: A list containing all current connections as a `Connection` struct.
 /// * `is_compact`: Wether the table should be rendered compact, ie. without horizontal row separators.
-///
+/// * `annotate_remote_port`: Whether to append IANA service names to the remote port column (e.g., `443 (https)`).
+/// 
 /// # Returns
 /// A string containing the Markdown formatted connections table.
-pub fn get_connections_table(all_connections: &[Connection], is_compact: bool) -> String {
+pub fn get_connections_table(
+    all_connections: &[Connection],
+    is_compact: bool,
+    annotate_remote_port: bool,
+) -> String {
     let column_names: Vec<TableCell> = vec![
         TableCell::header("#", None, Padding::Auto),
         TableCell::header("proto", None, Padding::Auto),
@@ -38,7 +44,15 @@ pub fn get_connections_table(all_connections: &[Connection], is_compact: bool) -
                     None,
                     Padding::Auto,
                 ),
-                TableCell::body(&connection.remote_port, None, Padding::Auto),
+                TableCell::body(
+                    &format_remote_port(
+                        &connection.remote_port,
+                        &connection.proto,
+                        annotate_remote_port,
+                    ),
+                    None,
+                    Padding::Auto,
+                ),
                 TableCell::body(
                     &connection.pid,
                     Some(connection.program.clone()),
@@ -172,5 +186,39 @@ mod tests {
 
             assert_eq!(result.as_str(), expected_result.as_str());
         }
+    }
+}
+
+#[cfg(test)]
+mod annotate_tests {
+    use super::get_connections_table;
+    use crate::schemas::{AddressType, Connection};
+    use std::net::IpAddr;
+
+    fn c(rp: &str) -> Connection {
+        Connection {
+            proto: "tcp".into(),
+            local_port: "1234".into(),
+            remote_address: "1.2.3.4".into(),
+            remote_port: rp.into(),
+            program: "-".into(),
+            pid: "-".into(),
+            state: "established".into(),
+            address_type: AddressType::Extern,
+            ipvx_raw: "1.2.3.4".parse::<IpAddr>().unwrap(),
+        }
+    }
+
+    #[test]
+    fn table_without_annotation_keeps_port() {
+        let s = get_connections_table(&[c("59345")], false, false);
+        assert!(s.contains("59345"));
+        assert!(!s.contains("ephemeral"));
+    }
+
+    #[test]
+    fn table_with_annotation_marks_ephemeral() {
+        let s = get_connections_table(&[c("59345")], false, true);
+        assert!(s.contains("59345 (ephemeral)"));
     }
 }

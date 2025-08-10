@@ -3,6 +3,7 @@ mod connections;
 mod macros;
 mod markdown;
 mod schemas;
+mod services;
 mod utils;
 mod view;
 
@@ -52,7 +53,8 @@ fn main() {
         let result = view::get_connections_formatted(&all_connections, &args.format.unwrap());
         soutln!("{}", result);
     } else {
-        let result = view::get_connections_table(&all_connections, args.compact);
+        let result =
+            view::get_connections_table(&all_connections, args.compact, args.annotate_remote_port);
         sout!("{}", result);
         utils::pretty_print_info(&format!("{} Connections", all_connections.len()));
     }
