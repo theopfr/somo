@@ -8,9 +8,9 @@ use handlebars::{Handlebars, RenderErrorReason};
 ///
 /// # Arguments
 /// * `all_connections`: A list containing all current connections as a `Connection` struct.
-/// * `is_compact`: Wether the table should be rendered compact, ie. without horizontal row separators.
+/// * `is_compact`: Whether the table should be rendered compact, i.e., without horizontal row separators.
 /// * `annotate_remote_port`: Whether to append IANA service names to the remote port column (e.g., `443 (https)`).
-/// 
+///
 /// # Returns
 /// A string containing the Markdown formatted connections table.
 pub fn get_connections_table(

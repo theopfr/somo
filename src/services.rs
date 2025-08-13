@@ -6,7 +6,7 @@ use std::{
     path::Path,
 };
 
-static SVC: Lazy<HashMap<(u16, &'static str), String>> = Lazy::new(|| load_services());
+static SVC: Lazy<HashMap<(u16, &'static str), String>> = Lazy::new(load_services);
 
 fn load_services() -> HashMap<(u16, &'static str), String> {
     let mut map = HashMap::new();
@@ -15,7 +15,7 @@ fn load_services() -> HashMap<(u16, &'static str), String> {
         if Path::new(p).exists() {
             if let Ok(f) = File::open(p) {
                 let r = BufReader::new(f);
-                for line in r.lines().flatten() {
+                for line in r.lines().map_while(Result::ok) {
                     let s = line.trim();
                     if s.is_empty() || s.starts_with('#') {
                         continue;
@@ -61,33 +61,50 @@ fn svc_from_file(port: u16, proto: &str) -> Option<String> {
 
 #[cfg(unix)]
 fn svc_from_libc(port: u16, proto: &str) -> Option<String> {
-    use libc::{getservbyport, servent, setservent};
+    use libc::{endservent, getservbyport, setservent};
     use std::{
         ffi::{CStr, CString},
         ptr,
     };
+
+    // keep DB open during lookup; close after
     unsafe { setservent(1) }
+
     let be = (port as i32).to_be();
-    unsafe {
-        // try with proto
-        if let Ok(c) = CString::new(if proto.eq_ignore_ascii_case("udp") {
-            "udp"
+    let proto_c = CString::new(if proto.eq_ignore_ascii_case("udp") {
+        "udp"
+    } else {
+        "tcp"
+    })
+    .ok();
+
+    let se_ptr = unsafe {
+        // try with proto first
+        let with_proto = proto_c
+            .as_ref()
+            .map(|c| getservbyport(be, c.as_ptr()))
+            .unwrap_or(ptr::null_mut());
+        if !with_proto.is_null() {
+            with_proto
         } else {
-            "tcp"
-        }) {
-            let se: *mut servent = getservbyport(be, c.as_ptr());
-            if !se.is_null() {
-                return Some(CStr::from_ptr((*se).s_name).to_string_lossy().into_owned());
-            }
+            // fallback: no proto
+            getservbyport(be, ptr::null())
         }
-        // try without proto
-        let se: *mut servent = getservbyport(be, ptr::null());
-        if se.is_null() {
-            None
-        } else {
-            Some(CStr::from_ptr((*se).s_name).to_string_lossy().into_owned())
-        }
-    }
+    };
+
+    let out = if se_ptr.is_null() {
+        None
+    } else {
+        // SAFETY: se_ptr validated non-null
+        Some(
+            unsafe { CStr::from_ptr((*se_ptr).s_name) }
+                .to_string_lossy()
+                .into_owned(),
+        )
+    };
+
+    unsafe { endservent() }
+    out
 }
 
 #[cfg(not(unix))]
@@ -138,6 +155,14 @@ mod tests {
         assert_eq!(
             format_remote_port("59345", "tcp", true),
             "59345 (ephemeral)"
+        );
+    }
+
+    #[test]
+    fn service_and_ephemeral_tag() {
+        assert_eq!(
+            format_remote_port("65535", "tcp", true),
+            "65535 (ephemeral)"
         );
     }
 
