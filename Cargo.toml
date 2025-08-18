@@ -12,7 +12,7 @@ categories = ["command-line-utilities"]
 
 [dependencies]
 clap = { version = "4.5.45", features = ["derive"] }
-clap_complete = "4.5.56"
+clap_complete = "4.5.57"
 inquire = "0.7.5"
 termimad = "0.33.0"
 serde = { version = "1.0.196", features = ["derive"] }
