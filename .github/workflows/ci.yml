@@ -29,7 +29,7 @@ jobs:
         components: rustfmt, clippy, rust-src
 
     - name: Setup | Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Build | Compile
       run: cargo build
@@ -42,7 +42,7 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
 
     - name: Setup | Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Check | Fmt Check
       run: cargo fmt -- --check
@@ -55,7 +55,7 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
 
     - name: Setup | Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Check | Clippy
       run: cargo clippy --no-deps -- -Dwarnings
@@ -71,7 +71,7 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
 
     - name: Setup | Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Test | Run
       run: cargo test
@@ -79,6 +79,6 @@ jobs:
   nix:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: DeterminateSystems/nix-installer-action@90bb610b90bf290cad97484ba341453bd1cbefea # v19
       - run: nix run 'path:.?dir=nix'
