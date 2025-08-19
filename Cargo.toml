@@ -24,5 +24,5 @@ nix = {version = "0.30.1", features = ["process", "signal"]}
 procfs = "0.17.0"
 
 [target.'cfg(target_os = "macos")'.dependencies]
-netstat2 = "0.11.1"
+netstat2 = "0.11.2"
 libproc = "0.14.10"
