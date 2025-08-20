@@ -120,11 +120,11 @@ pub struct Args {
     #[arg(short = 's', long, default_value = None, overrides_with = "sort")]
     sort: Option<SortField>,
 
-    /// Retrieve config-file path
+    /// Retrieve config file path
     #[arg(long, default_value_t = false)]
     config_file: bool,
 
-    /// Ignores the config file when set
+    /// Ignore config file
     #[arg(long, default_value_t = false)]
     no_config: bool,
 }
