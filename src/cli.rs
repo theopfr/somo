@@ -4,9 +4,12 @@ use inquire::InquireError;
 use inquire::Select;
 use nix::sys::signal;
 use nix::unistd::Pid;
+use std::env;
 use std::str::FromStr;
 use std::{io, string::String};
 
+use crate::config::merge_cli_config_args;
+use crate::config::read_config_file;
 use crate::schemas::{Connection, Protocol, Protocols};
 use crate::utils;
 
@@ -31,6 +34,7 @@ pub struct Flags {
     pub compact: bool,
     pub sort: Option<SortField>,
     pub reverse: bool,
+    pub config_file: bool,
 }
 
 /// Represents all possible flags which can be provided by the user in the CLI.
@@ -41,75 +45,88 @@ pub struct Args {
     command: Option<Commands>,
 
     /// Display an interactive selection option after inspecting connections
-    #[arg(short = 'k', long, default_value = None)]
+    #[arg(short = 'k', long, default_value = None, overrides_with = "kill")]
     kill: bool,
 
     /// Deprecated. Use '--tcp' and '--udp' instead.
-    #[arg(long, default_value = None)]
+    #[arg(long, default_value = None, overrides_with = "proto")]
     proto: Option<String>,
 
     /// Include TCP connections
-    #[arg(short, long, default_value = None)]
+    #[arg(short, long, default_value = None, overrides_with = "tcp")]
     tcp: bool,
 
     /// Include UDP connections
-    #[arg(short, long, default_value = None)]
+    #[arg(short, long, default_value = None, overrides_with = "udp")]
     udp: bool,
 
     /// Filter connections by remote IP address
-    #[arg(long, default_value = None)]
+    #[arg(long, default_value = None, overrides_with = "ip")]
     ip: Option<String>,
 
     /// Filter connections by remote port
-    #[arg(long, default_value = None)]
+    #[arg(long, default_value = None, overrides_with = "remote_port")]
     remote_port: Option<String>,
 
     /// Filter connections by local port
-    #[arg(short = 'p', long, default_value = None)]
+    #[arg(short = 'p', long, default_value = None, overrides_with = "port")]
     port: Option<String>,
 
     /// Filter connections by program name
-    #[arg(long, default_value = None)]
+    #[arg(long, default_value = None, overrides_with = "program")]
     program: Option<String>,
 
     /// Filter connections by PID
-    #[arg(long, default_value = None)]
+    #[arg(long, default_value = None, overrides_with = "pid")]
     pid: Option<String>,
 
     /// Format the output in a certain way, e.g., `somo --format "PID: {{pid}}, Protocol: {{proto}}, Remote Address: {{remote_address}}"`
-    #[arg(long, default_value = None)]
+    #[arg(long, default_value = None, overrides_with = "format")]
     format: Option<String>,
 
     /// Output in JSON
-    #[arg(long, default_value_t = false)]
+    #[arg(long, default_value_t = false, overrides_with = "json")]
     json: bool,
 
     /// Filter by open connections
-    #[arg(short = 'o', long, default_value_t = false)]
+    #[arg(short = 'o', long, default_value_t = false, overrides_with = "open")]
     open: bool,
 
     /// Filter by listening connections
-    #[arg(short = 'l', long, default_value_t = false)]
+    #[arg(short = 'l', long, default_value_t = false, overrides_with = "listen")]
     listen: bool,
 
     /// Filter by established connections
-    #[arg(short = 'e', long, default_value_t = false)]
+    #[arg(
+        short = 'e',
+        long,
+        default_value_t = false,
+        overrides_with = "established"
+    )]
     established: bool,
 
     /// Exclude IPv6 connections
-    #[arg(long, default_value_t = false)]
+    #[arg(long, default_value_t = false, overrides_with = "exclude_ipv6")]
     exclude_ipv6: bool,
 
-    #[arg(short = 'c', long, default_value_t = false)]
+    #[arg(short = 'c', long, default_value_t = false, overrides_with = "compact")]
     compact: bool,
 
     /// Reverse order of the table
-    #[arg(short = 'r', long, default_value_t = false)]
+    #[arg(short = 'r', long, default_value_t = false, overrides_with = "reverse")]
     reverse: bool,
 
     /// Sort by column name
-    #[arg(short = 's', long, default_value = None)]
+    #[arg(short = 's', long, default_value = None, overrides_with = "sort")]
     sort: Option<SortField>,
+
+    /// Retrieve config-file path
+    #[arg(long, default_value_t = false)]
+    config_file: bool,
+
+    /// Ignores the config file when set
+    #[arg(long, default_value_t = false)]
+    no_config: bool,
 }
 
 #[derive(Subcommand, Debug)]
@@ -120,6 +137,8 @@ pub enum Commands {
         #[arg(value_enum)]
         shell: Shell,
     },
+    /// Generate config file
+    GenerateConfigFile,
 }
 
 pub enum CliCommand {
@@ -147,7 +166,10 @@ pub enum SortField {
 /// # Returns
 /// A `CliCommand` enum which contains either the `Run` variant with the parsed flags or the `Subcommand` variant with a specific command.
 pub fn cli() -> CliCommand {
-    let args = Args::parse();
+    let cli_args: Vec<String> = env::args().collect();
+    let config_args: Vec<String> = read_config_file();
+
+    let args = Args::parse_from(merge_cli_config_args(&cli_args, &config_args));
 
     match args.command {
         Some(cmd) => CliCommand::Subcommand(cmd),
@@ -170,10 +192,19 @@ pub fn cli() -> CliCommand {
             compact: args.compact,
             sort: args.sort,
             reverse: args.reverse,
+            config_file: args.config_file,
         }),
     }
 }
 
+/// Sorts connection by a given field.
+///
+/// # Arguments
+/// * `all_connections`: List of all connections
+/// * `field`: SortField so sort by
+///
+/// # Returns
+/// All connections sorted by the given field.
 pub fn sort_connections(all_connections: &mut [Connection], field: SortField) {
     all_connections.sort_by(|our, other| match field {
         SortField::Proto => our.proto.to_lowercase().cmp(&other.proto.to_lowercase()),

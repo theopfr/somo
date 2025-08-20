@@ -1,4 +1,5 @@
 mod cli;
+mod config;
 mod connections;
 mod macros;
 mod markdown;
@@ -7,16 +8,18 @@ mod utils;
 mod view;
 
 use clap::CommandFactory;
-use cli::{print_completions, Args, CliCommand, Commands};
+use cli::{Args, CliCommand, Commands};
 use schemas::{Connection, FilterOptions};
-
-use crate::cli::sort_connections;
 
 fn main() {
     let args = match cli::cli() {
         CliCommand::Subcommand(Commands::GenerateCompletions { shell }) => {
             let mut cmd = Args::command();
-            print_completions(shell, &mut cmd);
+            cli::print_completions(shell, &mut cmd);
+            return;
+        }
+        CliCommand::Subcommand(Commands::GenerateConfigFile) => {
+            config::generate_config_file();
             return;
         }
         CliCommand::Run(flags) => flags,
@@ -38,7 +41,7 @@ fn main() {
     let mut all_connections: Vec<Connection> = connections::get_all_connections(&filter_options);
 
     if let Some(sort) = args.sort {
-        sort_connections(&mut all_connections, sort);
+        cli::sort_connections(&mut all_connections, sort);
     }
 
     if args.reverse {
@@ -51,6 +54,9 @@ fn main() {
     } else if args.format.is_some() {
         let result = view::get_connections_formatted(&all_connections, &args.format.unwrap());
         soutln!("{}", result);
+    } else if args.config_file {
+        let config_file_path = config::get_config_path();
+        soutln!("{}", config_file_path.to_string_lossy());
     } else {
         let result = view::get_connections_table(&all_connections, args.compact);
         sout!("{}", result);
