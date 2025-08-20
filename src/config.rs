@@ -140,13 +140,13 @@ pub fn read_config_file() -> Vec<String> {
 /// # Returns
 /// A list of all arguments by combining the config with the CLI arguments (CLI arguments supersede config arguments).
 #[inline]
-pub fn merge_cli_config_args(cli_args: &Vec<String>, config_args: &Vec<String>) -> Vec<String> {
+pub fn merge_cli_config_args(cli_args: &[String], config_args: &[String]) -> Vec<String> {
     if config_args.is_empty() || cli_args.iter().any(|arg| arg == "--no-config") {
         return cli_args.to_vec();
     }
 
     // Merge config and CLI args, put CLI args at the end to supersede config args
-    let mut merged_args = config_args.clone();
+    let mut merged_args = config_args.to_owned();
     merged_args.insert(0, cli_args[0].clone());
     merged_args.extend_from_slice(&cli_args[1..]);
 
