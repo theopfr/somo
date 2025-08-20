@@ -22,9 +22,6 @@ const DEFAULT_CONFIG_CONTENT: &str = r#"# somo configuration file
 
 # Only include established connections
 # --established
-
-# Only show established connections
-# --established
 "#;
 
 /// Gets the somo config path inside the current OS’s default configuration directory
@@ -36,7 +33,7 @@ const DEFAULT_CONFIG_CONTENT: &str = r#"# somo configuration file
 /// The path to the '/somo/config' plaintext config file.
 pub fn get_config_path() -> PathBuf {
     match choose_base_strategy() {
-        Ok(strategy) => return strategy.config_dir().join("somo/config"),
+        Ok(strategy) => strategy.config_dir().join("somo/config"),
         Err(err) => {
             pretty_print_error(&format!(
                 "Could not determine default configuration path: {}",
@@ -93,33 +90,45 @@ pub fn generate_config_file() {
     ));
 }
 
+/// Parses the config file contents.
+///
+/// # Arguments
+/// * `config_file_content`: fs::File object containing the config contents
+///
+/// # Returns
+/// A list of all flags specified in the config file (ignoring empty and comment lines).
+fn parse_config_file(config_file_content: File) -> Vec<String> {
+    let mut argv = vec![];
+    let reader = BufReader::new(config_file_content);
+    for line in reader.lines().map_while(Result::ok) {
+        let cur_line = line.trim();
+        if cur_line.is_empty() || cur_line.starts_with('#') {
+            continue;
+        }
+        argv.push(cur_line.to_string());
+    }
+
+    argv
+}
+
 /// Reads the config file contents.
 ///
 /// # Arguments
 /// None
 ///
 /// # Returns
-/// A list of all flags specified in the config file (ignoring empty and comment lines).
+/// A list of args parsed from the config file.
 pub fn read_config_file() -> Vec<String> {
-    let mut argv: Vec<String> = vec![];
-
     let config_path = get_config_path();
     if !config_path.is_file() {
-        return argv;
+        return vec![];
     }
 
     if let Ok(config_file) = File::open(config_path) {
-        let reader = BufReader::new(config_file);
-        for line in reader.lines().map_while(Result::ok) {
-            let cur_line = line.trim();
-            if cur_line.is_empty() || cur_line.starts_with('#') {
-                continue;
-            }
-            argv.push(cur_line.to_string());
-        }
+        return parse_config_file(config_file);
     }
 
-    argv
+    vec![]
 }
 
 /// Merges the CLI argmuments and config file arguments together into one argv.
@@ -132,7 +141,7 @@ pub fn read_config_file() -> Vec<String> {
 /// A list of all arguments by combining the config with the CLI arguments (CLI arguments supersede config arguments).
 #[inline]
 pub fn merge_cli_config_args(cli_args: &Vec<String>, config_args: &Vec<String>) -> Vec<String> {
-    if config_args.len() == 0 || cli_args.iter().any(|arg| arg == "--no-config") {
+    if config_args.is_empty() || cli_args.iter().any(|arg| arg == "--no-config") {
         return cli_args.to_vec();
     }
 
@@ -146,7 +155,41 @@ pub fn merge_cli_config_args(cli_args: &Vec<String>, config_args: &Vec<String>) 
 
 #[cfg(test)]
 mod tests {
-    use crate::config::merge_cli_config_args;
+    use crate::config::{merge_cli_config_args, parse_config_file};
+    use std::{
+        fs::File,
+        io::{Seek, SeekFrom, Write},
+    };
+    use tempfile::NamedTempFile;
+
+    #[test]
+    fn test_parse_config_file() {
+        const DUMMY_CONFIG: &str = r#"# somo configuration file
+        # View compact version of the table
+        --compact
+
+        # Sort by a specific field (proto, local_port, remote_address, remote_port, program, pid, state)
+        --sort=pid
+
+        # Only include TCP connections
+        # --tcp
+
+        # Only include established connections
+        # --established
+        "#;
+
+        let mut tmp_config_file = NamedTempFile::new().expect("Failed to create temp config file.");
+        write!(tmp_config_file, "{}", DUMMY_CONFIG).unwrap();
+
+        tmp_config_file
+            .as_file_mut()
+            .seek(SeekFrom::Start(0))
+            .unwrap();
+        let file: File = tmp_config_file.reopen().unwrap();
+
+        let argv = parse_config_file(file);
+        assert_eq!(argv, vec!["--compact", "--sort=pid"])
+    }
 
     #[test]
     fn test_merge_cli_config_args() {

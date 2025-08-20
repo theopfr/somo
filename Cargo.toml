@@ -21,6 +21,9 @@ handlebars = "6.3.2"
 nix = {version = "0.30.1", features = ["process", "signal"]}
 etcetera = "0.10.0"
 
+
+tempfile = "3.21.0"
+
 [target.'cfg(target_os = "linux")'.dependencies]
 procfs = "0.17.0"
 
