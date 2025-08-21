@@ -131,23 +131,6 @@ pub fn get_port_annotation(port_str: &str, proto: &str) -> Option<String> {
     }
 }
 
-pub fn format_remote_port(port_str: &str, proto: &str, annotate: bool) -> String {
-    if !annotate {
-        return port_str.to_string();
-    }
-    let Ok(port) = port_str.parse::<u16>() else {
-        return port_str.to_string();
-    };
-    if is_ephemeral(port) {
-        return format!("{port_str} (ephemeral)");
-    }
-    if let Some(s) = service_name(port, proto) {
-        format!("{port_str} ({s})")
-    } else {
-        port_str.to_string()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::format_remote_port;
