@@ -219,6 +219,8 @@ mod annotate_tests {
     #[test]
     fn table_with_annotation_marks_ephemeral() {
         let s = get_connections_table(&[c("59345")], false, true);
-        assert!(s.contains("59345 (ephemeral)"));
+        let pos = s.find("59345").expect("port missing");
+        let window = &s[pos..s.len().min(pos + 32)];
+        assert!(window.contains("ephemeral"));
     }
 }

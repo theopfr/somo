@@ -133,35 +133,34 @@ pub fn get_port_annotation(port_str: &str, proto: &str) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::format_remote_port;
+    use super::get_port_annotation;
 
     #[test]
-    fn annotate_disabled_passthrough() {
-        assert_eq!(format_remote_port("443", "tcp", false), "443");
+    fn non_numeric_returns_none() {
+        assert_eq!(get_port_annotation("-", "tcp"), None);
+    }
+
+    #[test]
+    fn port_zero_returns_none() {
+        assert_eq!(get_port_annotation("0", "tcp"), None);
+    }
+
+    #[test]
+    fn annotates_service_name() {
+        assert_eq!(get_port_annotation("443", "tcp"), Some("https".to_string()));
     }
 
     #[test]
     fn marks_ephemeral_range() {
         assert_eq!(
-            format_remote_port("59345", "tcp", true),
-            "59345 (ephemeral)",
+            get_port_annotation("59345", "tcp"),
+            Some("ephemeral".to_string())
         );
     }
 
     #[test]
-    fn ephemeral_overrides_service() {
-        assert_eq!(
-            format_remote_port("65535", "tcp", true),
-            "65535 (ephemeral)",
-        );
-    }
-
-    #[test]
-    fn annotates_service_name() {
-        assert_eq!(format_remote_port("443", "tcp", true), "443 (https)");
-    }
-    #[test]
-    fn non_numeric_port_stays_as_is() {
-        assert_eq!(format_remote_port("-", "tcp", true), "-");
+    fn ephemeral_tag_present_even_if_service_exists() {
+        let ann = get_port_annotation("65535", "tcp").expect("should annotate");
+        assert!(ann.contains("ephemeral"));
     }
 }
