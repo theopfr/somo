@@ -1341,7 +1341,6 @@ dependencies = [
  "libproc",
  "netstat2",
  "nix",
- "once_cell",
  "procfs",
  "serde",
  "serde_json",

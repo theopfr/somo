@@ -1,6 +1,6 @@
 use crate::markdown::{get_row_alignment, Padding, Table, TableCell};
 use crate::schemas::Connection;
-use crate::services::format_remote_port;
+use crate::services::get_port_annotation;
 use crate::utils::{format_known_address, pretty_print_syntax_error};
 use handlebars::{Handlebars, RenderErrorReason};
 
@@ -45,12 +45,12 @@ pub fn get_connections_table(
                     Padding::Auto,
                 ),
                 TableCell::body(
-                    &format_remote_port(
-                        &connection.remote_port,
-                        &connection.proto,
-                        annotate_remote_port,
-                    ),
-                    None,
+                    &connection.remote_port,
+                    if annotate_remote_port {
+                        get_port_annotation(&connection.remote_port, &connection.proto)
+                    } else {
+                        None
+                    },
                     Padding::Auto,
                 ),
                 TableCell::body(

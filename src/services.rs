@@ -1,12 +1,21 @@
-use once_cell::sync::Lazy;
 use std::{
     collections::HashMap,
     fs::File,
     io::{BufRead, BufReader},
     path::Path,
+    sync::LazyLock,
 };
 
-static SVC: Lazy<HashMap<(u16, &'static str), String>> = Lazy::new(load_services);
+static SVC: LazyLock<HashMap<(u16, &'static str), String>> = LazyLock::new(load_services);
+
+#[inline]
+fn normalize_proto(proto: &str) -> &'static str {
+    if proto.eq_ignore_ascii_case("udp") {
+        "udp"
+    } else {
+        "tcp"
+    }
+}
 
 fn load_services() -> HashMap<(u16, &'static str), String> {
     let mut map = HashMap::new();
@@ -31,11 +40,7 @@ fn load_services() -> HashMap<(u16, &'static str), String> {
                     };
                     if let Some((port_s, proto)) = port_proto.split_once('/') {
                         if let Ok(port) = port_s.parse::<u16>() {
-                            let proto = if proto.eq_ignore_ascii_case("udp") {
-                                "udp"
-                            } else {
-                                "tcp"
-                            };
+                            let proto = normalize_proto(proto);
                             map.entry((port, proto)).or_insert_with(|| name.to_string());
                         }
                     }
@@ -48,14 +53,7 @@ fn load_services() -> HashMap<(u16, &'static str), String> {
 
 #[inline]
 fn svc_from_file(port: u16, proto: &str) -> Option<String> {
-    let key = (
-        port,
-        if proto.eq_ignore_ascii_case("udp") {
-            "udp"
-        } else {
-            "tcp"
-        },
-    );
+    let key = (port, normalize_proto(proto));
     SVC.get(&key).cloned()
 }
 
@@ -71,12 +69,7 @@ fn svc_from_libc(port: u16, proto: &str) -> Option<String> {
     unsafe { setservent(1) }
 
     let be = (port as i32).to_be();
-    let proto_c = CString::new(if proto.eq_ignore_ascii_case("udp") {
-        "udp"
-    } else {
-        "tcp"
-    })
-    .ok();
+    let proto_c = CString::new(normalize_proto(proto)).ok();
 
     let se_ptr = unsafe {
         // try with proto first
@@ -120,12 +113,9 @@ pub fn is_ephemeral(port: u16) -> bool {
     (49152..=65535).contains(&port)
 }
 
-pub fn format_remote_port(port_str: &str, proto: &str, annotate: bool) -> String {
-    if !annotate {
-        return port_str.to_string();
-    }
+pub fn get_port_annotation(port_str: &str, proto: &str) -> Option<String> {
     let Ok(port) = port_str.parse::<u16>() else {
-        return port_str.to_string();
+        return None;
     };
     let mut tags = Vec::new();
     if let Some(s) = service_name(port, proto) {
@@ -135,9 +125,26 @@ pub fn format_remote_port(port_str: &str, proto: &str, annotate: bool) -> String
         tags.push("ephemeral".to_string());
     }
     if tags.is_empty() {
-        port_str.to_string()
+        None
     } else {
-        format!("{port_str} ({})", tags.join(", "))
+        Some(tags.join(", "))
+    }
+}
+
+pub fn format_remote_port(port_str: &str, proto: &str, annotate: bool) -> String {
+    if !annotate {
+        return port_str.to_string();
+    }
+    let Ok(port) = port_str.parse::<u16>() else {
+        return port_str.to_string();
+    };
+    if is_ephemeral(port) {
+        return format!("{port_str} (ephemeral)");
+    }
+    if let Some(s) = service_name(port, proto) {
+        format!("{port_str} ({s})")
+    } else {
+        port_str.to_string()
     }
 }
 
@@ -154,18 +161,22 @@ mod tests {
     fn marks_ephemeral_range() {
         assert_eq!(
             format_remote_port("59345", "tcp", true),
-            "59345 (ephemeral)"
+            "59345 (ephemeral)",
         );
     }
 
     #[test]
-    fn service_and_ephemeral_tag() {
+    fn ephemeral_overrides_service() {
         assert_eq!(
             format_remote_port("65535", "tcp", true),
-            "65535 (ephemeral)"
+            "65535 (ephemeral)",
         );
     }
 
+    #[test]
+    fn annotates_service_name() {
+        assert_eq!(format_remote_port("443", "tcp", true), "443 (https)");
+    }
     #[test]
     fn non_numeric_port_stays_as_is() {
         assert_eq!(format_remote_port("-", "tcp", true), "-");
