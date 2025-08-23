@@ -11,8 +11,8 @@ keywords = ["netstat", "socket-monitoring", "port-checker"]
 categories = ["command-line-utilities"]
 
 [dependencies]
-clap = { version = "4.5.42", features = ["derive"] }
-clap_complete = "4.5.54"
+clap = { version = "4.5.45", features = ["derive"] }
+clap_complete = "4.5.57"
 inquire = "0.7.5"
 termimad = "0.33.0"
 serde = { version = "1.0.196", features = ["derive"] }
@@ -25,5 +25,5 @@ libc = "0.2.174"
 procfs = "0.17.0"
 
 [target.'cfg(target_os = "macos")'.dependencies]
-netstat2 = "0.11.1"
+netstat2 = "0.11.2"
 libproc = "0.14.10"
