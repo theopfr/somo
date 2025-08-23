@@ -117,18 +117,13 @@ pub fn get_port_annotation(port_str: &str, proto: &str) -> Option<String> {
     let Ok(port) = port_str.parse::<u16>() else {
         return None;
     };
-    let mut tags = Vec::new();
-    if let Some(s) = service_name(port, proto) {
-        tags.push(s);
+    if port == 0 {
+        return None;
     }
     if is_ephemeral(port) {
-        tags.push("ephemeral".to_string());
+        return Some("ephemeral".to_string());
     }
-    if tags.is_empty() {
-        None
-    } else {
-        Some(tags.join(", "))
-    }
+    service_name(port, proto)
 }
 
 #[cfg(test)]
@@ -160,7 +155,9 @@ mod tests {
 
     #[test]
     fn ephemeral_tag_present_even_if_service_exists() {
-        let ann = get_port_annotation("65535", "tcp").expect("should annotate");
-        assert!(ann.contains("ephemeral"));
+        assert_eq!(
+            get_port_annotation("65535", "tcp"),
+            Some("ephemeral".to_string())
+        );
     }
 }
