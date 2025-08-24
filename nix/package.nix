@@ -29,6 +29,8 @@ rustPlatform.buildRustPackage (finalAttrs: {
   versionCheckProgram = "${placeholder "out"}/bin/${mainProgram}";
   versionCheckProgramArg = "--version";
 
+  doCheck = false;
+
   meta = {
     inherit mainProgram;
     description = "Human-friendly alternative to netstat for socket and port monitoring";

@@ -1337,6 +1337,7 @@ dependencies = [
  "clap_complete",
  "handlebars",
  "inquire",
+ "libc",
  "libproc",
  "netstat2",
  "nix",

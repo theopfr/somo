@@ -31,6 +31,7 @@ pub struct Flags {
     pub compact: bool,
     pub sort: Option<SortField>,
     pub reverse: bool,
+    pub annotate_remote_port: bool,
 }
 
 /// Represents all possible flags which can be provided by the user in the CLI.
@@ -110,6 +111,10 @@ pub struct Args {
     /// Sort by column name
     #[arg(short = 's', long, default_value = None)]
     sort: Option<SortField>,
+
+    /// Annotate remote port with service name and ephemeral tag
+    #[arg(short = 'a', long, default_value_t = false)]
+    annotate_remote_port: bool,
 }
 
 #[derive(Subcommand, Debug)]
@@ -170,6 +175,7 @@ pub fn cli() -> CliCommand {
             compact: args.compact,
             sort: args.sort,
             reverse: args.reverse,
+            annotate_remote_port: args.annotate_remote_port,
         }),
     }
 }
@@ -354,6 +360,7 @@ mod tests {
         assert!(!args.open);
         assert!(!args.listen);
         assert!(!args.exclude_ipv6);
+        assert!(!args.annotate_remote_port);
     }
 
     #[test]
