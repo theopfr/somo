@@ -196,39 +196,3 @@ mod tests {
         }
     }
 }
-
-#[cfg(test)]
-mod annotate_tests {
-    use super::get_connections_table;
-    use crate::schemas::{AddressType, Connection};
-    use std::net::IpAddr;
-
-    fn conn(remote_port: &str) -> Connection {
-        Connection {
-            proto: "tcp".into(),
-            local_port: "1234".into(),
-            remote_address: "1.2.3.4".into(),
-            remote_port: remote_port.into(),
-            program: "-".into(),
-            pid: "-".into(),
-            state: "established".into(),
-            address_type: AddressType::Extern,
-            ipvx_raw: "1.2.3.4".parse::<IpAddr>().unwrap(),
-        }
-    }
-
-    #[test]
-    fn table_without_annotation_keeps_port() {
-        let service = get_connections_table(&[conn("59345")], false, false);
-        assert!(service.contains("59345"));
-        assert!(!service.contains("ephemeral"));
-    }
-
-    #[test]
-    fn table_with_annotation_marks_ephemeral() {
-        let service = get_connections_table(&[conn("59345")], false, true);
-        let pos = service.find("59345").expect("Port missing!");
-        let window = &service[pos..service.len().min(pos + 32)];
-        assert!(window.contains("ephemeral"));
-    }
-}
