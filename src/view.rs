@@ -23,7 +23,15 @@ pub fn get_connections_table(
         TableCell::header("proto", None, Padding::Auto),
         TableCell::header("local port", None, Padding::Auto),
         TableCell::header("remote address", None, Padding::Auto),
-        TableCell::header("remote port", None, Padding::Auto),
+        TableCell::header(
+            "remote port",
+            if annotate_remote_port {
+                Some("service".to_string())
+            } else {
+                None
+            },
+            Padding::Auto,
+        ),
         TableCell::header("pid", Some("program".to_owned()), Padding::Auto),
         TableCell::header("state", None, Padding::Auto),
     ];
@@ -195,12 +203,12 @@ mod annotate_tests {
     use crate::schemas::{AddressType, Connection};
     use std::net::IpAddr;
 
-    fn c(rp: &str) -> Connection {
+    fn conn(remote_port: &str) -> Connection {
         Connection {
             proto: "tcp".into(),
             local_port: "1234".into(),
             remote_address: "1.2.3.4".into(),
-            remote_port: rp.into(),
+            remote_port: remote_port.into(),
             program: "-".into(),
             pid: "-".into(),
             state: "established".into(),
@@ -211,16 +219,16 @@ mod annotate_tests {
 
     #[test]
     fn table_without_annotation_keeps_port() {
-        let s = get_connections_table(&[c("59345")], false, false);
-        assert!(s.contains("59345"));
-        assert!(!s.contains("ephemeral"));
+        let service = get_connections_table(&[conn("59345")], false, false);
+        assert!(service.contains("59345"));
+        assert!(!service.contains("ephemeral"));
     }
 
     #[test]
     fn table_with_annotation_marks_ephemeral() {
-        let s = get_connections_table(&[c("59345")], false, true);
-        let pos = s.find("59345").expect("port missing");
-        let window = &s[pos..s.len().min(pos + 32)];
+        let service = get_connections_table(&[conn("59345")], false, true);
+        let pos = service.find("59345").expect("Port missing!");
+        let window = &service[pos..service.len().min(pos + 32)];
         assert!(window.contains("ephemeral"));
     }
 }

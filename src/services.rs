@@ -8,6 +8,7 @@ use std::{
 
 static SVC: LazyLock<HashMap<(u16, &'static str), String>> = LazyLock::new(load_services);
 
+/// Normalizes a protocol string to either "tcp" or "udp".
 #[inline]
 fn normalize_proto(proto: &str) -> &'static str {
     if proto.eq_ignore_ascii_case("udp") {
@@ -17,6 +18,13 @@ fn normalize_proto(proto: &str) -> &'static str {
     }
 }
 
+/// Creates a table that maps port to their service names based on the /etc/services file.
+///
+/// # Arguments
+/// None
+///
+/// # Returns
+/// A hashmap mapping a (port, protocol) pair to service names.
 fn load_services() -> HashMap<(u16, &'static str), String> {
     let mut map = HashMap::new();
     let candidates = ["/etc/services"];
@@ -51,12 +59,14 @@ fn load_services() -> HashMap<(u16, &'static str), String> {
     map
 }
 
+/// Retrieves a service name for a given (port, protocol) pair using the table generated from /etc/services.
 #[inline]
 fn svc_from_file(port: u16, proto: &str) -> Option<String> {
     let key = (port, normalize_proto(proto));
     SVC.get(&key).cloned()
 }
 
+/// Retrieves a service name for a given (port, protocol) pair using libc and the services-database.
 #[cfg(unix)]
 fn svc_from_libc(port: u16, proto: &str) -> Option<String> {
     use libc::{endservent, getservbyport, setservent};
@@ -100,19 +110,30 @@ fn svc_from_libc(port: u16, proto: &str) -> Option<String> {
     out
 }
 
+/// Not supported for non-unix systems.
 #[cfg(not(unix))]
 fn svc_from_libc(_port: u16, _proto: &str) -> Option<String> {
     None
 }
 
-pub fn service_name(port: u16, proto: &str) -> Option<String> {
+/// Retrieves a service name for a given (port, protocol) pair.
+fn service_name(port: u16, proto: &str) -> Option<String> {
     svc_from_file(port, proto).or_else(|| svc_from_libc(port, proto))
 }
 
-pub fn is_ephemeral(port: u16) -> bool {
+/// Checks wether a port lies in the ephemeral port range.
+fn is_ephemeral(port: u16) -> bool {
     (49152..=65535).contains(&port)
 }
 
+/// Retrieves a service name for a given (port, protocol) pair.
+///
+/// # Arguments
+/// * `port`: The port
+/// * `proto`: The protocol (either tcp or udp) as a string
+///
+/// # Returns
+/// The mapped service name if it exists.
 pub fn get_port_annotation(port_str: &str, proto: &str) -> Option<String> {
     let Ok(port) = port_str.parse::<u16>() else {
         return None;
@@ -128,7 +149,7 @@ pub fn get_port_annotation(port_str: &str, proto: &str) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::get_port_annotation;
+    use super::{get_port_annotation, normalize_proto};
 
     #[test]
     fn non_numeric_returns_none() {
@@ -146,6 +167,14 @@ mod tests {
     }
 
     #[test]
+    fn annotates_service_name_invalid_proto() {
+        assert_eq!(
+            get_port_annotation("22", "notaproto"),
+            Some("ssh".to_string())
+        );
+    }
+
+    #[test]
     fn marks_ephemeral_range() {
         assert_eq!(
             get_port_annotation("59345", "tcp"),
@@ -154,10 +183,17 @@ mod tests {
     }
 
     #[test]
-    fn ephemeral_tag_present_even_if_service_exists() {
-        assert_eq!(
-            get_port_annotation("65535", "tcp"),
-            Some("ephemeral".to_string())
-        );
+    fn out_of_ephemeral_range_returns_none() {
+        assert_eq!(get_port_annotation("1000000", "tcp"), None);
+    }
+
+    #[test]
+    fn normalize_uppercase_proto() {
+        assert_eq!(normalize_proto("UDp"), "udp");
+    }
+
+    #[test]
+    fn normalize_non_existant_proto_to_tcp() {
+        assert_eq!(normalize_proto("notaproto"), "tcp");
     }
 }

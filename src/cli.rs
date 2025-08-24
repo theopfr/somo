@@ -113,7 +113,7 @@ pub struct Args {
     sort: Option<SortField>,
 
     /// Annotate remote port with service name and ephemeral tag
-    #[arg(long, default_value_t = false)]
+    #[arg(short = 'a', long, default_value_t = false)]
     annotate_remote_port: bool,
 }
 
