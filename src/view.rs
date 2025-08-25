@@ -1,5 +1,6 @@
 use crate::markdown::{get_row_alignment, Padding, Table, TableCell};
 use crate::schemas::Connection;
+use crate::services::get_port_annotation;
 use crate::utils::{format_known_address, pretty_print_syntax_error};
 use handlebars::{Handlebars, RenderErrorReason};
 
@@ -7,17 +8,30 @@ use handlebars::{Handlebars, RenderErrorReason};
 ///
 /// # Arguments
 /// * `all_connections`: A list containing all current connections as a `Connection` struct.
-/// * `is_compact`: Wether the table should be rendered compact, ie. without horizontal row separators.
+/// * `is_compact`: Whether the table should be rendered compact, i.e., without horizontal row separators.
+/// * `annotate_remote_port`: Whether to append IANA service names to the remote port column (e.g., `443 (https)`).
 ///
 /// # Returns
 /// A string containing the Markdown formatted connections table.
-pub fn get_connections_table(all_connections: &[Connection], is_compact: bool) -> String {
+pub fn get_connections_table(
+    all_connections: &[Connection],
+    is_compact: bool,
+    annotate_remote_port: bool,
+) -> String {
     let column_names: Vec<TableCell> = vec![
         TableCell::header("#", None, Padding::Auto),
         TableCell::header("proto", None, Padding::Auto),
         TableCell::header("local port", None, Padding::Auto),
         TableCell::header("remote address", None, Padding::Auto),
-        TableCell::header("remote port", None, Padding::Auto),
+        TableCell::header(
+            "remote port",
+            if annotate_remote_port {
+                Some("service".to_string())
+            } else {
+                None
+            },
+            Padding::Auto,
+        ),
         TableCell::header("pid", Some("program".to_owned()), Padding::Auto),
         TableCell::header("state", None, Padding::Auto),
     ];
@@ -38,7 +52,15 @@ pub fn get_connections_table(all_connections: &[Connection], is_compact: bool) -
                     None,
                     Padding::Auto,
                 ),
-                TableCell::body(&connection.remote_port, None, Padding::Auto),
+                TableCell::body(
+                    &connection.remote_port,
+                    if annotate_remote_port {
+                        get_port_annotation(&connection.remote_port, &connection.proto)
+                    } else {
+                        None
+                    },
+                    Padding::Auto,
+                ),
                 TableCell::body(
                     &connection.pid,
                     Some(connection.program.clone()),

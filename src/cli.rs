@@ -35,6 +35,7 @@ pub struct Flags {
     pub sort: Option<SortField>,
     pub reverse: bool,
     pub config_file: bool,
+    pub annotate_remote_port: bool,
 }
 
 /// Represents all possible flags which can be provided by the user in the CLI.
@@ -127,6 +128,9 @@ pub struct Args {
     /// Ignore config file
     #[arg(long, default_value_t = false)]
     no_config: bool,
+    /// Annotate remote port with service name and ephemeral tag
+    #[arg(short = 'a', long, default_value_t = false)]
+    annotate_remote_port: bool,
 }
 
 #[derive(Subcommand, Debug)]
@@ -193,6 +197,7 @@ pub fn cli() -> CliCommand {
             sort: args.sort,
             reverse: args.reverse,
             config_file: args.config_file,
+            annotate_remote_port: args.annotate_remote_port,
         }),
     }
 }
@@ -385,6 +390,7 @@ mod tests {
         assert!(!args.open);
         assert!(!args.listen);
         assert!(!args.exclude_ipv6);
+        assert!(!args.annotate_remote_port);
     }
 
     #[test]
