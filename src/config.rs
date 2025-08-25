@@ -17,11 +17,14 @@ const DEFAULT_CONFIG_CONTENT: &str = r#"# somo configuration file
 # Sort by a specific field (proto, local_port, remote_address, remote_port, program, pid, state)
 # --sort=pid
 
-# Only include TCP connections
-# --tcp
-
 # Only include established connections
 # --established
+
+# Show service names next to remote port
+# --annotate-remote-port
+
+# Only include TCP connections
+# --tcp
 "#;
 
 /// Gets the somo config path inside the current OS’s default configuration directory
