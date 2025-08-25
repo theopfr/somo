@@ -10,6 +10,11 @@ fn cyan_text(text: &str) -> String {
     format!("\x1B[36m{text}\x1B[0m")
 }
 
+/// Wraps the input text in ANSI escape codes to print it in yellow.
+fn yellow_text(text: &str) -> String {
+    format!("\x1b[1;33m{text}\x1b[0m")
+}
+
 /// Wraps the input text in ANSI escape codes to print it in bold.
 fn bold_text(text: &str) -> String {
     format!("\x1B[1m{text}\x1B[0m")
@@ -55,10 +60,7 @@ pub fn format_known_address(remote_address: &str, address_type: &AddressType) ->
 /// # Returns
 /// None
 pub fn pretty_print_info(text: &str) {
-    soutln!(
-        "{}",
-        bold_text(&format!("{} {}", cyan_text("Info:"), bold_text(text)))
-    );
+    soutln!("{}", bold_text(&format!("{} {}", cyan_text("Info:"), text)));
 }
 
 /// Prints out formatted text starting with a red "Error:" prefix.
@@ -69,9 +71,20 @@ pub fn pretty_print_info(text: &str) {
 /// # Returns
 /// None
 pub fn pretty_print_error(text: &str) {
+    soutln!("{}", bold_text(&format!("{} {}", red_text("Error:"), text)));
+}
+
+/// Prints out formatted text starting with a yellow "Warning:" prefix.
+///
+/// # Arguments
+/// * `text`: The text to print to the console.
+///
+/// # Returns
+/// None
+pub fn pretty_print_warning(text: &str) {
     soutln!(
         "{}",
-        bold_text(&format!("{} {}", red_text("Error:"), bold_text(text)))
+        bold_text(&format!("{} {}", yellow_text("Warning:"), text))
     );
 }
 
