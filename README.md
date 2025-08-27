@@ -87,8 +87,6 @@ To get a smaller, more compact table use the ``--compact, -c`` flag.
 ### ✨ Process killing:
 With the ``--kill, -k`` flag you can choose to kill a process after inspecting the connections using an interactive selection.
 
-<img style="width: 75%" src="./images/somo-kill-example.png" />
-
 ### ✨ JSON and custom output format:
 Using the ``--json`` flag you can choose to retrieve the connection data in JSON format. <br />
 You can also define a custom output format using the ``--format`` flag, for example:
