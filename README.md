@@ -87,8 +87,6 @@ To get a smaller, more compact table use the ``--compact, -c`` flag.
 ### ✨ Process killing:
 With the ``--kill, -k`` flag you can choose to kill a process after inspecting the connections using an interactive selection.
 
-<img style="width: 75%" src="./images/somo-kill-example.png" />
-
 ### ✨ JSON and custom output format:
 Using the ``--json`` flag you can choose to retrieve the connection data in JSON format. <br />
 You can also define a custom output format using the ``--format`` flag, for example:
@@ -103,6 +101,21 @@ The ``--sort, -s`` flag can be used to sort the table after a specific column as
 somo --sort pid   # column names must be specified in snake_case
 ```
 To get a descending order, you can use the ``--reverse, -r`` flag.
+
+### ✨ Config file for setting default flags:
+You can create a config file that defines flags to be automatically applied every time you run ``somo``.
+- run ``somo generate-config-file`` to create the file
+- run ``somo --config-file`` to print the path to the config file
+- run ``somo --no-config`` to ignore all default flags
+
+For example, if your config file looks like this:
+```
+# View compact version of the table
+--compact
+# Sort by PID
+--sort=pid
+```
+then ``somo`` will always show the table in compact mode, sorted by PID.
 
 ### ✨ Displaying service names of ports:
 When using the ``--annotate-remote-port, -a`` flag, the table will display the corresponding service names for the listed ports as defined by the *IANA Port Number Registry* (for example, ``443 -> https``).
