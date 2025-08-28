@@ -20,6 +20,8 @@ fn main() {
         by_pid: args.pid,
         by_open: args.open,
         by_listen: args.listen,
+        ipv4_only: args.ipv4_only,
+        ipv6_only: args.ipv6_only,
         exclude_ipv6: args.exclude_ipv6,
     };
 

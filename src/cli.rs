@@ -19,6 +19,8 @@ pub struct Flags {
     pub pid: Option<String>,
     pub open: bool,
     pub listen: bool,
+    pub ipv4_only: bool,
+    pub ipv6_only: bool,
     pub exclude_ipv6: bool,
 }
 
@@ -53,6 +55,12 @@ struct Args {
     #[arg(short = 'l', long, default_value_t = false)]
     listen: bool,
 
+    #[arg(short = '4', long, default_value_t = false)]
+    ipv4_only: bool,
+
+    #[arg(short = '6', long, default_value_t = false)]
+    ipv6_only: bool,
+
     #[arg(long, default_value_t = false)]
     exclude_ipv6: bool,
 }
@@ -77,6 +85,8 @@ pub fn cli() -> Flags {
         pid: args.pid,
         open: args.open,
         listen: args.listen,
+        ipv4_only: args.ipv4_only,
+        ipv6_only: args.ipv6_only,
         exclude_ipv6: args.exclude_ipv6,
     }
 }

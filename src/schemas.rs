@@ -50,5 +50,7 @@ pub struct FilterOptions {
     pub by_local_port: Option<String>,
     pub by_open: bool,
     pub by_listen: bool,
+    pub ipv4_only: bool,
+    pub ipv6_only: bool,
     pub exclude_ipv6: bool
 }

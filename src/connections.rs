@@ -1,3 +1,5 @@
+use procfs::net::TcpNetEntry;
+use procfs::net::UdpNetEntry;
 use procfs::process::Stat;
 use procfs::process::FDTarget;
 use std::collections::HashMap;
@@ -137,9 +139,18 @@ fn get_connection_data(net_entry: NetEntry, all_processes: &HashMap<u64, Stat>) 
 /// # Returns
 /// All processed and filtered TCP connections as a `Connection` struct in a vector.
 fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions) -> Vec<Connection> {
-    let mut tcp_entries = procfs::net::tcp().unwrap();
-    if !filter_options.exclude_ipv6 {
-        tcp_entries.extend(procfs::net::tcp6().unwrap());
+    let mut tcp_entries: Vec<TcpNetEntry> = Vec::new(); 
+
+    if !filter_options.ipv4_only {
+        if let Ok(v6) = procfs::net::tcp6() {
+            tcp_entries.extend(v6);
+        }
+    }
+
+    if !filter_options.ipv6_only {
+        if let Ok(v4) = procfs::net::tcp() {
+            tcp_entries.extend(v4);
+        }
     }
 
     return tcp_entries
@@ -176,9 +187,18 @@ fn get_tcp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &Filt
 /// # Returns
 /// All processed and filtered UDP connections as a `Connection` struct in a vector.
 fn get_udp_connections(all_processes: &HashMap<u64, Stat>, filter_options: &FilterOptions) -> Vec<Connection> {
-    let mut udp_entries = procfs::net::udp().unwrap();
-    if !filter_options.exclude_ipv6 {
-        udp_entries.extend(procfs::net::udp6().unwrap());
+    let mut udp_entries: Vec<UdpNetEntry> = Vec::new();
+
+    if !filter_options.ipv4_only {
+        if let Ok(v6) = procfs::net::udp6() {
+            udp_entries.extend(v6);
+        }
+    }
+
+    if !filter_options.ipv6_only {
+        if let Ok(v4) = procfs::net::udp() {
+            udp_entries.extend(v4);
+        }
     }
 
     return udp_entries
