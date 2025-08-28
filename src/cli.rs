@@ -21,7 +21,6 @@ pub struct Flags {
     pub listen: bool,
     pub ipv4_only: bool,
     pub ipv6_only: bool,
-    pub exclude_ipv6: bool,
 }
 
 /// Represents all possible flags which can be provided by the user in the CLI.
@@ -61,8 +60,6 @@ struct Args {
     #[arg(short = '6', long, default_value_t = false)]
     ipv6_only: bool,
 
-    #[arg(long, default_value_t = false)]
-    exclude_ipv6: bool,
 }
 
 /// Gets all flag values provided by the user in the CLI using the "clap" crate.
@@ -87,7 +84,6 @@ pub fn cli() -> Flags {
         listen: args.listen,
         ipv4_only: args.ipv4_only,
         ipv6_only: args.ipv6_only,
-        exclude_ipv6: args.exclude_ipv6,
     }
 }
 
@@ -157,7 +153,6 @@ mod tests {
             "--pid", "1234",
             "-o",
             "-l",
-            "--exclude-ipv6",
         ]);
 
         assert!(args.kill);
@@ -169,7 +164,6 @@ mod tests {
         assert_eq!(args.pid.as_deref(), Some("1234"));
         assert!(args.open);
         assert!(args.listen);
-        assert!(args.exclude_ipv6);
     }
 
     #[test]
@@ -185,7 +179,6 @@ mod tests {
         assert!(args.pid.is_none());
         assert!(!args.open);
         assert!(!args.listen);
-        assert!(!args.exclude_ipv6);
     }
 
     #[test]
@@ -203,6 +196,5 @@ mod tests {
         assert_eq!(short.port, long.port);
         assert_eq!(short.open, long.open);
         assert_eq!(short.listen, long.listen);
-        assert_eq!(short.exclude_ipv6, long.exclude_ipv6);
     }
 }

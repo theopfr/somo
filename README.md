@@ -57,7 +57,8 @@ You can use the following flags to filter based on different attributes:
 | ```--pid, -p``` | filter by a PID | PID number, e.g ``10000`` |
 | ```--open, -o``` | filter by open connections | - |
 | ```--listen, -l``` | filter by open connections | - |
-| ```--exclude-ipv6``` | don't list IPv6 connections | - |
+| ```--ipv4_only, -4``` | filter by ipv4 | - |
+| ```--ipv6_only, -6``` | filter by ipv6 | - |
 
 
 ### Process killing:

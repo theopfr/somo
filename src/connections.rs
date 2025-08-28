@@ -73,6 +73,12 @@ fn filter_out_connection(connection_details: &Connection, filter_options: &Filte
     if filter_options.by_open && connection_details.state == "close" {
         return true;
     }
+    if filter_options.ipv4_only && connection_details.remote_address.contains(':') {
+        return true;
+    }
+    if filter_options.ipv6_only && !connection_details.remote_address.contains(':') {
+        return true;
+    }
     
     return false;
 }
@@ -367,6 +373,42 @@ mod tests {
 
         conn.state = "close".to_string();
         assert_eq!(filter_out_connection(&conn, &filter_by_multiple_conditions), true);
+    }
+
+    #[test]
+    fn test_filter_options_ipv4_ipv6_flags() {
+        use crate::schemas::{Connection, FilterOptions, AddressType};
+
+        let conn_v4 = Connection {
+            proto: "tcp".to_string(),
+            local_port: "80".to_string(),
+            remote_port: "443".to_string(),
+            remote_address: "192.168.0.1".to_string(),
+            program: "nginx".to_string(),
+            pid: "42".to_string(),
+            state: "listen".to_string(),
+            address_type: AddressType::Extern,
+        };
+
+        let conn_v6 = Connection {
+            proto: "tcp".to_string(),
+            local_port: "80".to_string(),
+            remote_port: "443".to_string(),
+            remote_address: "[::1]".to_string(),
+            program: "nginx".to_string(),
+            pid: "43".to_string(),
+            state: "listen".to_string(),
+            address_type: AddressType::Localhost,
+        };
+
+        let ipv4_only = FilterOptions { ipv4_only: true, ..Default::default() };
+        let ipv6_only = FilterOptions { ipv6_only: true, ..Default::default() };
+
+        assert!(filter_out_connection(&conn_v6, &ipv4_only));
+        assert!(!filter_out_connection(&conn_v4, &ipv4_only));
+
+        assert!(filter_out_connection(&conn_v4, &ipv6_only));
+        assert!(!filter_out_connection(&conn_v6, &ipv6_only));
     }
 }
 

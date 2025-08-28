@@ -22,7 +22,6 @@ fn main() {
         by_listen: args.listen,
         ipv4_only: args.ipv4_only,
         ipv6_only: args.ipv6_only,
-        exclude_ipv6: args.exclude_ipv6,
     };
 
     let all_connections: Vec<Connection> = connections::get_all_connections(&filter_options);
