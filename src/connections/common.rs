@@ -73,7 +73,6 @@ pub fn get_address_type(remote_address: &str) -> AddressType {
     AddressType::Extern
 }
 
-
 pub fn resolve_ip_version(filter_options: &FilterOptions) -> (bool, bool, bool) {
     let ipv4_only = filter_options.by_ipv4_only || filter_options.exclude_ipv6;
     let ipv6_only = filter_options.by_ipv6_only;

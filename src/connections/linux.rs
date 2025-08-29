@@ -121,8 +121,6 @@ fn get_connection_data(net_entry: NetEntry, all_processes: &HashMap<u64, Stat>) 
     connection
 }
 
-
-
 /// Gets all currently open TCP connections using the "procfs" crate and processes them.
 ///
 /// # Arguments
@@ -278,6 +276,4 @@ mod tests {
         assert_eq!(address, "example.com");
         assert_eq!(port, "-");
     }
-
-    
 }
