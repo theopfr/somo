@@ -73,6 +73,15 @@ pub fn get_address_type(remote_address: &str) -> AddressType {
     AddressType::Extern
 }
 
+
+pub fn resolve_ip_version(filter_options: &FilterOptions) -> (bool, bool, bool) {
+    let ipv4_only = filter_options.by_ipv4_only || filter_options.exclude_ipv6;
+    let ipv6_only = filter_options.by_ipv6_only;
+    let take_both = !ipv4_only && !ipv6_only;
+
+    (ipv4_only, ipv6_only, take_both)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -220,5 +229,38 @@ mod tests {
 
         conn.state = "close".to_string();
         assert!(filter_out_connection(&conn, &filter_by_multiple_conditions));
+    }
+
+    #[test]
+    fn default_take_both() {
+        let opts = FilterOptions::default();
+        assert_eq!(resolve_ip_version(&opts), (false, false, true));
+    }
+
+    #[test]
+    fn ipv4_only_when_set() {
+        let opts = FilterOptions {
+            by_ipv4_only: true,
+            ..Default::default()
+        };
+        assert_eq!(resolve_ip_version(&opts), (true, false, false));
+    }
+
+    #[test]
+    fn ipv6_only_when_set() {
+        let opts = FilterOptions {
+            by_ipv6_only: true,
+            ..Default::default()
+        };
+        assert_eq!(resolve_ip_version(&opts), (false, true, false));
+    }
+
+    #[test]
+    fn exclude_ipv6_means_ipv4_only() {
+        let opts = FilterOptions {
+            exclude_ipv6: true,
+            ..Default::default()
+        };
+        assert_eq!(resolve_ip_version(&opts), (true, false, false));
     }
 }

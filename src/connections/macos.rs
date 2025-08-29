@@ -1,4 +1,4 @@
-use crate::connections::common::{filter_out_connection, get_address_type};
+use crate::connections::common::{filter_out_connection, get_address_type, resolve_ip_version};
 use crate::schemas::{Connection, FilterOptions};
 use libproc::libproc::proc_pid;
 use netstat2::{
@@ -106,7 +106,7 @@ fn parse_connections(
 /// # Returns
 /// All processed and filtered TCP/UDP connections as a `Connection` struct in a vector.
 pub fn get_connections(filter_options: &FilterOptions) -> Vec<Connection> {
-    let (ipv4_only, ipv6_only, take_both) = resolve_ip_version(filter_options);
+    let (ipv4_only, ipv6_only, _take_both) = resolve_ip_version(filter_options);
     let mut af_flags = AddressFamilyFlags::empty();
     if ipv4_only {
         af_flags |= AddressFamilyFlags::IPV4;
