@@ -109,15 +109,35 @@ pub struct Args {
     established: bool,
 
     /// Deprecated: Use '--ipv4' instead
-    #[arg(long, default_value_t = false, overrides_with = "exclude_ipv6")]
+    #[arg(
+        long,
+        default_value_t = false,
+        overrides_with = "exclude_ipv6",
+        conflicts_with = "ipv4",
+        conflicts_with = "ipv6"
+    )]
     exclude_ipv6: bool,
 
-    /// Show IPv4 connections
-    #[arg(short = '4', long, default_value_t = false, overrides_with = "ipv4")]
+    /// Get only IPv4 connections
+    #[arg(
+        short = '4',
+        long,
+        default_value_t = false,
+        overrides_with = "ipv4",
+        conflicts_with = "ipv6",
+        conflicts_with = "exclude_ipv6"
+    )]
     ipv4: bool,
 
-    /// Show IPv6 connections
-    #[arg(short = '6', long, default_value_t = false, overrides_with = "ipv6")]
+    /// Get only IPv6 connections
+    #[arg(
+        short = '6',
+        long,
+        default_value_t = false,
+        overrides_with = "ipv6",
+        conflicts_with = "ipv4",
+        conflicts_with = "exclude_ipv6"
+    )]
     ipv6: bool,
 
     /// Get compact table view
@@ -371,8 +391,6 @@ mod tests {
             "1234",
             "-o",
             "-l",
-            "--exclude-ipv6",
-            "--ipv4",
             "--ipv6",
         ]);
 
@@ -387,8 +405,6 @@ mod tests {
         assert_eq!(args.pid.as_deref(), Some("1234"));
         assert!(args.open);
         assert!(args.listen);
-        assert!(args.exclude_ipv6);
-        assert!(args.ipv4);
         assert!(args.ipv6);
     }
 
@@ -564,5 +580,4 @@ mod tests {
             assert_eq!(result_pids, scenario.1);
         }
     }
-
 }

@@ -50,8 +50,8 @@ pub struct FilterOptions {
     pub by_open: bool,
     pub by_listen: bool,
     pub by_established: bool,
-    pub by_ipv4: bool,
-    pub by_ipv6: bool,
+    pub by_ipv4_only: bool,
+    pub by_ipv6_only: bool,
     pub exclude_ipv6: bool,
 }
 

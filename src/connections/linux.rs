@@ -121,6 +121,14 @@ fn get_connection_data(net_entry: NetEntry, all_processes: &HashMap<u64, Stat>) 
     connection
 }
 
+pub fn resolve_ip_version(filter_options: &FilterOptions) -> (bool, bool, bool) {
+    let ipv4_only = filter_options.by_ipv4_only || filter_options.exclude_ipv6;
+    let ipv6_only = filter_options.by_ipv6_only;
+    let take_both = !ipv4_only && !ipv6_only;
+
+    (ipv4_only, ipv6_only, take_both)
+}
+
 /// Gets all currently open TCP connections using the "procfs" crate and processes them.
 ///
 /// # Arguments
@@ -135,22 +143,14 @@ fn get_tcp_connections(
 ) -> Vec<Connection> {
     let mut tcp_entries: Vec<TcpNetEntry> = Vec::new();
 
-    if filter_options.by_ipv4 || filter_options.exclude_ipv6 {
+    let (ipv4_only, ipv6_only, take_both) = resolve_ip_version(filter_options);
+
+    if take_both || ipv4_only {
         if let Ok(v4) = procfs::net::tcp() {
             tcp_entries.extend(v4);
         }
     }
-
-    if filter_options.by_ipv6 {
-        if let Ok(v6) = procfs::net::tcp6() {
-            tcp_entries.extend(v6);
-        }
-    }
-
-    if !filter_options.by_ipv4 && !filter_options.by_ipv6 && !filter_options.exclude_ipv6 {
-        if let Ok(v4) = procfs::net::tcp() {
-            tcp_entries.extend(v4);
-        }
+    if take_both || ipv6_only {
         if let Ok(v6) = procfs::net::tcp6() {
             tcp_entries.extend(v6);
         }
@@ -192,22 +192,14 @@ fn get_udp_connections(
 ) -> Vec<Connection> {
     let mut udp_entries: Vec<UdpNetEntry> = Vec::new();
 
-    if filter_options.by_ipv4 || filter_options.exclude_ipv6 {
+    let (ipv4_only, ipv6_only, take_both) = resolve_ip_version(filter_options);
+
+    if take_both || ipv4_only {
         if let Ok(v4) = procfs::net::udp() {
             udp_entries.extend(v4);
         }
     }
-
-    if filter_options.by_ipv6 {
-        if let Ok(v6) = procfs::net::udp6() {
-            udp_entries.extend(v6);
-        }
-    }
-
-    if !filter_options.by_ipv4 && !filter_options.by_ipv6 && !filter_options.exclude_ipv6 {
-        if let Ok(v4) = procfs::net::udp() {
-            udp_entries.extend(v4);
-        }
+    if take_both || ipv6_only {
         if let Ok(v6) = procfs::net::udp6() {
             udp_entries.extend(v6);
         }
@@ -291,5 +283,38 @@ mod tests {
         let (address, port) = get_address_parts(addr);
         assert_eq!(address, "example.com");
         assert_eq!(port, "-");
+    }
+
+    #[test]
+    fn default_take_both() {
+        let opts = FilterOptions::default();
+        assert_eq!(resolve_ip_version(&opts), (false, false, true));
+    }
+
+    #[test]
+    fn ipv4_only_when_set() {
+        let opts = FilterOptions {
+            by_ipv4_only: true,
+            ..Default::default()
+        };
+        assert_eq!(resolve_ip_version(&opts), (true, false, false));
+    }
+
+    #[test]
+    fn ipv6_only_when_set() {
+        let opts = FilterOptions {
+            by_ipv6_only: true,
+            ..Default::default()
+        };
+        assert_eq!(resolve_ip_version(&opts), (false, true, false));
+    }
+
+    #[test]
+    fn exclude_ipv6_means_ipv4_only() {
+        let opts = FilterOptions {
+            exclude_ipv6: true,
+            ..Default::default()
+        };
+        assert_eq!(resolve_ip_version(&opts), (true, false, false));
     }
 }
