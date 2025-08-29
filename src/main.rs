@@ -36,6 +36,8 @@ fn main() {
         by_open: args.open,
         by_listen: args.listen,
         by_established: args.established,
+        by_ipv4: args.ipv4,
+        by_ipv6: args.ipv6,
         exclude_ipv6: args.exclude_ipv6,
     };
 

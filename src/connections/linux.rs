@@ -1,5 +1,6 @@
 use crate::connections::common::{filter_out_connection, get_address_type};
 use crate::schemas::{Connection, FilterOptions};
+use procfs::net::{TcpNetEntry, UdpNetEntry};
 use procfs::process::FDTarget;
 use procfs::process::Stat;
 use std::collections::HashMap;
@@ -132,9 +133,27 @@ fn get_tcp_connections(
     all_processes: &HashMap<u64, Stat>,
     filter_options: &FilterOptions,
 ) -> Vec<Connection> {
-    let mut tcp_entries = procfs::net::tcp().unwrap();
-    if !filter_options.exclude_ipv6 {
-        tcp_entries.extend(procfs::net::tcp6().unwrap());
+    let mut tcp_entries: Vec<TcpNetEntry> = Vec::new();
+
+    if filter_options.by_ipv4 || filter_options.exclude_ipv6{ 
+        if let Ok(v4) = procfs::net::tcp() {
+            tcp_entries.extend(v4); 
+        } 
+    }
+
+    if filter_options.by_ipv6 {
+        if let Ok(v6) = procfs::net::tcp6() {
+            tcp_entries.extend(v6);
+        }
+    }
+
+    if !filter_options.by_ipv4 && !filter_options.by_ipv6 && !filter_options.exclude_ipv6{
+        if let Ok(v4) = procfs::net::tcp() {
+            tcp_entries.extend(v4); 
+        } 
+        if let Ok(v6) = procfs::net::tcp6() {
+            tcp_entries.extend(v6);
+        }
     }
 
     tcp_entries
@@ -171,9 +190,27 @@ fn get_udp_connections(
     all_processes: &HashMap<u64, Stat>,
     filter_options: &FilterOptions,
 ) -> Vec<Connection> {
-    let mut udp_entries = procfs::net::udp().unwrap();
-    if !filter_options.exclude_ipv6 {
-        udp_entries.extend(procfs::net::udp6().unwrap());
+    let mut udp_entries: Vec<UdpNetEntry> = Vec::new();
+    
+    if filter_options.by_ipv4 || filter_options.exclude_ipv6 { 
+        if let Ok(v4) = procfs::net::udp() {
+            udp_entries.extend(v4); 
+        } 
+    }
+
+    if filter_options.by_ipv6 {
+        if let Ok(v6) = procfs::net::udp6() {
+            udp_entries.extend(v6);
+        }
+    }
+
+    if !filter_options.by_ipv4 && !filter_options.by_ipv6 && !filter_options.exclude_ipv6 {
+        if let Ok(v4) = procfs::net::udp() {
+            udp_entries.extend(v4); 
+        } 
+        if let Ok(v6) = procfs::net::udp6() {
+            udp_entries.extend(v6);
+        }
     }
 
     udp_entries

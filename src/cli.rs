@@ -30,6 +30,8 @@ pub struct Flags {
     pub open: bool,
     pub listen: bool,
     pub established: bool,
+    pub ipv4: bool,
+    pub ipv6: bool,
     pub exclude_ipv6: bool,
     pub compact: bool,
     pub sort: Option<SortField>,
@@ -106,10 +108,19 @@ pub struct Args {
     )]
     established: bool,
 
-    /// Exclude IPv6 connections
+    /// Deprecated: Use IPv4, instead
     #[arg(long, default_value_t = false, overrides_with = "exclude_ipv6")]
     exclude_ipv6: bool,
 
+    /// Show IPv4 connections
+    #[arg(short = '4', long, default_value_t = false, overrides_with = "ipv4")]
+    ipv4: bool,
+
+    /// Show IPv6 connections
+    #[arg(short = '6', long, default_value_t = false, overrides_with = "ipv6")]
+    ipv6: bool,
+
+    /// Get compact table view
     #[arg(short = 'c', long, default_value_t = false, overrides_with = "compact")]
     compact: bool,
 
@@ -128,6 +139,7 @@ pub struct Args {
     /// Ignore config file
     #[arg(long, default_value_t = false)]
     no_config: bool,
+
     /// Annotate remote port with service name and ephemeral tag
     #[arg(short = 'a', long, default_value_t = false)]
     annotate_remote_port: bool,
@@ -192,6 +204,8 @@ pub fn cli() -> CliCommand {
             open: args.open,
             listen: args.listen,
             established: args.established,
+            ipv4: args.ipv4,
+            ipv6: args.ipv6,
             exclude_ipv6: args.exclude_ipv6,
             compact: args.compact,
             sort: args.sort,
@@ -341,23 +355,19 @@ mod tests {
         let args = Args::parse_from([
             "test-bin",
             "-k",
-            "--proto",
-            "udp",
+            "--proto", "udp",
             "--tcp",
             "--udp",
-            "--ip",
-            "192.168.0.1",
-            "--remote-port",
-            "53",
-            "-p",
-            "8080",
-            "--program",
-            "nginx",
-            "--pid",
-            "1234",
+            "--ip", "192.168.0.1",
+            "--remote-port", "53",
+            "-p", "8080",
+            "--program", "nginx",
+            "--pid", "1234",
             "-o",
             "-l",
             "--exclude-ipv6",
+            "--ipv4",
+            "--ipv6",
         ]);
 
         assert!(args.kill);
@@ -372,7 +382,10 @@ mod tests {
         assert!(args.open);
         assert!(args.listen);
         assert!(args.exclude_ipv6);
+        assert!(args.ipv4);
+        assert!(args.ipv6);
     }
+
 
     #[test]
     fn test_default_values() {
@@ -390,6 +403,8 @@ mod tests {
         assert!(!args.open);
         assert!(!args.listen);
         assert!(!args.exclude_ipv6);
+        assert!(!args.ipv4);
+        assert!(!args.ipv6);
         assert!(!args.annotate_remote_port);
     }
 
@@ -544,4 +559,23 @@ mod tests {
             assert_eq!(result_pids, scenario.1);
         }
     }
+
+
+    #[test]
+    fn test_ipv4_ipv6_flags() {
+        let args = Args::parse_from(["test-bin", "-4", "--ipv6"]);
+
+        assert!(args.ipv4);
+        assert!(args.ipv6);
+
+        // Ensure they are independent
+        let args = Args::parse_from(["test-bin", "--ipv4"]);
+        assert!(args.ipv4);
+        assert!(!args.ipv6);
+
+        let args = Args::parse_from(["test-bin", "-6"]);
+        assert!(!args.ipv4);
+        assert!(args.ipv6);
+    }
+
 }
