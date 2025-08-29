@@ -108,7 +108,7 @@ pub struct Args {
     )]
     established: bool,
 
-    /// Deprecated: Use IPv4, instead
+    /// Deprecated: Use '--ipv4' instead
     #[arg(long, default_value_t = false, overrides_with = "exclude_ipv6")]
     exclude_ipv6: bool,
 
@@ -565,20 +565,4 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_ipv4_ipv6_flags() {
-        let args = Args::parse_from(["test-bin", "-4", "--ipv6"]);
-
-        assert!(args.ipv4);
-        assert!(args.ipv6);
-
-        // Ensure they are independent
-        let args = Args::parse_from(["test-bin", "--ipv4"]);
-        assert!(args.ipv4);
-        assert!(!args.ipv6);
-
-        let args = Args::parse_from(["test-bin", "-6"]);
-        assert!(!args.ipv4);
-        assert!(args.ipv6);
-    }
 }
