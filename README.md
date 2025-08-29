@@ -77,7 +77,9 @@ You can use the following flags to filter based on different attributes:
 | ```--open, -o``` | filter by open connections | - |
 | ```--listen, -l``` | filter by listening connections | - |
 | ```--established, -e``` | filter by established connections | - |
-| ```--exclude-ipv6``` | don't list IPv6 connections | - |
+| ```--exclude-ipv6``` | deprecated – use ``--ipv4`` instead (mut. exclusive with ``--ipv6``) | - |
+| ```--ipv4, -4``` | get only IPv4 connections (mut. exclusive with ``--ipv6``) | - |
+| ```--ipv6, -6``` | get only IPv6 connections (mut. exclusive with ``--ipv4``) | - |
 
 ### ✨ Compact table view:
 To get a smaller, more compact table use the ``--compact, -c`` flag.

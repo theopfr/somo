@@ -30,6 +30,8 @@ pub struct Flags {
     pub open: bool,
     pub listen: bool,
     pub established: bool,
+    pub ipv4: bool,
+    pub ipv6: bool,
     pub exclude_ipv6: bool,
     pub compact: bool,
     pub sort: Option<SortField>,
@@ -49,7 +51,7 @@ pub struct Args {
     #[arg(short = 'k', long, default_value = None, overrides_with = "kill")]
     kill: bool,
 
-    /// Deprecated. Use '--tcp' and '--udp' instead.
+    /// Deprecated: Use '--tcp' and '--udp' instead
     #[arg(long, default_value = None, overrides_with = "proto")]
     proto: Option<String>,
 
@@ -106,10 +108,37 @@ pub struct Args {
     )]
     established: bool,
 
-    /// Exclude IPv6 connections
-    #[arg(long, default_value_t = false, overrides_with = "exclude_ipv6")]
+    /// Deprecated: Use '--ipv4' instead
+    #[arg(
+        long,
+        default_value_t = false,
+        overrides_with = "exclude_ipv6",
+        conflicts_with = "ipv6"
+    )]
     exclude_ipv6: bool,
 
+    /// Get only IPv4 connections
+    #[arg(
+        short = '4',
+        long,
+        default_value_t = false,
+        overrides_with = "ipv4",
+        conflicts_with = "ipv6"
+    )]
+    ipv4: bool,
+
+    /// Get only IPv6 connections
+    #[arg(
+        short = '6',
+        long,
+        default_value_t = false,
+        overrides_with = "ipv6",
+        conflicts_with = "ipv4",
+        conflicts_with = "exclude_ipv6"
+    )]
+    ipv6: bool,
+
+    /// Get compact table view
     #[arg(short = 'c', long, default_value_t = false, overrides_with = "compact")]
     compact: bool,
 
@@ -128,6 +157,7 @@ pub struct Args {
     /// Ignore config file
     #[arg(long, default_value_t = false)]
     no_config: bool,
+
     /// Annotate remote port with service name and ephemeral tag
     #[arg(short = 'a', long, default_value_t = false)]
     annotate_remote_port: bool,
@@ -192,6 +222,8 @@ pub fn cli() -> CliCommand {
             open: args.open,
             listen: args.listen,
             established: args.established,
+            ipv4: args.ipv4,
+            ipv6: args.ipv6,
             exclude_ipv6: args.exclude_ipv6,
             compact: args.compact,
             sort: args.sort,
@@ -358,6 +390,7 @@ mod tests {
             "-o",
             "-l",
             "--exclude-ipv6",
+            "--ipv4",
         ]);
 
         assert!(args.kill);
@@ -371,6 +404,7 @@ mod tests {
         assert_eq!(args.pid.as_deref(), Some("1234"));
         assert!(args.open);
         assert!(args.listen);
+        assert!(args.ipv4);
         assert!(args.exclude_ipv6);
     }
 
@@ -390,6 +424,8 @@ mod tests {
         assert!(!args.open);
         assert!(!args.listen);
         assert!(!args.exclude_ipv6);
+        assert!(!args.ipv4);
+        assert!(!args.ipv6);
         assert!(!args.annotate_remote_port);
     }
 

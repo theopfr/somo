@@ -1,4 +1,4 @@
-use crate::connections::common::{filter_out_connection, get_address_type};
+use crate::connections::common::{filter_out_connection, get_address_type, resolve_ip_version};
 use crate::schemas::{Connection, FilterOptions};
 use libproc::libproc::proc_pid;
 use netstat2::{
@@ -33,21 +33,6 @@ fn parse_connections(
     sockets_info: &[SocketInfo],
     filter_options: &FilterOptions,
 ) -> Vec<Connection> {
-    let mut af_flags = AddressFamilyFlags::empty();
-    if !filter_options.exclude_ipv6 {
-        af_flags |= AddressFamilyFlags::IPV4 | AddressFamilyFlags::IPV6;
-    } else {
-        af_flags |= AddressFamilyFlags::IPV4;
-    }
-
-    let mut proto_flags = ProtocolFlags::empty();
-    if filter_options.by_proto.tcp {
-        proto_flags |= ProtocolFlags::TCP;
-    }
-    if filter_options.by_proto.udp {
-        proto_flags |= ProtocolFlags::UDP;
-    }
-
     // Temporary storage for connections, for deduplication
     let mut seen_connections = HashSet::new();
 
@@ -121,11 +106,15 @@ fn parse_connections(
 /// # Returns
 /// All processed and filtered TCP/UDP connections as a `Connection` struct in a vector.
 pub fn get_connections(filter_options: &FilterOptions) -> Vec<Connection> {
+    let (ipv4_only, ipv6_only, _take_both) = resolve_ip_version(filter_options);
+
     let mut af_flags = AddressFamilyFlags::empty();
-    if !filter_options.exclude_ipv6 {
-        af_flags |= AddressFamilyFlags::IPV4 | AddressFamilyFlags::IPV6;
-    } else {
+    if ipv4_only {
         af_flags |= AddressFamilyFlags::IPV4;
+    } else if ipv6_only {
+        af_flags |= AddressFamilyFlags::IPV6;
+    } else {
+        af_flags |= AddressFamilyFlags::IPV4 | AddressFamilyFlags::IPV6;
     }
 
     let mut proto_flags = ProtocolFlags::empty();
