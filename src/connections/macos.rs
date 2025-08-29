@@ -107,6 +107,7 @@ fn parse_connections(
 /// All processed and filtered TCP/UDP connections as a `Connection` struct in a vector.
 pub fn get_connections(filter_options: &FilterOptions) -> Vec<Connection> {
     let (ipv4_only, ipv6_only, _take_both) = resolve_ip_version(filter_options);
+    
     let mut af_flags = AddressFamilyFlags::empty();
     if ipv4_only {
         af_flags |= AddressFamilyFlags::IPV4;

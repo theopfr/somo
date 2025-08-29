@@ -81,7 +81,7 @@ pub fn get_address_type(remote_address: &str) -> AddressType {
 /// # Returns
 /// A tuple with three bools of which just one element can be true:
 /// * 1. element is true -> get only IPv4 connections
-/// * 3. element is true -> get only IPv46 connections
+/// * 3. element is true -> get only IPv6 connections
 /// * 3. element is true -> get both
 pub fn resolve_ip_version(filter_options: &FilterOptions) -> (bool, bool, bool) {
     let ipv4_only = filter_options.by_ipv4_only || filter_options.exclude_ipv6;
@@ -241,15 +241,13 @@ mod tests {
     }
 
     #[test]
-    fn test_ip_versions_default_take_4_and_6() {
-        // When no specific IP version filter is set, both IPv4 and IPv6 are considered
+    fn test_take_ipv4_and_ipv6() {
         let opts = FilterOptions::default();
         assert_eq!(resolve_ip_version(&opts), (false, false, true));
     }
 
     #[test]
-    fn test_ip_versions_only_ipv4() {
-        // When `by_ipv4_only` is true, only IPv4 addresses should be considered
+    fn test_take_only_ipv4() {
         let opts = FilterOptions {
             by_ipv4_only: true,
             ..Default::default()
@@ -258,8 +256,7 @@ mod tests {
     }
 
     #[test]
-    fn test_ip_versions_only_ipv6() {
-        // When `by_ipv6_only` is true, only IPv6 addresses should be considered
+    fn test_take_only_ipv6() {
         let opts = FilterOptions {
             by_ipv6_only: true,
             ..Default::default()
@@ -268,8 +265,8 @@ mod tests {
     }
 
     #[test]
-    fn test_ip_versions_exclude_ipv6_means_ipv4_only() {
-        // When `exclude_ipv6` is true, only IPv4 addresses are considered
+    fn test_exclude_ipv6_means_ipv4_only() {
+        // Test for deprecated '--exclude-ipv6' flag which behaves the same as '--ipv4'
         let opts = FilterOptions {
             exclude_ipv6: true,
             ..Default::default()

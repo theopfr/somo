@@ -51,7 +51,7 @@ pub struct Args {
     #[arg(short = 'k', long, default_value = None, overrides_with = "kill")]
     kill: bool,
 
-    /// Deprecated. Use '--tcp' and '--udp' instead.
+    /// Deprecated: Use '--tcp' and '--udp' instead
     #[arg(long, default_value = None, overrides_with = "proto")]
     proto: Option<String>,
 
