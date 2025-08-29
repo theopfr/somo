@@ -135,10 +135,10 @@ fn get_tcp_connections(
 ) -> Vec<Connection> {
     let mut tcp_entries: Vec<TcpNetEntry> = Vec::new();
 
-    if filter_options.by_ipv4 || filter_options.exclude_ipv6{ 
+    if filter_options.by_ipv4 || filter_options.exclude_ipv6 {
         if let Ok(v4) = procfs::net::tcp() {
-            tcp_entries.extend(v4); 
-        } 
+            tcp_entries.extend(v4);
+        }
     }
 
     if filter_options.by_ipv6 {
@@ -147,10 +147,10 @@ fn get_tcp_connections(
         }
     }
 
-    if !filter_options.by_ipv4 && !filter_options.by_ipv6 && !filter_options.exclude_ipv6{
+    if !filter_options.by_ipv4 && !filter_options.by_ipv6 && !filter_options.exclude_ipv6 {
         if let Ok(v4) = procfs::net::tcp() {
-            tcp_entries.extend(v4); 
-        } 
+            tcp_entries.extend(v4);
+        }
         if let Ok(v6) = procfs::net::tcp6() {
             tcp_entries.extend(v6);
         }
@@ -191,11 +191,11 @@ fn get_udp_connections(
     filter_options: &FilterOptions,
 ) -> Vec<Connection> {
     let mut udp_entries: Vec<UdpNetEntry> = Vec::new();
-    
-    if filter_options.by_ipv4 || filter_options.exclude_ipv6 { 
+
+    if filter_options.by_ipv4 || filter_options.exclude_ipv6 {
         if let Ok(v4) = procfs::net::udp() {
-            udp_entries.extend(v4); 
-        } 
+            udp_entries.extend(v4);
+        }
     }
 
     if filter_options.by_ipv6 {
@@ -206,8 +206,8 @@ fn get_udp_connections(
 
     if !filter_options.by_ipv4 && !filter_options.by_ipv6 && !filter_options.exclude_ipv6 {
         if let Ok(v4) = procfs::net::udp() {
-            udp_entries.extend(v4); 
-        } 
+            udp_entries.extend(v4);
+        }
         if let Ok(v6) = procfs::net::udp6() {
             udp_entries.extend(v6);
         }

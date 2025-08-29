@@ -34,13 +34,13 @@ fn parse_connections(
     filter_options: &FilterOptions,
 ) -> Vec<Connection> {
     let mut af_flags = AddressFamilyFlags::empty();
-    if filter_options.by_ipv4 || filter_options.exclude_ipv6{
+    if filter_options.by_ipv4 || filter_options.exclude_ipv6 {
         af_flags |= AddressFamilyFlags::IPV4;
     }
     if filter_options.by_ipv6 {
         af_flags |= AddressFamilyFlags::IPV6;
     }
-    if !filter_options.by_ipv4 && !filter_options.by_ipv6 && !filter_options.exclude_ipv6{
+    if !filter_options.by_ipv4 && !filter_options.by_ipv6 && !filter_options.exclude_ipv6 {
         af_flags |= AddressFamilyFlags::IPV4 | AddressFamilyFlags::IPV6;
     }
 

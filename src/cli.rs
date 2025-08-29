@@ -355,14 +355,20 @@ mod tests {
         let args = Args::parse_from([
             "test-bin",
             "-k",
-            "--proto", "udp",
+            "--proto",
+            "udp",
             "--tcp",
             "--udp",
-            "--ip", "192.168.0.1",
-            "--remote-port", "53",
-            "-p", "8080",
-            "--program", "nginx",
-            "--pid", "1234",
+            "--ip",
+            "192.168.0.1",
+            "--remote-port",
+            "53",
+            "-p",
+            "8080",
+            "--program",
+            "nginx",
+            "--pid",
+            "1234",
             "-o",
             "-l",
             "--exclude-ipv6",
@@ -385,7 +391,6 @@ mod tests {
         assert!(args.ipv4);
         assert!(args.ipv6);
     }
-
 
     #[test]
     fn test_default_values() {
@@ -560,7 +565,6 @@ mod tests {
         }
     }
 
-
     #[test]
     fn test_ipv4_ipv6_flags() {
         let args = Args::parse_from(["test-bin", "-4", "--ipv6"]);
@@ -577,5 +581,4 @@ mod tests {
         assert!(!args.ipv4);
         assert!(args.ipv6);
     }
-
 }
