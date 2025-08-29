@@ -113,7 +113,6 @@ pub struct Args {
         long,
         default_value_t = false,
         overrides_with = "exclude_ipv6",
-        conflicts_with = "ipv4",
         conflicts_with = "ipv6"
     )]
     exclude_ipv6: bool,
@@ -124,8 +123,7 @@ pub struct Args {
         long,
         default_value_t = false,
         overrides_with = "ipv4",
-        conflicts_with = "ipv6",
-        conflicts_with = "exclude_ipv6"
+        conflicts_with = "ipv6"
     )]
     ipv4: bool,
 
@@ -391,7 +389,8 @@ mod tests {
             "1234",
             "-o",
             "-l",
-            "--ipv6",
+            "--exclude-ipv6",
+            "--ipv4",
         ]);
 
         assert!(args.kill);
@@ -405,7 +404,8 @@ mod tests {
         assert_eq!(args.pid.as_deref(), Some("1234"));
         assert!(args.open);
         assert!(args.listen);
-        assert!(args.ipv6);
+        assert!(args.ipv4);
+        assert!(args.exclude_ipv6);
     }
 
     #[test]
