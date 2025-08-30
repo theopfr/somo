@@ -111,7 +111,7 @@ You can create a config file that defines flags to be automatically applied ever
 - run ``somo --no-config`` to ignore all default flags
 
 For example, if your config file looks like this:
-```
+```bash
 # View compact version of the table
 --compact
 # Sort by PID
@@ -134,7 +134,7 @@ somo generate-completions bash > ~/.local/share/bash-completion/completions/somo
 ```
 
 #### Zsh
-```zsh
+```bash
 mkdir -p ~/.local/share/zsh/site-functions
 somo generate-completions zsh > ~/.local/share/zsh/site-functions/_somo
 echo 'fpath=(~/.local/share/zsh/site-functions $fpath)' >> ~/.zshrc
@@ -142,7 +142,7 @@ echo 'autoload -U compinit && compinit' >> ~/.zshrc
 ```
 
 #### Fish
-```fish
+```bash
 mkdir -p ~/.config/fish/completions
 somo generate-completions fish > ~/.config/fish/completions/somo.fish
 ```
