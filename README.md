@@ -66,7 +66,50 @@ To run somo just type:
 somo  # or sudo somo
 ```
 
-Somo supports the following features:
+## 🚩 Features:
+
+
+<details>
+<summary>Click to see "somo --help" summary!</summary>
+
+```
+A human-friendly alternative to netstat for socket and port monitoring on Linux and macOS.
+
+Usage: somo [OPTIONS] [COMMAND]
+
+Commands:
+  generate-completions  Generate shell completions
+  generate-config-file  Generate config file
+  help                  Print this message or the help of the given subcommand(s)
+
+Options:
+  -k, --kill                       Display an interactive selection option after inspecting connections
+      --proto <PROTO>              Deprecated: Use '--tcp' and '--udp' instead
+  -t, --tcp                        Include TCP connections
+  -u, --udp                        Include UDP connections
+      --ip <IP>                    Filter connections by remote IP address
+      --remote-port <REMOTE_PORT>  Filter connections by remote port
+  -p, --port <PORT>                Filter connections by local port
+      --program <PROGRAM>          Filter connections by program name
+      --pid <PID>                  Filter connections by PID
+      --format <FORMAT>            Format the output in a certain way, e.g., `somo --format "PID: {{pid}}, Protocol: {{proto}}, Remote Address: {{remote_address}}"`
+      --json                       Output in JSON
+  -o, --open                       Filter by open connections
+  -l, --listen                     Filter by listening connections
+  -e, --established                Filter by established connections
+      --exclude-ipv6               Deprecated: Use '--ipv4' instead
+  -4, --ipv4                       Get only IPv4 connections
+  -6, --ipv6                       Get only IPv6 connections
+  -c, --compact                    Get compact table view
+  -r, --reverse                    Reverse order of the table
+  -s, --sort <SORT>                Sort by column name [possible values: proto, local_port, remote_address, remote_port, program, pid, state]
+      --config-file                Retrieve config file path
+      --no-config                  Ignore config file
+  -a, --annotate-remote-port       Annotate remote port with service name and ephemeral tag
+  -h, --help                       Print help
+  -V, --version                    Print version
+```
+</details>
 
 ### ✨ Filtering:
 You can use the following flags to filter based on different attributes:
@@ -133,32 +176,29 @@ When using the ``--annotate-remote-port, -a`` flag, the table will display the c
 ## 🐚 Shell Completions:
 Somo supports shell completions for bash, zsh, fish, and elvish. Choose your shell:
 
-#### Bash:
-```bash
-mkdir -p ~/.local/share/bash-completion/completions
-somo generate-completions bash > ~/.local/share/bash-completion/completions/somo
-```
-
-#### Zsh:
-```bash
-mkdir -p ~/.local/share/zsh/site-functions
-somo generate-completions zsh > ~/.local/share/zsh/site-functions/_somo
-echo 'fpath=(~/.local/share/zsh/site-functions $fpath)' >> ~/.zshrc
-echo 'autoload -U compinit && compinit' >> ~/.zshrc
-```
-
-#### Fish:
-```bash
-mkdir -p ~/.config/fish/completions
-somo generate-completions fish > ~/.config/fish/completions/somo.fish
-```
-
-#### Elvish:
-```bash
-mkdir -p ~/.config/elvish/lib
-somo generate-completions elvish > ~/.config/elvish/lib/somo.elv
-echo 'use somo' >> ~/.config/elvish/rc.elv
-```
+- **Bash:**
+  ```bash
+  mkdir -p ~/.local/share/bash-completion/completions
+  somo generate-completions bash > ~/.local/share/bash-completion/completions/somo
+  ```
+- **Zsh:**
+  ```bash
+  mkdir -p ~/.local/share/zsh/site-functions
+  somo generate-completions zsh > ~/.local/share/zsh/site-functions/_somo
+  echo 'fpath=(~/.local/share/zsh/site-functions $fpath)' >> ~/.zshrc
+  echo 'autoload -U compinit && compinit' >> ~/.zshrc
+  ```
+- **Fish:**
+  ```bash
+  mkdir -p ~/.config/fish/completions
+  somo generate-completions fish > ~/.config/fish/completions/somo.fish
+  ```
+- **Elvish:**
+  ```bash
+  mkdir -p ~/.config/elvish/lib
+  somo generate-completions elvish > ~/.config/elvish/lib/somo.elv
+  echo 'use somo' >> ~/.config/elvish/rc.elv
+  ```
 
 ---
 
