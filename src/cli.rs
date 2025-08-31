@@ -292,11 +292,11 @@ pub fn resolve_protocols(args: &Flags) -> Protocols {
 
 /// Determines which IP versions to include based on CLI flags.
 ///
-/// The `--ipv4` and the deprecated `--exlude-ipv6` have the same effect
+/// The `--ipv4` and the deprecated `--exlude-ipv6` have the same effect.
 /// If no relevant flags are set, both IPv4 and IPv6 are enabled by default.
 ///
 /// # Arguments
-/// * `filter_options`: Struct representing filter options (of interest: `--ipv4`, `--ipv6`, and optionally `--exclude-ipv6`)
+/// * `args`: Parsed CLI flags (of interest: `--ipv4`, `--ipv6`, and optionally `--exclude_ipv6`)
 ///
 /// # Returns
 /// A `IpVersions` struct indicating whether to include IPv4, IPv6, or both.
@@ -304,7 +304,6 @@ pub fn resolve_ip_versions(args: &Flags) -> IpVersions {
     let ipv4 = args.ipv4 || args.exclude_ipv6;
     let ipv6 = args.ipv6;
 
-    // If neither IPv4 nor IPv6 was explicitly requested, return both as true
     if !ipv4 && !ipv6 {
         IpVersions {
             ipv4: true,

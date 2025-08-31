@@ -79,7 +79,7 @@ You can use the following flags to filter based on different attributes:
 | ```--established, -e``` | filter by established connections | - |
 | ```--exclude-ipv6``` | deprecated – use ``--ipv4`` instead (mutually exclusive with ``--ipv6``) | - |
 | ```--ipv4, -4``` | filter by IPv4 connections | - |
-| ```--ipv6, -6``` | filter by IPv4 connections | - |
+| ```--ipv6, -6``` | filter by IPv6 connections | - |
 
 ### ✨ Compact table view:
 To get a smaller, more compact table use the ``--compact, -c`` flag.
