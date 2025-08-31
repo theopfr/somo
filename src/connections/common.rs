@@ -1,4 +1,4 @@
-use crate::schemas::{AddressType, Connection, FilterOptions, IpVersions};
+use crate::schemas::{AddressType, Connection, FilterOptions};
 
 /// Checks if a connection should be filtered out based on options provided by the user.
 ///
