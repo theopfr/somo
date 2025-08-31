@@ -20,6 +20,12 @@ pub struct Protocols {
     pub udp: bool,
 }
 
+/// Contains which type(s) of IP versions the user wants to see.
+#[derive(Debug, PartialEq, Eq, Default)]
+pub struct IpVersions {
+    pub ipv4: bool,
+    pub ipv6: bool,
+}
 /// Represents a processed socket connection with all its attributes.
 #[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -42,6 +48,7 @@ pub struct Connection {
 #[derive(Debug, Default)]
 pub struct FilterOptions {
     pub by_proto: Protocols,
+    pub by_ip_version: IpVersions,
     pub by_program: Option<String>,
     pub by_pid: Option<String>,
     pub by_remote_address: Option<String>,
@@ -50,9 +57,6 @@ pub struct FilterOptions {
     pub by_open: bool,
     pub by_listen: bool,
     pub by_established: bool,
-    pub by_ipv4_only: bool,
-    pub by_ipv6_only: bool,
-    pub exclude_ipv6: bool,
 }
 
 /// Represents the types of network protocols.

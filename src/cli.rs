@@ -10,6 +10,7 @@ use std::{io, string::String};
 
 use crate::config::merge_cli_config_args;
 use crate::config::read_config_file;
+use crate::schemas::IpVersions;
 use crate::schemas::{Connection, Protocol, Protocols};
 use crate::utils;
 
@@ -118,13 +119,7 @@ pub struct Args {
     exclude_ipv6: bool,
 
     /// Get only IPv4 connections
-    #[arg(
-        short = '4',
-        long,
-        default_value_t = false,
-        overrides_with = "ipv4",
-        conflicts_with = "ipv6"
-    )]
+    #[arg(short = '4', long, default_value_t = false, overrides_with = "ipv4")]
     ipv4: bool,
 
     /// Get only IPv6 connections
@@ -133,7 +128,6 @@ pub struct Args {
         long,
         default_value_t = false,
         overrides_with = "ipv6",
-        conflicts_with = "ipv4",
         conflicts_with = "exclude_ipv6"
     )]
     ipv6: bool,
@@ -296,6 +290,31 @@ pub fn resolve_protocols(args: &Flags) -> Protocols {
     protocols
 }
 
+/// Determines which IP versions to include based on CLI flags.
+///
+/// The `--ipv4` and the deprecated `--exlude-ipv6` have the same effect
+/// If no relevant flags are set, both IPv4 and IPv6 are enabled by default.
+///
+/// # Arguments
+/// * `filter_options`: Struct representing filter options (of interest: `--ipv4`, `--ipv6`, and optionally `--exclude-ipv6`)
+///
+/// # Returns
+/// A `IpVersions` struct indicating whether to include IPv4, IPv6, or both.
+pub fn resolve_ip_versions(args: &Flags) -> IpVersions {
+    let ipv4 = args.ipv4 || args.exclude_ipv6;
+    let ipv6 = args.ipv6;
+
+    // If neither IPv4 nor IPv6 was explicitly requested, return both as true
+    if !ipv4 && !ipv6 {
+        IpVersions {
+            ipv4: true,
+            ipv6: true,
+        }
+    } else {
+        IpVersions { ipv4, ipv6 }
+    }
+}
+
 /// Generates and prints shell completions to stdout.
 ///
 /// # Arguments
@@ -361,8 +380,8 @@ mod tests {
     use std::{net::IpAddr, str::FromStr};
 
     use crate::{
-        cli::{resolve_protocols, sort_connections, SortField},
-        schemas::AddressType,
+        cli::{resolve_ip_versions, resolve_protocols, sort_connections, SortField},
+        schemas::{AddressType, IpVersions},
     };
 
     use super::{Args, Commands, Flags};
@@ -486,6 +505,84 @@ mod tests {
         let result = resolve_protocols(&flags);
         assert!(result.tcp);
         assert!(result.udp);
+    }
+
+    #[test]
+    fn test_take_all_ip_versions() {
+        let flags = Flags {
+            ..Default::default()
+        };
+        assert_eq!(
+            resolve_ip_versions(&flags),
+            IpVersions {
+                ipv4: true,
+                ipv6: true
+            }
+        );
+    }
+
+    #[test]
+    fn test_take_explicity_ipv4_and_ipv6() {
+        let flags = Flags {
+            ipv4: true,
+            ipv6: true,
+            ..Default::default()
+        };
+        assert_eq!(
+            resolve_ip_versions(&flags),
+            IpVersions {
+                ipv4: true,
+                ipv6: true
+            }
+        );
+    }
+
+    #[test]
+    fn test_take_only_ipv4() {
+        let flags = Flags {
+            ipv4: true,
+            ipv6: false,
+            ..Default::default()
+        };
+        assert_eq!(
+            resolve_ip_versions(&flags),
+            IpVersions {
+                ipv4: true,
+                ipv6: false
+            }
+        );
+    }
+
+    #[test]
+    fn test_take_only_ipv6() {
+        let flags = Flags {
+            ipv4: false,
+            ipv6: true,
+            ..Default::default()
+        };
+        assert_eq!(
+            resolve_ip_versions(&flags),
+            IpVersions {
+                ipv4: false,
+                ipv6: true
+            }
+        );
+    }
+
+    #[test]
+    fn test_explicitly_exclude_ipv6() {
+        // Test for deprecated '--exclude-ipv6' flag which behaves the same as '--ipv4'
+        let flags = Flags {
+            exclude_ipv6: true,
+            ..Default::default()
+        };
+        assert_eq!(
+            resolve_ip_versions(&flags),
+            IpVersions {
+                ipv4: true,
+                ipv6: false
+            }
+        );
     }
 
     #[test]
