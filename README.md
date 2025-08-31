@@ -25,28 +25,34 @@
 
 ## ⬇️ Installation:
 
-### Option 1 - Debian:
-If you use a Debian OS go to [releases](https://github.com/theopfr/somo/releases) and download the latest .deb release.
-
-### Option 2 - crates.io:
+### Using cargo:
 ```sh
 cargo install somo
 ```
-Most of the time you will want to run this in ``sudo`` mode to see all processes and ports. By default, this is not possible when installed via cargo. But you can create a symlink so the binary can be run as root:
+Most of the time you will want to run this in ``sudo`` mode to see all processes and ports. To make that work, you can create a symlink so the binary can be run as root:
 ```sh
 sudo ln -s ~/.cargo/bin/somo /usr/local/bin/somo
 sudo somo   # this works now
 ```
 
-### Option 3 - GitHub (Development Version):
-*Warning:* This is the cutting-edge development version and may be unstable or contain incomplete features. You can install it via cargo directly from the GitHub repository.
-
+##### Or install directly from GitHub:
+*Warning:* This will install the cutting-edge development version and may be unstable or contain incomplete features.
 ```sh
 cargo install --git https://github.com/theopfr/somo
 ```
 
-### Option 4 - Nix (Development Version):
-You can build and use the development version using Nix with Flakes.
+### Debian:
+If you use a Debian OS go to [releases](https://github.com/theopfr/somo/releases) and download the latest .deb release.
+
+### Arch:
+```sh
+yay -S somo
+```
+
+### Nix:
+*Warning:* This will install the cutting-edge development version and may be unstable or contain incomplete features.
+
+You can build it using Nix with Flakes:
 ```sh
 nix build 'github:theopfr/somo?dir=nix'
 sudo ./result/bin/somo
@@ -57,7 +63,7 @@ sudo ./result/bin/somo
 ## 🏃‍♀️ Running somo:
 To run somo just type: 
 ```sh
-sudo somo
+somo  # or sudo somo
 ```
 
 Somo supports the following features:
@@ -127,13 +133,13 @@ When using the ``--annotate-remote-port, -a`` flag, the table will display the c
 ## 🐚 Shell Completions:
 Somo supports shell completions for bash, zsh, fish, and elvish. Choose your shell:
 
-#### Bash
+#### Bash:
 ```bash
 mkdir -p ~/.local/share/bash-completion/completions
 somo generate-completions bash > ~/.local/share/bash-completion/completions/somo
 ```
 
-#### Zsh
+#### Zsh:
 ```bash
 mkdir -p ~/.local/share/zsh/site-functions
 somo generate-completions zsh > ~/.local/share/zsh/site-functions/_somo
@@ -141,13 +147,13 @@ echo 'fpath=(~/.local/share/zsh/site-functions $fpath)' >> ~/.zshrc
 echo 'autoload -U compinit && compinit' >> ~/.zshrc
 ```
 
-#### Fish
+#### Fish:
 ```bash
 mkdir -p ~/.config/fish/completions
 somo generate-completions fish > ~/.config/fish/completions/somo.fish
 ```
 
-#### Elvish
+#### Elvish:
 ```bash
 mkdir -p ~/.config/elvish/lib
 somo generate-completions elvish > ~/.config/elvish/lib/somo.elv
