@@ -12,7 +12,7 @@
 - pleasing to the eye thanks to a nice table view
 - filterable and sortable output
 - interactive killing of processes
-- JSON and custom formattable output
+- json and custom formattable output
 - from ``netstat -tulpn`` to ``somo -l``
 - cross-platform support for Linux and macOS
 - you can find all features further down
@@ -29,7 +29,7 @@
 ```sh
 cargo install somo
 ```
-Most of the time you will want to run this in ``sudo`` mode to see all processes and ports. To make that work, you can create a symlink so the binary can be run as root:
+Most of the time, you’ll want to run this with ``sudo`` to see all processes and ports. To make that work, you can create a symlink so the binary can be run with root privileges:
 ```sh
 sudo ln -s ~/.cargo/bin/somo /usr/local/bin/somo
 sudo somo   # this works now
@@ -168,12 +168,12 @@ For example, if your config file looks like this:
 ```
 then ``somo`` will always show the table in compact mode, sorted by PID.
 
-### ✨ Displaying service names of ports:
-When using the ``--annotate-remote-port, -a`` flag, the table will display the corresponding service names for the listed ports as defined by the *IANA Port Number Registry* (for example, ``443 -> https``).
+### ✨ Displaying port service names:
+When using the ``--annotate-remote-port, -a`` flag, the table will display the corresponding service names for the listed ports as defined in the *IANA Port Number Registry* (for example, ``443 -> https``).
 
 ---
 
-## 🐚 Shell Completions:
+## 🐚 Shell completions:
 Somo supports shell completions for bash, zsh, fish, and elvish. Choose your shell:
 
 - **Bash:**
