@@ -73,24 +73,6 @@ pub fn get_address_type(remote_address: &str) -> AddressType {
     AddressType::Extern
 }
 
-/// Checks if just connections of a specific IP version should be fetched.
-///
-/// # Arguments
-/// * `filter_options`: The filter options containing possibly a IPv4 or IPv6 filter.
-///
-/// # Returns
-/// A tuple with three bools of which just one element can be true:
-/// * 1. element is true -> get only IPv4 connections
-/// * 3. element is true -> get only IPv6 connections
-/// * 3. element is true -> get both
-pub fn resolve_ip_version(filter_options: &FilterOptions) -> (bool, bool, bool) {
-    let ipv4_only = filter_options.by_ipv4_only || filter_options.exclude_ipv6;
-    let ipv6_only = filter_options.by_ipv6_only;
-    let take_both = !ipv4_only && !ipv6_only;
-
-    (ipv4_only, ipv6_only, take_both)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -238,39 +220,5 @@ mod tests {
 
         conn.state = "close".to_string();
         assert!(filter_out_connection(&conn, &filter_by_multiple_conditions));
-    }
-
-    #[test]
-    fn test_take_ipv4_and_ipv6() {
-        let opts = FilterOptions::default();
-        assert_eq!(resolve_ip_version(&opts), (false, false, true));
-    }
-
-    #[test]
-    fn test_take_only_ipv4() {
-        let opts = FilterOptions {
-            by_ipv4_only: true,
-            ..Default::default()
-        };
-        assert_eq!(resolve_ip_version(&opts), (true, false, false));
-    }
-
-    #[test]
-    fn test_take_only_ipv6() {
-        let opts = FilterOptions {
-            by_ipv6_only: true,
-            ..Default::default()
-        };
-        assert_eq!(resolve_ip_version(&opts), (false, true, false));
-    }
-
-    #[test]
-    fn test_exclude_ipv6_means_ipv4_only() {
-        // Test for deprecated '--exclude-ipv6' flag which behaves the same as '--ipv4'
-        let opts = FilterOptions {
-            exclude_ipv6: true,
-            ..Default::default()
-        };
-        assert_eq!(resolve_ip_version(&opts), (true, false, false));
     }
 }

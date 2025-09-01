@@ -1,4 +1,4 @@
-use crate::connections::common::{filter_out_connection, get_address_type, resolve_ip_version};
+use crate::connections::common::{filter_out_connection, get_address_type};
 use crate::schemas::{Connection, FilterOptions};
 use procfs::net::{TcpNetEntry, UdpNetEntry};
 use procfs::process::FDTarget;
@@ -135,14 +135,13 @@ fn get_tcp_connections(
 ) -> Vec<Connection> {
     let mut tcp_entries: Vec<TcpNetEntry> = Vec::new();
 
-    let (ipv4_only, ipv6_only, take_both) = resolve_ip_version(filter_options);
-
-    if take_both || ipv4_only {
+    if filter_options.by_ip_version.ipv4 {
         if let Ok(v4) = procfs::net::tcp() {
             tcp_entries.extend(v4);
         }
     }
-    if take_both || ipv6_only {
+
+    if filter_options.by_ip_version.ipv6 {
         if let Ok(v6) = procfs::net::tcp6() {
             tcp_entries.extend(v6);
         }
@@ -184,14 +183,13 @@ fn get_udp_connections(
 ) -> Vec<Connection> {
     let mut udp_entries: Vec<UdpNetEntry> = Vec::new();
 
-    let (ipv4_only, ipv6_only, take_both) = resolve_ip_version(filter_options);
-
-    if take_both || ipv4_only {
+    if filter_options.by_ip_version.ipv4 {
         if let Ok(v4) = procfs::net::udp() {
             udp_entries.extend(v4);
         }
     }
-    if take_both || ipv6_only {
+
+    if filter_options.by_ip_version.ipv6 {
         if let Ok(v6) = procfs::net::udp6() {
             udp_entries.extend(v6);
         }

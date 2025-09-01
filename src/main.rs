@@ -28,6 +28,7 @@ fn main() {
 
     let filter_options: FilterOptions = FilterOptions {
         by_proto: cli::resolve_protocols(&args),
+        by_ip_version: cli::resolve_ip_versions(&args),
         by_remote_address: args.ip,
         by_remote_port: args.remote_port,
         by_local_port: args.port,
@@ -36,9 +37,6 @@ fn main() {
         by_open: args.open,
         by_listen: args.listen,
         by_established: args.established,
-        by_ipv4_only: args.ipv4,
-        by_ipv6_only: args.ipv6,
-        exclude_ipv6: args.exclude_ipv6,
     };
 
     let mut all_connections: Vec<Connection> = connections::get_all_connections(&filter_options);
