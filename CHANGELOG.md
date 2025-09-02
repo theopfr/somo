@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.2.0] - 30.08.2025
+## [1.2.0] - 02.09.2025
 - **add** new `--ipv4/-4` and `--ipv6/-6` flags, deprecating `--exclude-ipv6`, by @cma5
 - **add** config file for setting default flags, by @theopfr
 - **add** port annotation with IANA service names, by @pyjuan91
