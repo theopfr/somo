@@ -12,7 +12,7 @@
 - pleasing to the eye thanks to a nice table view
 - filterable and sortable output
 - interactive killing of processes
-- JSON and custom formattable output
+- json and custom formattable output
 - from ``netstat -tulpn`` to ``somo -l``
 - cross-platform support for Linux and macOS
 - you can find all features further down
@@ -25,28 +25,34 @@
 
 ## ⬇️ Installation:
 
-### Option 1 - Debian:
-If you use a Debian OS go to [releases](https://github.com/theopfr/somo/releases) and download the latest .deb release.
-
-### Option 2 - crates.io:
+### Using cargo:
 ```sh
 cargo install somo
 ```
-Most of the time you will want to run this in ``sudo`` mode to see all processes and ports. By default, this is not possible when installed via cargo. But you can create a symlink so the binary can be run as root:
+Most of the time, you’ll want to run this with ``sudo`` to see all processes and ports. To make that work, you can create a symlink so the binary can be run with root privileges:
 ```sh
 sudo ln -s ~/.cargo/bin/somo /usr/local/bin/somo
 sudo somo   # this works now
 ```
 
-### Option 3 - GitHub (Development Version):
-*Warning:* This is the cutting-edge development version and may be unstable or contain incomplete features. You can install it via cargo directly from the GitHub repository.
-
+##### Or install directly from GitHub:
+*Warning:* This will install the cutting-edge development version and may be unstable or contain incomplete features.
 ```sh
 cargo install --git https://github.com/theopfr/somo
 ```
 
-### Option 4 - Nix (Development Version):
-You can build and use the development version using Nix with Flakes.
+### Debian:
+If you use a Debian OS go to [releases](https://github.com/theopfr/somo/releases) and download the latest .deb file.
+
+### Arch:
+```sh
+yay -S somo
+```
+
+### Nix:
+*Warning:* This will install the cutting-edge development version and may be unstable or contain incomplete features.
+
+You can build it using Nix with Flakes:
 ```sh
 nix build 'github:theopfr/somo?dir=nix'
 sudo ./result/bin/somo
@@ -57,10 +63,53 @@ sudo ./result/bin/somo
 ## 🏃‍♀️ Running somo:
 To run somo just type: 
 ```sh
-sudo somo
+somo  # or sudo somo
 ```
 
-Somo supports the following features:
+## 🚩 Features:
+
+
+<details>
+<summary>Click to see the <b>somo --help</b> summary!</summary>
+
+```
+A human-friendly alternative to netstat for socket and port monitoring on Linux and macOS.
+
+Usage: somo [OPTIONS] [COMMAND]
+
+Commands:
+  generate-completions  Generate shell completions
+  generate-config-file  Generate config file
+  help                  Print this message or the help of the given subcommand(s)
+
+Options:
+  -k, --kill                       Display an interactive selection option after inspecting connections
+      --proto <PROTO>              Deprecated: Use '--tcp' and '--udp' instead
+  -t, --tcp                        Include TCP connections
+  -u, --udp                        Include UDP connections
+      --ip <IP>                    Filter connections by remote IP address
+      --remote-port <REMOTE_PORT>  Filter connections by remote port
+  -p, --port <PORT>                Filter connections by local port
+      --program <PROGRAM>          Filter connections by program name
+      --pid <PID>                  Filter connections by PID
+      --format <FORMAT>            Format the output in a certain way, e.g., `somo --format "PID: {{pid}}, Protocol: {{proto}}, Remote Address: {{remote_address}}"`
+      --json                       Output in JSON
+  -o, --open                       Filter by open connections
+  -l, --listen                     Filter by listening connections
+  -e, --established                Filter by established connections
+      --exclude-ipv6               Deprecated: Use '--ipv4' instead
+  -4, --ipv4                       Get only IPv4 connections
+  -6, --ipv6                       Get only IPv6 connections
+  -c, --compact                    Get compact table view
+  -r, --reverse                    Reverse order of the table
+  -s, --sort <SORT>                Sort by column name [possible values: proto, local_port, remote_address, remote_port, program, pid, state]
+      --config-file                Retrieve config file path
+      --no-config                  Ignore config file
+  -a, --annotate-remote-port       Annotate remote port with service name and ephemeral tag
+  -h, --help                       Print help
+  -V, --version                    Print version
+```
+</details>
 
 ### ✨ Filtering:
 You can use the following flags to filter based on different attributes:
@@ -111,7 +160,7 @@ You can create a config file that defines flags to be automatically applied ever
 - run ``somo --no-config`` to ignore all default flags
 
 For example, if your config file looks like this:
-```
+```bash
 # View compact version of the table
 --compact
 # Sort by PID
@@ -119,40 +168,37 @@ For example, if your config file looks like this:
 ```
 then ``somo`` will always show the table in compact mode, sorted by PID.
 
-### ✨ Displaying service names of ports:
-When using the ``--annotate-remote-port, -a`` flag, the table will display the corresponding service names for the listed ports as defined by the *IANA Port Number Registry* (for example, ``443 -> https``).
+### ✨ Displaying port service names:
+When using the ``--annotate-remote-port, -a`` flag, the table will display the corresponding service names for the listed ports as defined in the *IANA Port Number Registry* (for example, ``443 -> https``).
 
 ---
 
-## 🐚 Shell Completions:
+## 🐚 Shell completions:
 Somo supports shell completions for bash, zsh, fish, and elvish. Choose your shell:
 
-#### Bash
-```bash
-mkdir -p ~/.local/share/bash-completion/completions
-somo generate-completions bash > ~/.local/share/bash-completion/completions/somo
-```
-
-#### Zsh
-```zsh
-mkdir -p ~/.local/share/zsh/site-functions
-somo generate-completions zsh > ~/.local/share/zsh/site-functions/_somo
-echo 'fpath=(~/.local/share/zsh/site-functions $fpath)' >> ~/.zshrc
-echo 'autoload -U compinit && compinit' >> ~/.zshrc
-```
-
-#### Fish
-```fish
-mkdir -p ~/.config/fish/completions
-somo generate-completions fish > ~/.config/fish/completions/somo.fish
-```
-
-#### Elvish
-```bash
-mkdir -p ~/.config/elvish/lib
-somo generate-completions elvish > ~/.config/elvish/lib/somo.elv
-echo 'use somo' >> ~/.config/elvish/rc.elv
-```
+- **Bash:**
+  ```bash
+  mkdir -p ~/.local/share/bash-completion/completions
+  somo generate-completions bash > ~/.local/share/bash-completion/completions/somo
+  ```
+- **Zsh:**
+  ```bash
+  mkdir -p ~/.local/share/zsh/site-functions
+  somo generate-completions zsh > ~/.local/share/zsh/site-functions/_somo
+  echo 'fpath=(~/.local/share/zsh/site-functions $fpath)' >> ~/.zshrc
+  echo 'autoload -U compinit && compinit' >> ~/.zshrc
+  ```
+- **Fish:**
+  ```bash
+  mkdir -p ~/.config/fish/completions
+  somo generate-completions fish > ~/.config/fish/completions/somo.fish
+  ```
+- **Elvish:**
+  ```bash
+  mkdir -p ~/.config/elvish/lib
+  somo generate-completions elvish > ~/.config/elvish/lib/somo.elv
+  echo 'use somo' >> ~/.config/elvish/rc.elv
+  ```
 
 ---
 

@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.2.0] - 02.09.2025
+- **add** new `--ipv4/-4` and `--ipv6/-6` flags, deprecating `--exclude-ipv6`, by @cma5
+- **add** config file for setting default flags, by @theopfr
+- **add** port annotation with IANA service names, by @pyjuan91
+- **add** new `--established/-e` flag for only showing established connections, by @theopfr
+- **update** table readability and refactor, by @reneleonhardt @theopfr
+- **add** Dependabot, by @reneleonhardt
+- **add** tests for parsing connections on macOS, by @theopfr
+
+---
+
 ## [1.1.0] - 09.07.2025
 - **add** macOS support, by @belingud
 - **add** sorting by column, by @gerelef
