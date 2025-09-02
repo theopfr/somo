@@ -1,6 +1,6 @@
 [package]
 name = "somo"
-version = "1.1.0"
+version = "1.2.0"
 edition = "2021"
 authors = ["theopfr"]
 description = "A human-friendly alternative to netstat for socket and port monitoring on Linux and macOS."
@@ -11,10 +11,10 @@ keywords = ["netstat", "socket-monitoring", "port-checker"]
 categories = ["command-line-utilities"]
 
 [dependencies]
-clap = { version = "4.5.46", features = ["derive"] }
+clap = { version = "4.5.45", features = ["derive"] }
 clap_complete = "4.5.57"
 inquire = "0.7.5"
-termimad = "0.34.0"
+termimad = "0.33.0"
 serde = { version = "1.0.196", features = ["derive"] }
 serde_json = "1.0.143"
 handlebars = "6.3.2"
@@ -26,7 +26,7 @@ libc = "0.2.175"
 tempfile = "3.21.0"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-procfs = "0.18.0"
+procfs = "0.17.0"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 netstat2 = "0.11.2"
