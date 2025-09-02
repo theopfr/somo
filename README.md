@@ -42,7 +42,7 @@ cargo install --git https://github.com/theopfr/somo
 ```
 
 ### Debian:
-If you use a Debian OS go to [releases](https://github.com/theopfr/somo/releases) and download the latest .deb release.
+If you use a Debian OS go to [releases](https://github.com/theopfr/somo/releases) and download the latest .deb file.
 
 ### Arch:
 ```sh
@@ -70,7 +70,7 @@ somo  # or sudo somo
 
 
 <details>
-<summary>Click to see "somo --help" summary!</summary>
+<summary>Click to see the <b>somo --help</b> summary!</summary>
 
 ```
 A human-friendly alternative to netstat for socket and port monitoring on Linux and macOS.
