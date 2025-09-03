@@ -115,7 +115,7 @@ fn get_connection_data(net_entry: NetEntry, all_processes: &HashMap<u64, Stat>) 
         pid,
         state,
         address_type,
-        ipvx_raw: net_entry.remote_address.ip(),
+        ipvx_raw: Some(net_entry.remote_address.ip()),
     };
 
     connection

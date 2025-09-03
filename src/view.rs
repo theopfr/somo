@@ -167,7 +167,7 @@ mod tests {
                 pid: "200".to_string(),
                 state: "established".to_string(),
                 address_type: AddressType::Localhost,
-                ipvx_raw: Ipv4Addr::new(192, 168, 1, 0).into(),
+                ipvx_raw: Some(Ipv4Addr::new(192, 168, 1, 0).into()),
             },
             Connection {
                 proto: "tcp".to_string(),
@@ -178,7 +178,7 @@ mod tests {
                 pid: "-".to_string(),
                 state: "timewait".to_string(),
                 address_type: AddressType::Extern,
-                ipvx_raw: Ipv6Addr::new(0, 0, 0, 0xffff, 65, 9, 95, 5).into(),
+                ipvx_raw: Some(Ipv6Addr::new(0, 0, 0, 0xffff, 65, 9, 95, 5).into()),
             },
         ];
 

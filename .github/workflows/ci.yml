@@ -76,6 +76,21 @@ jobs:
     - name: Test | Run
       run: cargo test
 
+
+  integration-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup | Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup | Checkout
+        uses: actions/checkout@v5
+
+      - name: Integration Test | Run in Docker
+        run: |
+          chmod +x ./integration_tests/test.sh
+          ./integration_tests/test.sh
+
   nix:
     runs-on: ubuntu-latest
     steps:

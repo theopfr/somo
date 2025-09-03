@@ -6,7 +6,7 @@ use std::net::IpAddr;
 /// * `Localhost`: Represents the localhost/127.0.0.1 address.
 /// * `Unspecified`: Represents an unspecified or wildcard address.
 /// * `Extern`: Represents an external address.
-#[derive(Debug, PartialEq, serde::Serialize)]
+#[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum AddressType {
     Localhost,
     Unspecified,
@@ -27,7 +27,7 @@ pub struct IpVersions {
     pub ipv6: bool,
 }
 /// Represents a processed socket connection with all its attributes.
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct Connection {
     pub proto: String,
@@ -40,8 +40,8 @@ pub struct Connection {
     pub address_type: AddressType,
 
     /// Internal variable used only for ordering operations of raw ipv4/6 addresses
-    #[serde(skip_serializing)]
-    pub ipvx_raw: IpAddr,
+    #[serde(skip)]
+    pub ipvx_raw: Option<IpAddr>,
 }
 
 /// Contains options for filtering a `Connection`.

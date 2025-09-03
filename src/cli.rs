@@ -648,7 +648,7 @@ mod tests {
                 proto: proto.to_string(),
                 local_port: local_port.to_string(),
                 remote_port: remote_port.to_string(),
-                ipvx_raw: IpAddr::from_str(remote).unwrap(),
+                ipvx_raw: Some(IpAddr::from_str(remote).unwrap()),
                 program: program.to_string(),
                 pid: pid.to_string(),
                 state: state.to_string(),
