@@ -88,8 +88,8 @@ jobs:
 
       - name: Integration Test | Run in Docker
         run: |
-          chmod +x ./integration_tests/test.sh
-          ./integration_tests/test.sh
+          chmod +x ./tests/integration_tests.sh
+          ./tests/integration_tests.sh
 
   nix:
     runs-on: ubuntu-latest
