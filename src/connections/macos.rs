@@ -86,7 +86,7 @@ fn parse_connections(
                 pid,
                 state,
                 address_type: get_address_type(&remote_address),
-                ipvx_raw: si.local_addr(),
+                ipvx_raw: Some(si.local_addr()),
             };
 
             if filter_out_connection(&conn, filter_options) {

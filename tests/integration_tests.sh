@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -eu
 
-docker build -t somo-it-tests ./integration_tests/setup
+docker build -t somo-it-tests ./tests/setup
 
-docker run --rm -it \
+docker run --rm \
     -v $(pwd)/Cargo.toml:/app/Cargo.toml \
     -v $(pwd)/Cargo.lock:/app/Cargo.lock \
     -v $(pwd)/src:/app/src \
-    -v $(pwd)/integration_tests:/app/tests \
+    -v $(pwd)/tests:/app/tests \
     -v cargo-cache:/root/.cargo/registry \
     -v cargo-target:/app/target \
     somo-it-tests \
