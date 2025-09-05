@@ -151,11 +151,9 @@ fn get_tcp_connections(
     }
 
     if filter_options.by_ip_version.ipv6 {
-        if let Ok(v6) = TcpNetEntries::from_file(
-            format!("{}/net/tcp6", &*PROCFS_ROOT),
-            current_system_info(),
-        )
-        .map(|e| e.0)
+        if let Ok(v6) =
+            TcpNetEntries::from_file(format!("{}/net/tcp6", &*PROCFS_ROOT), current_system_info())
+                .map(|e| e.0)
         {
             tcp_entries.extend(v6);
         }
@@ -207,11 +205,9 @@ fn get_udp_connections(
     }
 
     if filter_options.by_ip_version.ipv6 {
-        if let Ok(v6) = UdpNetEntries::from_file(
-            format!("{}/net/udp6", &*PROCFS_ROOT),
-            current_system_info(),
-        )
-        .map(|e| e.0)
+        if let Ok(v6) =
+            UdpNetEntries::from_file(format!("{}/net/udp6", &*PROCFS_ROOT), current_system_info())
+                .map(|e| e.0)
         {
             udp_entries.extend(v6);
         }

@@ -254,7 +254,11 @@ pub fn sort_connections(all_connections: &mut [Connection], field: SortField) {
             .program
             .to_lowercase()
             .cmp(&other.program.to_lowercase()),
-        SortField::Pid => our.pid.cmp(&other.pid),
+        SortField::Pid => our
+            .pid
+            .parse::<u32>()
+            .unwrap_or(0)
+            .cmp(&other.pid.parse::<u32>().unwrap_or(0)),
         SortField::State => our.state.to_lowercase().cmp(&other.state.to_lowercase()),
     });
 }

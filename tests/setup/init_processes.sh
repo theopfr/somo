@@ -37,6 +37,9 @@ start_process udp 0.0.0.0 5006
 start_process udp :: 5007
 start_process udp :: 5008
 
+# Using HTTP port
+start_process tcp 0.0.0.0 80
+
 echo "All processes started. Container will now remain running."
 
 wait
