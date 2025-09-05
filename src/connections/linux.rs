@@ -18,7 +18,6 @@ pub struct NetEntry {
     pub inode: u64,
 }
 
-
 static PROCFS_ROOT: LazyLock<String> =
     LazyLock::new(|| std::env::var("PROCFS_ROOT").unwrap_or_else(|_| "/proc/".to_string()));
 
@@ -143,11 +142,9 @@ fn get_tcp_connections(
     let mut tcp_entries: Vec<TcpNetEntry> = Vec::new();
 
     if filter_options.by_ip_version.ipv4 {
-        if let Ok(v4) = TcpNetEntries::from_file(
-            &format!("{}/net/tcp", &*PROCFS_ROOT),
-            current_system_info(),
-        )
-        .map(|e| e.0)
+        if let Ok(v4) =
+            TcpNetEntries::from_file(&format!("{}/net/tcp", &*PROCFS_ROOT), current_system_info())
+                .map(|e| e.0)
         {
             tcp_entries.extend(v4);
         }
@@ -201,11 +198,9 @@ fn get_udp_connections(
     let mut udp_entries: Vec<UdpNetEntry> = Vec::new();
 
     if filter_options.by_ip_version.ipv4 {
-        if let Ok(v4) = UdpNetEntries::from_file(
-            &format!("{}/net/udp", &*PROCFS_ROOT),
-            current_system_info(),
-        )
-        .map(|e| e.0)
+        if let Ok(v4) =
+            UdpNetEntries::from_file(&format!("{}/net/udp", &*PROCFS_ROOT), current_system_info())
+                .map(|e| e.0)
         {
             udp_entries.extend(v4);
         }

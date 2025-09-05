@@ -53,7 +53,10 @@ fn test_tcp_filter() {
     let connections: Vec<Connection> =
         serde_json::from_str(&stdout).expect("Failed to parse JSON.");
 
-    assert!(!connections.is_empty(), "Expected for TCP connections to exist.");
+    assert!(
+        !connections.is_empty(),
+        "Expected for TCP connections to exist."
+    );
     for conn in &connections {
         assert_eq!(conn.proto, "tcp", "Expected only TCP connections.");
     }
@@ -68,7 +71,10 @@ fn test_udp_filter() {
     let connections: Vec<Connection> =
         serde_json::from_str(&stdout).expect("Failed to parse JSON.");
 
-    assert!(!connections.is_empty(), "Expected for UDP connections to exist.");
+    assert!(
+        !connections.is_empty(),
+        "Expected for UDP connections to exist."
+    );
     for conn in &connections {
         assert_eq!(conn.proto, "udp", "Expected only UDP connections.");
     }
@@ -101,7 +107,10 @@ fn test_proto_filter() {
     let connections: Vec<Connection> =
         serde_json::from_str(&stdout).expect("Failed to parse JSON.");
 
-    assert!(!connections.is_empty(), "Expected for TCP connections to exist.");
+    assert!(
+        !connections.is_empty(),
+        "Expected for TCP connections to exist."
+    );
     for conn in &connections {
         assert_eq!(conn.proto, "tcp", "Expected only TCP connections.");
     }
@@ -114,7 +123,10 @@ fn test_proto_filter() {
     let connections: Vec<Connection> =
         serde_json::from_str(&stdout).expect("Failed to parse JSON.");
 
-    assert!(!connections.is_empty(), "Expected for UDP connections to exist.");
+    assert!(
+        !connections.is_empty(),
+        "Expected for UDP connections to exist."
+    );
     for conn in &connections {
         assert_eq!(conn.proto, "udp", "Expected only UDP connections.");
     }
@@ -153,7 +165,10 @@ fn test_remote_port_filter() {
     let connections: Vec<Connection> =
         serde_json::from_str(&stdout).expect("Failed to parse JSON.");
 
-    assert!(!connections.is_empty(), "Expected for connections to exist.");
+    assert!(
+        !connections.is_empty(),
+        "Expected for connections to exist."
+    );
     for conn in &connections {
         assert_eq!(conn.remote_port, "0", "Expected only '0' remote ports.");
     }
@@ -168,7 +183,10 @@ fn test_ip_filter_with_ipv4() {
     let connections: Vec<Connection> =
         serde_json::from_str(&stdout).expect("Failed to parse JSON.");
 
-    assert!(!connections.is_empty(), "Expected for IPv4 connections to exist.");
+    assert!(
+        !connections.is_empty(),
+        "Expected for IPv4 connections to exist."
+    );
     for conn in &connections {
         assert_eq!(
             conn.remote_address, "0.0.0.0",
@@ -186,7 +204,10 @@ fn test_ip_filter_with_ipv6() {
     let connections: Vec<Connection> =
         serde_json::from_str(&stdout).expect("Failed to parse JSON.");
 
-    assert!(!connections.is_empty(), "Expected for IPv6 connections to exist.");
+    assert!(
+        !connections.is_empty(),
+        "Expected for IPv6 connections to exist."
+    );
     for conn in &connections {
         assert_eq!(
             conn.remote_address, "[::]",
