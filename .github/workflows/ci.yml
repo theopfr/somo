@@ -86,8 +86,8 @@ jobs:
     - name: Setup | Checkout
       uses: actions/checkout@v5
 
-    - name: Integration Test | Run
-      run: cargo test --tests
+    - name: Integration Test (Linux) | Run
+      run: cargo test --test integration_tests
 
 
   nix:
