@@ -6,6 +6,7 @@ start_process() {
     local port=$3
 
     echo "Starting $proto bound process on [$addr]:$port"
+
     if [[ "$proto" == "tcp" ]]; then
         while true; do
             nc -l "$addr" "$port" >/dev/null 2>&1
@@ -31,6 +32,10 @@ start_process tcp :: 5004
 # IPv4 UDP
 start_process udp 0.0.0.0 5005
 start_process udp 0.0.0.0 5006
+
+# IPv6 UDP
+start_process udp :: 5007
+start_process udp :: 5008
 
 echo "All processes started. Container will now remain running."
 

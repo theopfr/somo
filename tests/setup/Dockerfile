@@ -10,10 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
  && rm -rf /var/lib/apt/lists/*
 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
+COPY init_processes.sh /usr/local/bin/init_processes.sh
+RUN chmod +x /usr/local/bin/init_processes.sh
 
-COPY mock_processes.sh /usr/local/bin/mock_processes.sh
-RUN chmod +x /usr/local/bin/mock_processes.sh
-
-WORKDIR /app
+ENTRYPOINT ["/usr/local/bin/init_processes.sh"]

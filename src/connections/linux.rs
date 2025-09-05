@@ -1,10 +1,12 @@
 use crate::connections::common::{filter_out_connection, get_address_type};
 use crate::schemas::{Connection, FilterOptions};
-use procfs::net::{TcpNetEntry, UdpNetEntry};
+use procfs::net::{TcpNetEntries, TcpNetEntry, UdpNetEntries, UdpNetEntry};
 use procfs::process::FDTarget;
 use procfs::process::Stat;
+use procfs::{current_system_info, FromReadSI};
 use std::collections::HashMap;
 use std::net::SocketAddr;
+use std::sync::LazyLock;
 
 /// General struct type for TCP and UDP entries.
 #[derive(Debug)]
@@ -15,6 +17,10 @@ pub struct NetEntry {
     pub state: String,
     pub inode: u64,
 }
+
+
+static PROCFS_ROOT: LazyLock<String> =
+    LazyLock::new(|| std::env::var("PROCFS_ROOT").unwrap_or_else(|_| "/proc/".to_string()));
 
 /// Splits a string combined of an IP address and port with a ":" delimiter into two parts.
 ///
@@ -75,11 +81,12 @@ fn get_address_parts(address: &str) -> (String, String) {
 /// # Returns
 /// A map of all current processes.
 fn get_processes() -> HashMap<u64, Stat> {
-    let all_procs = procfs::process::all_processes().unwrap();
+    let all_procs = procfs::process::all_processes_with_root(&*PROCFS_ROOT).unwrap();
 
     let mut map: HashMap<u64, Stat> = HashMap::new();
     for p in all_procs {
         let process = p.unwrap();
+
         if let (Ok(stat), Ok(fds)) = (process.stat(), process.fd()) {
             for fd in fds {
                 if let FDTarget::Socket(inode) = fd.unwrap().target {
@@ -136,13 +143,23 @@ fn get_tcp_connections(
     let mut tcp_entries: Vec<TcpNetEntry> = Vec::new();
 
     if filter_options.by_ip_version.ipv4 {
-        if let Ok(v4) = procfs::net::tcp() {
+        if let Ok(v4) = TcpNetEntries::from_file(
+            &format!("{}/net/tcp", &*PROCFS_ROOT),
+            current_system_info(),
+        )
+        .map(|e| e.0)
+        {
             tcp_entries.extend(v4);
         }
     }
 
     if filter_options.by_ip_version.ipv6 {
-        if let Ok(v6) = procfs::net::tcp6() {
+        if let Ok(v6) = TcpNetEntries::from_file(
+            &format!("{}/net/tcp6", &*PROCFS_ROOT),
+            current_system_info(),
+        )
+        .map(|e| e.0)
+        {
             tcp_entries.extend(v6);
         }
     }
@@ -184,13 +201,23 @@ fn get_udp_connections(
     let mut udp_entries: Vec<UdpNetEntry> = Vec::new();
 
     if filter_options.by_ip_version.ipv4 {
-        if let Ok(v4) = procfs::net::udp() {
+        if let Ok(v4) = UdpNetEntries::from_file(
+            &format!("{}/net/udp", &*PROCFS_ROOT),
+            current_system_info(),
+        )
+        .map(|e| e.0)
+        {
             udp_entries.extend(v4);
         }
     }
 
     if filter_options.by_ip_version.ipv6 {
-        if let Ok(v6) = procfs::net::udp6() {
+        if let Ok(v6) = UdpNetEntries::from_file(
+            &format!("{}/net/udp6", &*PROCFS_ROOT),
+            current_system_info(),
+        )
+        .map(|e| e.0)
+        {
             udp_entries.extend(v6);
         }
     }
