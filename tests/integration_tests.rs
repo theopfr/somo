@@ -530,6 +530,18 @@ mod test_stdout_format {
             );
         }
 
+        // Check table headers (seperated by words because of possible line breaks during testing)
+        let headers = [
+            "proto", "local", "port", "remote", "address", "remote", "port", "pid", "state",
+        ];
+        for &header in &headers {
+            assert!(
+                stdout.contains(header),
+                "Expected table header '{}' to be present.",
+                header
+            );
+        }
+
         // Check row separators count matches number of processes
         let row_separator_count = stdout.matches('├').count();
         assert_eq!(
@@ -556,14 +568,9 @@ mod test_stdout_format {
             );
         }
 
-        // Check table headers
+        // Check table headers (seperated by words because of possible line breaks during testing)
         let headers = [
-            "proto",
-            "local port",
-            "remote address",
-            "remote port",
-            "pid",
-            "state",
+            "proto", "local", "port", "remote", "address", "remote", "port", "pid", "state",
         ];
         for &header in &headers {
             assert!(
@@ -573,7 +580,7 @@ mod test_stdout_format {
             );
         }
 
-        // Check row separators count matches number of processes
+        // Check that there is only one row seperator (between headers and table body)
         let row_separator_count = stdout.matches('├').count();
         assert_eq!(
             row_separator_count, 1,
