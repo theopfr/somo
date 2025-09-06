@@ -74,7 +74,7 @@ jobs:
       uses: actions/checkout@v5
 
     - name: Test | Run
-      run: cargo test --bin somo
+      run: cargo test
 
 
   nix:

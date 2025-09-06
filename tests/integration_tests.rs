@@ -25,7 +25,6 @@
 /// * 'test_connection_data': Tests if somo outputs the correct data (eg. when filtering or sorting) by using the `--json` flag
 ///                           to serialize the connections into Rust structs and checking the fields.
 /// * 'test_stdout_format':   Tests if the human-readable stdout (eg. the table or custom format strings) is as expected.
-
 use assert_cmd::Command;
 use somo::schemas::Connection;
 use std::net::IpAddr;
@@ -558,7 +557,14 @@ mod test_stdout_format {
         }
 
         // Check table headers
-        let headers = ["proto", "local port", "remote address", "remote port", "pid", "state"];
+        let headers = [
+            "proto",
+            "local port",
+            "remote address",
+            "remote port",
+            "pid",
+            "state",
+        ];
         for &header in &headers {
             assert!(
                 stdout.contains(header),
