@@ -77,19 +77,6 @@ jobs:
       run: cargo test --bin somo
 
 
-  integration-test:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Setup | Rust
-      uses: dtolnay/rust-toolchain@stable
-
-    - name: Setup | Checkout
-      uses: actions/checkout@v5
-
-    - name: Integration Test (Linux) | Run
-      run: cargo test --test integration_tests
-
-
   nix:
     runs-on: ubuntu-latest
     steps:

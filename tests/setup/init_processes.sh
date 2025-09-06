@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# This script starts netcat processes with different combinations of ports, TCP, UDP, IPv4 and IPv6.
+# They are being used to collect relevant files from the proc/ pseudo filesystem to create mock procfs data.
+# The script is meant to run in an isolated environment (ie. a Docker container) with no other network bound processes.
+
 start_process() {
     local proto=$1
     local addr=$2
@@ -37,9 +41,6 @@ start_process udp 0.0.0.0 5006
 start_process udp :: 5007
 start_process udp :: 5008
 
-# Using HTTP port
-start_process tcp 0.0.0.0 80
-
-echo "All processes started. Container will now remain running."
+echo "All processes started."
 
 wait

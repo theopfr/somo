@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+
+# This script generates a mock procfs directory by spinning up a Docker container which spawns some network bound processes
+# using the 'tests/setup/init_processes.sh' script and copies the relevant procfs files to the host mock directory.
+
 set -eu pipefail
 
 CONTAINER_NAME="mock-procfs-generator"

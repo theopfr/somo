@@ -1,8 +1,36 @@
+#![cfg(target_os = "linux")]
+
+/// This file contains integration tests which run the somo binary and test the resulting stdout.
+/// Instead of using the host systems procfs pseudo filesystem (because it's not deterministic),
+/// somo reads from a mocked procfs directory, at 'tests/mock/proc' (by setting the PROCFS_ROOT env. variable).
+/// It contains some dummy netcat processes on which we can run our tests.
+///
+/// Currently, the mocked procfs would result in the following somo output:
+///
+/// > PROCFS_SOMO=tests/mock/proc cargo run -- -c
+/// ┌───┬───────┬────────────┬────────────────┬─────────────┬─────────────┬────────┐
+/// │ # │ proto │ local port │ remote address │ remote port │ pid program │ state  │
+/// ├───┼───────┼────────────┼────────────────┼─────────────┼─────────────┼────────┤
+/// │1  │ tcp   │ 5001       │ 0.0.0.0        │ 0           │ 9 nc        │ listen │
+/// │2  │ tcp   │ 5002       │ 0.0.0.0        │ 0           │ 11 nc       │ listen │
+/// │3  │ tcp   │ 5003       │ [::]           │ 0           │ 13 nc       │ listen │
+/// │4  │ tcp   │ 5004       │ [::]           │ 0           │ 15 nc       │ listen │
+/// │5  │ udp   │ 5005       │ 0.0.0.0        │ 0           │ 17 nc       │ close  │
+/// │6  │ udp   │ 5006       │ 0.0.0.0        │ 0           │ 19 nc       │ close  │
+/// │7  │ udp   │ 5007       │ [::]           │ 0           │ 21 nc       │ close  │
+/// │8  │ udp   │ 5008       │ [::]           │ 0           │ 22 nc       │ close  │
+/// └───┴───────┴────────────┴────────────────┴─────────────┴─────────────┴────────┘
+///
+/// The tests are split into two groups:
+/// * 'test_connection_data': Tests if somo outputs the correct data (eg. when filtering or sorting) by using the `--json` flag
+///                           to serialize the connections into Rust structs and checking the fields.
+/// * 'test_stdout_format':   Tests if the human-readable stdout (eg. the table or custom format strings) is as expected.
+
 use assert_cmd::Command;
 use somo::schemas::Connection;
 use std::net::IpAddr;
 
-// Should match the amount of netcat processes inside 'tests/setup/mock_processes.sh'.
+// Should match the amount of netcat processes inside 'tests/setup/init_processes.sh'.
 static NUM_PROCESSES: usize = 8;
 
 fn base_exec() -> Command {
@@ -30,14 +58,12 @@ fn get_stdout(mut cmd: Command) -> String {
 }
 
 #[cfg(test)]
-mod connection_data_tests {
-
+mod test_connection_data {
     use super::*;
 
     #[test]
     fn test_basic_usage() {
         let cmd = base_exec_json();
-
         let stdout = get_stdout(cmd);
 
         let connections: Vec<Connection> =
@@ -141,7 +167,7 @@ mod connection_data_tests {
     #[test]
     fn test_port_filter() {
         let mut cmd = base_exec_json();
-        cmd.arg("--port").arg("5001"); // Port should exist in 'tests/setup/mock_processes.sh'
+        cmd.arg("--port").arg("5001"); // Port should exist in 'tests/setup/init_processes.sh'
         let stdout = get_stdout(cmd);
 
         let connections: Vec<Connection> =
@@ -153,7 +179,7 @@ mod connection_data_tests {
     #[test]
     fn test_nonexistent_port_filter() {
         let mut cmd = base_exec_json();
-        cmd.arg("--port").arg("9999"); // Port shouldn't exist in 'tests/setup/mock_processes.sh'
+        cmd.arg("--port").arg("9999"); // Port shouldn't exist in 'tests/setup/init_processes.sh'
         let stdout = get_stdout(cmd);
 
         let connections: Vec<Connection> =
@@ -445,7 +471,7 @@ mod connection_data_tests {
 }
 
 #[cfg(test)]
-mod stdout_format_tests {
+mod test_stdout_format {
     use super::*;
 
     #[test]
@@ -488,5 +514,65 @@ mod stdout_format_tests {
             .assert()
             .success()
             .stdout(predicates::str::ends_with("/somo/config\n"));
+    }
+
+    #[test]
+    fn test_table_layout() {
+        let cmd = base_exec();
+        let stdout = get_stdout(cmd);
+
+        // Check table corners
+        let corners = ['┌', '┐', '└', '┘'];
+        for &c in &corners {
+            assert!(
+                stdout.contains(c),
+                "Expected table corner '{}' to be present.",
+                c
+            );
+        }
+
+        // Check row separators count matches number of processes
+        let row_separator_count = stdout.matches('├').count();
+        assert_eq!(
+            row_separator_count, NUM_PROCESSES,
+            "Expected {} row separators (one per process), found {}.",
+            NUM_PROCESSES, row_separator_count
+        );
+    }
+
+    #[test]
+    fn test_compact_table_layout() {
+        let mut cmd = base_exec();
+        cmd.arg("--compact");
+
+        let stdout = get_stdout(cmd);
+
+        // Check table corners
+        let corners = ['┌', '┐', '└', '┘'];
+        for &c in &corners {
+            assert!(
+                stdout.contains(c),
+                "Expected table corner '{}' to be present.",
+                c
+            );
+        }
+
+        // Check table headers
+        let headers = ["proto", "local port", "remote address", "remote port", "pid", "state"];
+        for &header in &headers {
+            assert!(
+                stdout.contains(header),
+                "Expected table header '{}' to be present.",
+                header
+            );
+        }
+
+        // Check row separators count matches number of processes
+        let row_separator_count = stdout.matches('├').count();
+        assert_eq!(
+            row_separator_count, 1,
+            "Expected 1 row separators (one per process), found {}.",
+            row_separator_count
+        );
     }
 }
