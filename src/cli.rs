@@ -428,6 +428,7 @@ mod tests {
         assert!(args.listen);
         assert!(args.ipv4);
         assert!(args.exclude_ipv6);
+        assert!(args.ipv4);
     }
 
     #[test]
