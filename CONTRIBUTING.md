@@ -1,7 +1,7 @@
 # Contributing
 Thanks for considering to contribute to ``somo`` 🎉 !
 
-## Git Conventions
+## Git conventions:
 There are currently no strict rules for branch naming, commit style, or similar conventions. Changelog entries are maintained by the core maintainer, so you don't need to worry about updating them in your PRs.
 
 ## Setup:
@@ -56,5 +56,5 @@ This script starts a Docker container, launches isolated network-bound processes
 
 Run only integration tests with:
 ```bash
-cargo run --test integration_tests
+cargo test --test integration_tests
 ```
