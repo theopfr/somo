@@ -76,6 +76,7 @@ jobs:
     - name: Test | Run
       run: cargo test
 
+
   nix:
     runs-on: ubuntu-latest
     steps:

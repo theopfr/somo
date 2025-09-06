@@ -206,3 +206,8 @@ Somo supports shell completions for bash, zsh, fish, and elvish. Choose your she
 Somo currently supports:
 - Linux: Full support using the [procfs](https://crates.io/crates/procfs) crate
 - macOS: Full support using [netstat2](https://crates.io/crates/netstat2) and [libproc](https://crates.io/crates/libproc/0.13.0) crates
+
+---
+
+## ❤️ Contributing:
+If you’d like to contribute to ``somo``, please see the [CONTRIBUTING.md](CONTRIBUTING.md) guide.

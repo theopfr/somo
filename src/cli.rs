@@ -254,7 +254,11 @@ pub fn sort_connections(all_connections: &mut [Connection], field: SortField) {
             .program
             .to_lowercase()
             .cmp(&other.program.to_lowercase()),
-        SortField::Pid => our.pid.cmp(&other.pid),
+        SortField::Pid => our
+            .pid
+            .parse::<u32>()
+            .unwrap_or(0)
+            .cmp(&other.pid.parse::<u32>().unwrap_or(0)),
         SortField::State => our.state.to_lowercase().cmp(&other.state.to_lowercase()),
     });
 }
@@ -424,6 +428,7 @@ mod tests {
         assert!(args.listen);
         assert!(args.ipv4);
         assert!(args.exclude_ipv6);
+        assert!(args.ipv4);
     }
 
     #[test]
@@ -648,7 +653,7 @@ mod tests {
                 proto: proto.to_string(),
                 local_port: local_port.to_string(),
                 remote_port: remote_port.to_string(),
-                ipvx_raw: IpAddr::from_str(remote).unwrap(),
+                ipvx_raw: Some(IpAddr::from_str(remote).unwrap()),
                 program: program.to_string(),
                 pid: pid.to_string(),
                 state: state.to_string(),
