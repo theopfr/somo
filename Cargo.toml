@@ -14,7 +14,7 @@ categories = ["command-line-utilities"]
 clap = { version = "4.5.47", features = ["derive"] }
 clap_complete = "4.5.57"
 inquire = "0.7.5"
-termimad = "0.33.0"
+termimad = "0.34.0"
 serde = { version = "1.0.196", features = ["derive"] }
 serde_json = "1.0.143"
 handlebars = "6.3.2"
