@@ -23,7 +23,7 @@ etcetera = "0.10.0"
 libc = "0.2.175"
 
 [dev-dependencies]
-tempfile = "3.21.0"
+tempfile = "3.22.0"
 regex = "1.11.2"
 assert_cmd = "2.0.17"
 predicates = "3.1.3"
