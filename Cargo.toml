@@ -15,7 +15,7 @@ clap = { version = "4.5.47", features = ["derive"] }
 clap_complete = "4.5.57"
 inquire = "0.8.0"
 termimad = "0.34.0"
-serde = { version = "1.0.223", features = ["derive"] }
+serde = { version = "1.0.226", features = ["derive"] }
 serde_json = "1.0.145"
 handlebars = "6.3.2"
 nix = {version = "0.30.1", features = ["process", "signal"]}
