@@ -1,4 +1,8 @@
-use crate::{schemas::AddressType, soutln};
+use crate::{schemas::AddressType, sout, soutln};
+use std::env;
+use std::io::{IsTerminal, Write};
+use std::os::fd::AsRawFd;
+use std::process::{Command, Stdio};
 
 /// Wraps the input text in ANSI escape codes to print it in red.
 fn red_text(text: &str) -> String {
@@ -59,8 +63,12 @@ pub fn format_known_address(remote_address: &str, address_type: &AddressType) ->
 ///
 /// # Returns
 /// None
+pub fn render_info_line(text: &str) -> String {
+    bold_text(&format!("{} {}", cyan_text("Info:"), text))
+}
+
 pub fn pretty_print_info(text: &str) {
-    soutln!("{}", bold_text(&format!("{} {}", cyan_text("Info:"), text)));
+    soutln!("{}", render_info_line(text));
 }
 
 /// Prints out formatted text starting with a red "Error:" prefix.
@@ -86,6 +94,78 @@ pub fn pretty_print_warning(text: &str) {
         "{}",
         bold_text(&format!("{} {}", yellow_text("Warning:"), text))
     );
+}
+
+/// Returns true if stdout is a TTY.
+pub fn is_stdout_tty() -> bool {
+    std::io::stdout().is_terminal()
+}
+
+/// Returns the terminal height in rows if stdout is a TTY.
+///
+/// Note:
+/// - We could use a crate like `terminal_size` to get the terminal dimensions, but we
+///   keep this lightweight direct `ioctl(TIOCGWINSZ)` call to avoid an extra dependency
+///   and because we already use libc here for this specific purpose.
+pub fn terminal_rows() -> Option<usize> {
+    if !is_stdout_tty() {
+        return None;
+    }
+    unsafe {
+        let fd = std::io::stdout().as_raw_fd();
+        let mut ws: libc::winsize = std::mem::zeroed();
+        if libc::ioctl(fd, libc::TIOCGWINSZ, &mut ws) == 0 {
+            if ws.ws_row > 0 {
+                return Some(ws.ws_row as usize);
+            }
+        }
+    }
+    None
+}
+
+/// Write the given text to a pager (PAGER env var or `less -R`).
+fn write_to_pager(text: &str) -> std::io::Result<()> {
+    // Prefer SOMO_PAGER over PAGER to allow somo-specific configuration.
+    let pager_env = env::var("SOMO_PAGER").or_else(|_| env::var("PAGER")).ok();
+    let mut parts: Vec<String> = match pager_env {
+        Some(p) if !p.trim().is_empty() => {
+            // Split on whitespace for simple commands like "less -R"
+            p.split_whitespace().map(|s| s.to_string()).collect()
+        }
+        _ => vec!["less".into(), "-R".into()],
+    };
+
+    let program = parts.remove(0);
+
+    let mut child = Command::new(program)
+        .args(parts)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .spawn()?;
+    if let Some(mut stdin) = child.stdin.take() {
+        let _ = stdin.write_all(text.as_bytes());
+    }
+    let _ = child.wait();
+    Ok(())
+}
+
+/// If the text exceeds the terminal height, open a pager and return true. Otherwise print and return false.
+pub fn page_or_print(text: &str) {
+    // If stdout is not a tty (e.g., piped), don't page.
+    let rows = terminal_rows();
+    if let Some(rows) = rows {
+        let line_count = text.lines().count();
+        if line_count >= rows {
+            // Try to page; on failure, fall back to printing
+            if write_to_pager(text).is_ok() {
+                return;
+            }
+        }
+    }
+
+    // Fall back: print directly
+    sout!("{}", text);
 }
 
 /// Prints a syntax error message with an error preamble, the error line, and
