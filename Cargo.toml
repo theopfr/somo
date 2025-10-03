@@ -11,7 +11,7 @@ keywords = ["netstat", "socket-monitoring", "port-checker"]
 categories = ["command-line-utilities"]
 
 [dependencies]
-clap = { version = "4.5.47", features = ["derive"] }
+clap = { version = "4.5.48", features = ["derive"] }
 clap_complete = "4.5.58"
 inquire = "0.8.0"
 termimad = "0.34.0"
