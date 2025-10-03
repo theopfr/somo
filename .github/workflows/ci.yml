@@ -25,8 +25,6 @@ jobs:
     steps:
     - name: Setup | Rust
       uses: dtolnay/rust-toolchain@stable
-      with:
-        components: rustfmt, clippy, rust-src
 
     - name: Setup | Checkout
       uses: actions/checkout@v5
@@ -40,6 +38,8 @@ jobs:
     steps:
     - name: Setup | Rust
       uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt
 
     - name: Setup | Checkout
       uses: actions/checkout@v5
@@ -53,6 +53,8 @@ jobs:
     steps:
     - name: Setup | Rust
       uses: dtolnay/rust-toolchain@stable
+      with:
+        components: clippy
 
     - name: Setup | Checkout
       uses: actions/checkout@v5
