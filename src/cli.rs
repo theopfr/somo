@@ -39,6 +39,7 @@ pub struct Flags {
     pub reverse: bool,
     pub config_file: bool,
     pub annotate_remote_port: bool,
+    pub no_pager: bool,
 }
 
 /// Represents all possible flags which can be provided by the user in the CLI.
@@ -155,6 +156,10 @@ pub struct Args {
     /// Annotate remote port with service name and ephemeral tag
     #[arg(short = 'a', long, default_value_t = false)]
     annotate_remote_port: bool,
+
+    /// Never page output
+    #[arg(long, default_value_t = false)]
+    no_pager: bool,
 }
 
 #[derive(Subcommand, Debug)]
@@ -224,6 +229,7 @@ pub fn cli() -> CliCommand {
             reverse: args.reverse,
             config_file: args.config_file,
             annotate_remote_port: args.annotate_remote_port,
+            no_pager: args.no_pager,
         }),
     }
 }

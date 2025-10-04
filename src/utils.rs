@@ -152,10 +152,9 @@ pub fn terminal_rows() -> Option<usize> {
     unsafe {
         let fd = std::io::stdout().as_raw_fd();
         let mut ws: libc::winsize = std::mem::zeroed();
-        if libc::ioctl(fd, libc::TIOCGWINSZ, &mut ws) == 0
-            && ws.ws_row > 0 {
-                return Some(ws.ws_row as usize);
-            }
+        if libc::ioctl(fd, libc::TIOCGWINSZ, &mut ws) == 0 && ws.ws_row > 0 {
+            return Some(ws.ws_row as usize);
+        }
     }
     None
 }
@@ -198,20 +197,21 @@ fn write_to_pager(text: &str) -> std::io::Result<()> {
 ///
 /// # Arguments
 /// * `text`: The text to print to console or write to pager.
+/// * `no_paging`: If `true`, never page.
 ///
 /// # Returns
 /// None
-pub fn page_or_print(text: &str) {
-    let rows = terminal_rows();
-    if let Some(rows) = rows {
-        let line_count = text.lines().count();
-        if line_count >= rows && write_to_pager(text).is_ok() {
-            return;
-        }
+pub fn page_or_print(text: &str, no_paging: bool) {
+    let should_page = !no_paging
+        && terminal_rows()
+            .map(|rows| text.lines().count() >= rows)
+            .unwrap_or(false);
+
+    if should_page && write_to_pager(text).is_ok() {
+        return;
     }
 
-    // Fall back to printing directly
-    sout!("{}", text);
+    soutln!("{}", text);
 }
 
 #[cfg(test)]

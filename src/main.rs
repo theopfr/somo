@@ -51,11 +51,11 @@ fn main() {
 
     if args.json {
         let result = view::get_connections_json(&all_connections);
-        utils::page_or_print(&format!("{}\n", result));
+        utils::page_or_print(&result, args.no_pager);
     } else if args.format.is_some() {
         let result =
             view::get_connections_formatted(&all_connections, &args.format.clone().unwrap());
-        utils::page_or_print(&format!("{}\n", result));
+        utils::page_or_print(&result, args.no_pager);
     } else if args.config_file {
         let config_file_path = config::get_config_path();
         soutln!("{}", config_file_path.to_string_lossy());
@@ -63,7 +63,7 @@ fn main() {
         let table =
             view::get_connections_table(&all_connections, args.compact, args.annotate_remote_port);
         let info_line = utils::render_info_line(&format!("{} Connections", all_connections.len()));
-        utils::page_or_print(&format!("{}{}\n", table, info_line));
+        utils::page_or_print(&format!("{}{}", table, info_line), args.no_pager);
     }
 
     if args.kill {
