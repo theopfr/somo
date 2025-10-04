@@ -53,20 +53,17 @@ fn main() {
         let result = view::get_connections_json(&all_connections);
         utils::page_or_print(&format!("{}\n", result));
     } else if args.format.is_some() {
-        let result = view::get_connections_formatted(&all_connections, &args.format.clone().unwrap());
+        let result =
+            view::get_connections_formatted(&all_connections, &args.format.clone().unwrap());
         utils::page_or_print(&format!("{}\n", result));
     } else if args.config_file {
         let config_file_path = config::get_config_path();
         soutln!("{}", config_file_path.to_string_lossy());
     } else {
-        let table = view::get_connections_table(&all_connections, args.compact, args.annotate_remote_port);
+        let table =
+            view::get_connections_table(&all_connections, args.compact, args.annotate_remote_port);
         let info_line = utils::render_info_line(&format!("{} Connections", all_connections.len()));
-        let combined = if table.ends_with('\n') {
-            format!("{}{}\n", table, info_line)
-        } else {
-            format!("{}\n{}\n", table, info_line)
-        };
-        utils::page_or_print(&combined);
+        utils::page_or_print(&format!("{}{}\n", table, info_line));
     }
 
     if args.kill {
