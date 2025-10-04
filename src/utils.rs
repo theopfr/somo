@@ -152,11 +152,10 @@ pub fn terminal_rows() -> Option<usize> {
     unsafe {
         let fd = std::io::stdout().as_raw_fd();
         let mut ws: libc::winsize = std::mem::zeroed();
-        if libc::ioctl(fd, libc::TIOCGWINSZ, &mut ws) == 0 {
-            if ws.ws_row > 0 {
+        if libc::ioctl(fd, libc::TIOCGWINSZ, &mut ws) == 0
+            && ws.ws_row > 0 {
                 return Some(ws.ws_row as usize);
             }
-        }
     }
     None
 }
