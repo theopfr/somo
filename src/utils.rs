@@ -1,4 +1,4 @@
-use crate::{schemas::AddressType, sout, soutln};
+use crate::{schemas::AddressType, soutln};
 use std::env;
 use std::io::{IsTerminal, Write};
 use std::os::fd::AsRawFd;
