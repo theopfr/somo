@@ -58,6 +58,14 @@ nix build 'github:theopfr/somo?dir=nix'
 sudo ./result/bin/somo
 ```
 
+### Homebrew:
+
+Homebrew packages a [`somo` formula](https://formulae.brew.sh/formula/somo) for macOS and Linux.
+
+```sh
+brew install somo
+```
+
 ---
 
 ## 🏃‍♀️ Running somo:
