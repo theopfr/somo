@@ -180,7 +180,7 @@ then ``somo`` will always show the table in compact mode, sorted by PID.
 ### ✨ Displaying port service names:
 When using the ``--annotate-remote-port, -a`` flag, the table will display the corresponding service names for the listed ports as defined in the *IANA Port Number Registry* (for example, ``443 -> https``).
 
-### ✨ Builtin paging:
+### ✨ Built-in paging:
 When the rows of somos output exceed the terminal height, the output will be automatically piped into a pager. By default, `less -R` will be used if available. You can use either the `SOMO_RAGER` or `PAGER` environment variables to define what pager and settings should be used (`SOMO_PAGER` takes precedence). Paging can be deactivated using the `--no-pager` flag, for example by putting it into the config file.
 
 ---
