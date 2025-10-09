@@ -9,6 +9,7 @@ readme = "./README.md"
 repository = "https://github.com/theopfr/somo/"
 keywords = ["netstat", "socket-monitoring", "port-checker"]
 categories = ["command-line-utilities"]
+exclude = ["/tests/mock/**"]
 
 [dependencies]
 clap = { version = "4.5.48", features = ["derive"] }
