@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0] - 09.10.2025
+- **update** README to include Homebrew installation, by @colindean
+- **add** automatic paging if somo exceeds terminal height, by @fatelei
+- **add** integration tests, by @theopfr
+
+---
+
 ## [1.2.0] - 02.09.2025
 - **add** new `--ipv4/-4` and `--ipv6/-6` flags, deprecating `--exclude-ipv6`, by @cma5
 - **add** config file for setting default flags, by @theopfr

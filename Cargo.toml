@@ -1,6 +1,6 @@
 [package]
 name = "somo"
-version = "1.2.0"
+version = "1.3.0"
 edition = "2021"
 authors = ["theopfr"]
 description = "A human-friendly alternative to netstat for socket and port monitoring on Linux and macOS."
