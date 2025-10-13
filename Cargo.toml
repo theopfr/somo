@@ -25,7 +25,7 @@ libc = "0.2.176"
 
 [dev-dependencies]
 tempfile = "3.23.0"
-regex = "1.11.3"
+regex = "1.12.1"
 assert_cmd = "2.0.17"
 predicates = "3.1.3"
 
