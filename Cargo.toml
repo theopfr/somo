@@ -12,7 +12,7 @@ categories = ["command-line-utilities"]
 exclude = ["/tests/mock/**"]
 
 [dependencies]
-clap = { version = "4.5.50", features = ["derive"] }
+clap = { version = "4.5.51", features = ["derive"] }
 clap_complete = "4.5.59"
 inquire = "0.9.1"
 termimad = "0.34.0"
