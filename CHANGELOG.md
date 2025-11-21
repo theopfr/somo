@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.1] - 21.11.2025
+- **bump** dependencies, by @dependabot
+
+---
+
 ## [1.3.0] - 09.10.2025
 - **update** README to include Homebrew installation, by @colindean
 - **add** automatic paging if somo exceeds terminal height, by @fatelei
