@@ -13,7 +13,7 @@ exclude = ["/tests/mock/**"]
 
 [dependencies]
 clap = { version = "4.5.54", features = ["derive"] }
-clap_complete = "4.5.62"
+clap_complete = "4.5.64"
 inquire = "0.9.1"
 termimad = "0.34.1"
 serde = { version = "1.0.228", features = ["derive"] }
