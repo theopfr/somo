@@ -85,7 +85,7 @@ jobs:
         cargo deb --output target/debian/somo-${{ steps.version.outputs.version }}.deb
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: somo-${{ steps.version.outputs.version }}-${{ github.run_number }}-${{ github.sha }}.deb
         path: target/debian/somo-${{ steps.version.outputs.version }}.deb
