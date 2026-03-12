@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.2] - 12.03.2026
+- **bump** dependencies, by @dependabot
+
+---
+
 ## [1.3.1] - 21.11.2025
 - **bump** dependencies, by @dependabot
 
