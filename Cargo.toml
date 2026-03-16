@@ -24,7 +24,7 @@ etcetera = "0.11.0"
 libc = "0.2.180"
 
 [dev-dependencies]
-tempfile = "3.24.0"
+tempfile = "3.27.0"
 regex = "1.12.3"
 assert_cmd = "2.1.2"
 predicates = "3.1.4"
