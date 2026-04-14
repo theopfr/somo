@@ -40,7 +40,7 @@ fn parse_connections(
     sockets_info
         .iter()
         .filter_map(|si| {
-            let (proto, local_port, remote_address, remote_port, state) =
+            let (proto, local_port, remote_address, remote_port, state, raw_remote_ip) =
                 match &si.protocol_socket_info {
                     NetstatSocketInfo::Tcp(tcp_si) => {
                         let state = format!("{}", tcp_si.state).to_ascii_lowercase();
@@ -50,6 +50,7 @@ fn parse_connections(
                             tcp_si.remote_addr.to_string(),
                             tcp_si.remote_port.to_string(),
                             state,
+                            Some(tcp_si.remote_addr),
                         )
                     }
                     NetstatSocketInfo::Udp(udp_si) => (
@@ -58,6 +59,7 @@ fn parse_connections(
                         "0.0.0.0".to_string(),
                         "-".to_string(),
                         "-".to_string(),
+                        None,
                     ),
                 };
 
@@ -86,7 +88,7 @@ fn parse_connections(
                 pid,
                 state,
                 address_type: get_address_type(&remote_address),
-                ipvx_raw: Some(si.local_addr()),
+                ipvx_raw: raw_remote_ip,
             };
 
             if filter_out_connection(&conn, filter_options) {
