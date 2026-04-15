@@ -26,7 +26,7 @@ libc = "0.2.184"
 [dev-dependencies]
 tempfile = "3.24.0"
 regex = "1.12.3"
-assert_cmd = "2.1.2"
+assert_cmd = "2.2.0"
 predicates = "3.1.4"
 
 [target.'cfg(target_os = "linux")'.dependencies]
