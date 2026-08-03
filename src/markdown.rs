@@ -188,7 +188,7 @@ impl Table {
 
 impl fmt::Display for Table {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", &self.content)
+        write!(f, "{}", self.content)
     }
 }
 
