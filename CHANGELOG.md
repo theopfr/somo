@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.4] - 17.08.2026
+- **remove** redundant references to calm clippy, by @theopfr
+- **bump** dependencies, by @dependabot
+
+---
+
 ## [1.3.3] - 30.04.2026
 - **fix** race condition in linux process enumeration, by @Jeidnx
 - **fix** sort by remote_address on macOS, by @aychun
