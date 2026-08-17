@@ -264,6 +264,22 @@ mod test_connection_data {
     }
 
     #[test]
+    fn test_user_filter() {
+        let mut cmd = base_exec_json();
+        cmd.arg("--user").arg("root"); // Mock socket entries are owned by UID 0
+        let stdout = get_stdout(cmd);
+
+        let connections: Vec<Connection> =
+            serde_json::from_str(&stdout).expect("Failed to parse JSON.");
+
+        assert_eq!(
+            connections.len(),
+            NUM_PROCESSES,
+            "Expected to receive all root-owned connections."
+        );
+    }
+
+    #[test]
     fn test_open_state_filter() {
         let mut cmd = base_exec_json();
         cmd.arg("--open");

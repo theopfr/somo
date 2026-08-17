@@ -1,4 +1,4 @@
-use crate::connections::common::{filter_out_connection, get_address_type};
+use crate::connections::common::{filter_out_connection, filter_out_user, get_address_type};
 use crate::schemas::{Connection, FilterOptions};
 use procfs::net::{TcpNetEntries, TcpNetEntry, UdpNetEntries, UdpNetEntry};
 use procfs::process::FDTarget;
@@ -164,6 +164,10 @@ fn get_tcp_connections(
     tcp_entries
         .iter()
         .filter_map(|entry| {
+            if filter_out_user(Some(entry.uid), filter_options.by_user) {
+                return None;
+            }
+
             let tcp_entry: NetEntry = NetEntry {
                 protocol: "tcp".to_string(),
                 local_address: entry.local_address,
@@ -218,6 +222,10 @@ fn get_udp_connections(
     udp_entries
         .iter()
         .filter_map(|entry| {
+            if filter_out_user(Some(entry.uid), filter_options.by_user) {
+                return None;
+            }
+
             let udp_entry: NetEntry = NetEntry {
                 protocol: "udp".to_string(),
                 local_address: entry.local_address,

@@ -1,5 +1,6 @@
-use crate::connections::common::{filter_out_connection, get_address_type};
+use crate::connections::common::{filter_out_connection, filter_out_user, get_address_type};
 use crate::schemas::{Connection, FilterOptions};
+use libproc::libproc::bsd_info::BSDInfo;
 use libproc::libproc::proc_pid;
 use netstat2::{
     get_sockets_info, AddressFamilyFlags, ProtocolFlags, ProtocolSocketInfo as NetstatSocketInfo,
@@ -19,6 +20,12 @@ fn get_process_name(pid: i32) -> String {
         Ok(name) => name,
         Err(_) => "-".to_string(),
     }
+}
+
+fn get_process_user_id(pid: i32) -> Option<u32> {
+    proc_pid::pidinfo::<BSDInfo>(pid, 0)
+        .ok()
+        .map(|info| info.pbi_uid)
 }
 
 /// Parses and filters TCP and/or UDP connections using socket information.
@@ -63,11 +70,14 @@ fn parse_connections(
                     ),
                 };
 
-            let (program, pid) = if let Some(first_pid) = si.associated_pids.first() {
+            let (program, pid, user_id) = if let Some(first_pid) = si.associated_pids.first() {
                 let proc_name = get_process_name(*first_pid as i32);
-                (proc_name, first_pid.to_string())
+                let user_id = filter_options
+                    .by_user
+                    .and_then(|_| get_process_user_id(*first_pid as i32));
+                (proc_name, first_pid.to_string(), user_id)
             } else {
-                ("-".to_string(), "-".to_string())
+                ("-".to_string(), "-".to_string(), None)
             };
 
             // Create a unique key for deduplication
@@ -76,6 +86,10 @@ fn parse_connections(
 
             // If the connection has already been processed, skip it
             if !seen_connections.insert(connection_key) {
+                return None;
+            }
+
+            if filter_out_user(user_id, filter_options.by_user) {
                 return None;
             }
 
@@ -138,6 +152,14 @@ mod tests {
     use crate::schemas::Protocols;
     use netstat2::{ProtocolSocketInfo, SocketInfo, TcpSocketInfo, TcpState};
     use std::net::{IpAddr, Ipv4Addr};
+
+    #[test]
+    fn test_get_process_user_id_for_current_process() {
+        assert_eq!(
+            get_process_user_id(std::process::id() as i32),
+            Some(nix::unistd::Uid::current().as_raw())
+        );
+    }
 
     #[test]
     fn test_parse_connections_tcp() {
