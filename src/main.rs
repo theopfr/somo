@@ -32,6 +32,7 @@ fn main() {
         by_remote_address: args.ip,
         by_remote_port: args.remote_port,
         by_local_port: args.port,
+        by_user: args.user,
         by_program: args.program,
         by_pid: args.pid,
         by_open: args.open,

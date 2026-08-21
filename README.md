@@ -100,6 +100,7 @@ Options:
   -p, --port <PORT>                Filter connections by local port
       --program <PROGRAM>          Filter connections by program name
       --pid <PID>                  Filter connections by PID
+      --user <USER>                Filter connections by username
       --format <FORMAT>            Format the output in a certain way, e.g., `somo --format "PID: {{pid}}, Protocol: {{proto}}, Remote Address: {{remote_address}}"`
       --json                       Output in JSON
   -o, --open                       Filter by open connections
@@ -132,6 +133,7 @@ You can use the following flags to filter based on different attributes:
 | ```--ip``` | filter by a remote IP | IP address e.g ``0.0.0.0`` |
 | ```--program``` | filter by a client program | program name e.g ``chrome`` |
 | ```--pid``` | filter by a PID | PID number, e.g ``10000`` |
+| ```--user``` | filter by the user that owns a connection | username, e.g ``root`` |
 | ```--open, -o``` | filter by open connections | - |
 | ```--listen, -l``` | filter by listening connections | - |
 | ```--established, -e``` | filter by established connections | - |

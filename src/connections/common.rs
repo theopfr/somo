@@ -53,6 +53,13 @@ pub fn filter_out_connection(
     false
 }
 
+pub fn filter_out_user(connection_user_id: Option<u32>, filter_user_id: Option<u32>) -> bool {
+    matches!(
+        filter_user_id,
+        Some(filter_user_id) if connection_user_id != Some(filter_user_id)
+    )
+}
+
 /// Checks if a given IP address is either "unspecified", localhost or an extern address.
 ///
 /// * `0.0.0.0` or `[::]` -> unspecified
@@ -188,6 +195,14 @@ mod tests {
             ..Default::default()
         };
         assert!(filter_out_connection(&conn, &no_active_open_filter));
+    }
+
+    #[test]
+    fn test_filter_out_connection_by_user() {
+        assert!(!filter_out_user(Some(1000), Some(1000)));
+        assert!(filter_out_user(Some(1000), Some(2000)));
+        assert!(filter_out_user(None, Some(1000)));
+        assert!(!filter_out_user(Some(1000), None));
     }
 
     #[test]

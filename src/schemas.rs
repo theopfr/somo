@@ -49,6 +49,7 @@ pub struct Connection {
 pub struct FilterOptions {
     pub by_proto: Protocols,
     pub by_ip_version: IpVersions,
+    pub by_user: Option<u32>,
     pub by_program: Option<String>,
     pub by_pid: Option<String>,
     pub by_remote_address: Option<String>,

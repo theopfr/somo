@@ -3,7 +3,7 @@ use clap_complete::{generate, Generator, Shell};
 use inquire::InquireError;
 use inquire::Select;
 use nix::sys::signal;
-use nix::unistd::Pid;
+use nix::unistd::{Pid, User};
 use std::env;
 use std::str::FromStr;
 use std::{io, string::String};
@@ -26,6 +26,7 @@ pub struct Flags {
     pub port: Option<String>,
     pub program: Option<String>,
     pub pid: Option<String>,
+    pub user: Option<u32>,
     pub format: Option<String>,
     pub json: bool,
     pub open: bool,
@@ -84,6 +85,15 @@ pub struct Args {
     /// Filter connections by PID
     #[arg(long, default_value = None, overrides_with = "pid")]
     pid: Option<String>,
+
+    /// Filter connections by username
+    #[arg(
+        long,
+        value_name = "USER",
+        value_parser = parse_user,
+        overrides_with = "user"
+    )]
+    user: Option<u32>,
 
     /// Format the output in a certain way, e.g., `somo --format "PID: {{pid}}, Protocol: {{proto}}, Remote Address: {{remote_address}}"`
     #[arg(long, default_value = None, overrides_with = "format")]
@@ -179,6 +189,21 @@ pub enum CliCommand {
     Subcommand(Commands),
 }
 
+/// Resolves a username to its numeric user ID for the `--user` flag.
+///
+/// # Arguments
+/// * `name`: The username as passed on the command line.
+///
+/// # Returns
+/// The user ID or an error message if the user couldn't be resolved.
+fn parse_user(name: &str) -> Result<u32, String> {
+    match User::from_name(name) {
+        Ok(Some(user)) => Ok(user.uid.as_raw()),
+        Ok(None) => Err(format!("unknown user '{name}'")),
+        Err(error) => Err(format!("failed to resolve user '{name}': {error}")),
+    }
+}
+
 #[derive(clap::ValueEnum, Clone, Copy, Debug)]
 #[clap(rename_all = "snake_case")]
 pub enum SortField {
@@ -216,6 +241,7 @@ pub fn cli() -> CliCommand {
             port: args.port,
             program: args.program,
             pid: args.pid,
+            user: args.user,
             format: args.format,
             json: args.json,
             open: args.open,
@@ -415,6 +441,8 @@ mod tests {
             "nginx",
             "--pid",
             "1234",
+            "--user",
+            "root",
             "-o",
             "-l",
             "--exclude-ipv6",
@@ -430,6 +458,7 @@ mod tests {
         assert_eq!(args.port.as_deref(), Some("8080"));
         assert_eq!(args.program.as_deref(), Some("nginx"));
         assert_eq!(args.pid.as_deref(), Some("1234"));
+        assert_eq!(args.user, Some(0));
         assert!(args.open);
         assert!(args.listen);
         assert!(args.ipv4);
@@ -450,6 +479,7 @@ mod tests {
         assert!(args.port.is_none());
         assert!(args.program.is_none());
         assert!(args.pid.is_none());
+        assert!(args.user.is_none());
         assert!(!args.open);
         assert!(!args.listen);
         assert!(!args.exclude_ipv6);
@@ -468,6 +498,17 @@ mod tests {
         assert_eq!(short.open, long.open);
         assert_eq!(short.listen, long.listen);
         assert_eq!(short.exclude_ipv6, long.exclude_ipv6);
+    }
+
+    #[test]
+    fn test_user_filter_does_not_conflict_with_udp_short_flag() {
+        let udp = Args::parse_from(["test-bin", "-u"]);
+        let user = Args::parse_from(["test-bin", "--user", "root"]);
+
+        assert!(udp.udp);
+        assert!(udp.user.is_none());
+        assert_eq!(user.user, Some(0));
+        assert!(!user.udp);
     }
 
     #[test]
