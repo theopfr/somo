@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.0] - 12.09.2026
+- **add** connection filtering by user, by @oiahoon
+- **bump** dependencies, by @dependabot
+
+---
+
 ## [1.3.4] - 17.08.2026
 - **remove** redundant references to calm clippy, by @theopfr
 - **bump** dependencies, by @dependabot
